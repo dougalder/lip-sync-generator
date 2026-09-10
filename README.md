@@ -1,5 +1,5 @@
 # Lip Sync Generator
-**[▶ Try it in your browser](https://dougalder.github.io/lip-sync-generator/)** — no install, no account, nothing uploaded.
+**[▶ Try it in your browser](https://dougalder.github.io/lip-sync-generator/)** — no install, no account, nothing uploaded. The first load is about 5 MB, because the speech engine is inside the page. It is cached after that.
 **Spoken audio in, viseme timing and transparent frames out.**
 
 One HTML file. Open it in a browser and it works — no install, no account, no
