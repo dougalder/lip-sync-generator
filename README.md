@@ -73,9 +73,38 @@ The single-clip path has no limit and is always the fallback.
 
 ## Privacy
 
-Nothing is uploaded. There is no server, no account, no analytics and no network
-request for your media. Everything happens in the page. You can put it on a USB
+Nothing is uploaded. There is no server, no account, no analytics, and **no
+network request of any kind** — not for your media, not for fonts, not for
+anything. Everything the page needs travels inside it. You can put it on a USB
 stick and use it on a machine with no network at all.
+
+`offlinetest.py` holds that claim to account: it watches every request the page
+makes, and it loads the file a second time from a `file://` URL with the network
+refused outright, then analyses a clip to prove it still works.
+
+## Built from
+
+| | |
+|---|---|
+| **Rhubarb engine** | [`lip-sync-engine`](https://github.com/biolimbo/lip-sync-engine) 1.0.3 (npm, MIT) — a ready-made WebAssembly build of [Rhubarb Lip Sync](https://github.com/DanielSWolf/rhubarb-lip-sync) by Daniel Wolf (MIT). |
+| **Speech model** | The standard CMU Sphinx US English acoustic model (© 2015 Alpha Cephei Inc., BSD), unmodified. |
+| **Typefaces** | [Archivo](https://github.com/Omnibus-Type/Archivo) and [DM Mono](https://github.com/googlefonts/dm-mono), both SIL Open Font License 1.1, embedded in the file. |
+
+A few notes on the above, since they are the kind of thing people ask:
+
+- **The WASM was not compiled here.** It is the published `lip-sync-engine`
+  build, byte-identical to the package on npm (verified by hash). No Emscripten
+  was run for this project; that package's author builds it in GitHub Actions,
+  and neither the package nor its repository declares the Emscripten version.
+- **No Rhubarb version is claimed**, because the port does not state which
+  release it derives from. What can be said from the binary is that it vendors
+  `sphinxbase-rev13216` and `pocketsphinx-rev13216`.
+- **The acoustic model is not trimmed.** What was removed is two files of the
+  36.1 MB bundle that only the transcript-driven path ever opens:
+  `en-us.lm.bin` (25.9 MB word language model) and `cmudict-en-us.dict` (3.1 MB
+  pronunciation dictionary). Everything the phonetic recogniser reads — the
+  acoustic model and `en-us-phone.lm.bin` — is byte-for-byte the original.
+  36.1 MB down to 7.1 MB, with nothing the engine uses altered.
 
 ---
 
@@ -87,9 +116,11 @@ docs/
   manual.md                 the manual, in Markdown
   index.html                the manual, as a page
   images/                   annotated screenshots
+fonts/                      the two typefaces, embedded at build time
 lips/                       optional: your own mouth sets, one folder each
 manualshots.py              regenerates the screenshots
 manualtest.py               checks the manual against the app
+offlinetest.py              proves the file makes no network request
 ```
 
 The manual's screenshots are generated, not taken by hand: `manualshots.py`

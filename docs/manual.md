@@ -566,9 +566,11 @@ that keeps turning through it — if you can see it turning, it has not crashed.
 
 ## Privacy
 
-Nothing is uploaded. There is no server, no account, no analytics and no network
-request for your media. The audio is decoded in the page, analysed in the page,
-and written back out by the page.
+Nothing is uploaded. There is no server, no account, no analytics, and **no
+network request of any kind** — not for your media, not for fonts, not for
+anything. Everything the page needs travels inside it, typefaces included. The
+audio is decoded in the page, analysed in the page, and written back out by the
+page.
 
 Custom lip sets you add with **Use my own lips…** live in memory for that visit
 only: nothing is written to disk, nothing is stored in the browser, and reloading
