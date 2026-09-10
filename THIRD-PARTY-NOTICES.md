@@ -1,3 +1,5 @@
+This covers the code embedded in the HTML, the project itself is Apache-2.0.
+
 # License
 
 ## Summary
