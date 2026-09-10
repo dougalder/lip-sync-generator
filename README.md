@@ -1,5 +1,5 @@
 # Lip Sync Generator
-
+**[▶ Try it in your browser](https://dougalder.github.io/lip-sync-generator/)** — no install, no account, nothing uploaded.
 **Spoken audio in, viseme timing and transparent frames out.**
 
 One HTML file. Open it in a browser and it works — no install, no account, no
