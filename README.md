@@ -11,7 +11,7 @@ correct by hand, and writes the mouths out in whatever form your animation tool
 wants.
 
 Demos:
-[![The generator building an exposure sheet](docs/images/scene-1.gif)](https://dougalder.github.io/lip-sync-generator/) [![The generator building an exposure sheet](docs/images/scene-2.gif)](https://dougalder.github.io/lip-sync-generator/) [![The generator building an exposure sheet](docs/images/scene-3.gif)](https://dougalder.github.io/lip-sync-generator/)
+[![Lego Movies](docs/images/scene-1.gif)](https://dougalder.github.io/lip-sync-generator/) [![Barbie Movies](docs/images/scene-2.gif)](https://dougalder.github.io/lip-sync-generator/) [![General Animation](docs/images/scene-3.gif)](https://dougalder.github.io/lip-sync-generator/)
 
 [![The generator building an exposure sheet](docs/images/lip-sync-generator-demo-short.gif)](https://dougalder.github.io/lip-sync-generator/)
 
