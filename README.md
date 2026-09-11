@@ -2,18 +2,13 @@
 
 **Spoken audio in, viseme timing and transparent frames out.**
 
-**[▶ Try it in your browser](https://dougalder.github.io/lip-sync-generator/)** — no install, no account, nothing uploaded. The first load is about 5 MB, because the speech engine is inside the page. It is cached after that.
-
 One HTML file. Open it in a browser and it works — no install, no account, no
 server, nothing uploaded. Give it a voice track and it works out which mouth
 shape belongs on every frame, shows you the result as an exposure sheet you can
 correct by hand, and writes the mouths out in whatever form your animation tool
 wants.
 
-## Demos:
-[![Lego Movies](docs/images/scene-1.gif)](https://dougalder.github.io/lip-sync-generator/) [![Barbie Movies](docs/images/scene-2.gif)](https://dougalder.github.io/lip-sync-generator/) [![General Animation](docs/images/scene-3.gif)](https://dougalder.github.io/lip-sync-generator/)
-
-[![The generator building an exposure sheet](docs/images/lip-sync-generator-demo-short.gif)](https://dougalder.github.io/lip-sync-generator/)
+![The exposure sheet](docs/images/06-sheet.png)
 
 ## 📖 The manual
 
@@ -55,7 +50,8 @@ The two are checked against each other, so neither can quietly drift.
   per line, throw away the bits you don't want, bring them back if you change
   your mind
 - **A queue** — up to 24 clips, each keeping its own edits, placement and mouth
-- **Fifteen drawn mouth styles**, plus your own pictures
+- **Fifteen drawn mouth styles**, each in three head angles — front,
+  three-quarter and profile — plus your own pictures
 - **Place the mouth on the video**, with keyframes to follow a moving shot and a
   blur patch to cover a printed mouth
 - **Seven export formats** — chart + timing, Final Cut Pro project, transparent
@@ -116,24 +112,16 @@ A few notes on the above, since they are the kind of thing people ask:
 ## Repository layout
 
 ```
-```
 lip-sync-generator.html     the app — this is the whole thing
-index.html                  redirect, so the Pages address opens the app
-README.md                   this file
-LICENSE                     Apache 2.0 — the licence for this project
-NOTICE                      copyright line
-THIRD-PARTY-NOTICES.md      licences for the code embedded in the app
-requirements.txt            what the scripts need installed
 docs/
   manual.md                 the manual, in Markdown
   index.html                the manual, as a page
   images/                   annotated screenshots
-fonts/                      the two typefaces, and their licences
+fonts/                      the two typefaces, embedded at build time
 lips/                       optional: your own mouth sets, one folder each
 manualshots.py              regenerates the screenshots
 manualtest.py               checks the manual against the app
 offlinetest.py              proves the file makes no network request
-```
 ```
 
 The manual's screenshots are generated, not taken by hand: `manualshots.py`
@@ -145,37 +133,3 @@ buttons — or it fails, if a control it points at no longer exists.
 control really is on the page, that every promised shortcut fires, that the
 quoted limits match the constants in the code, and that the Markdown and HTML
 versions still say the same things.
-
-### Running them
-
-The scripts drive the app in a real browser, so it has to be served over http
-rather than opened from disk. Once, to set up:
-
-```bash
-pip install -r requirements.txt
-playwright install chromium
-```
-
-Then start a server in this folder and leave it running:
-
-```bash
-python3 -m http.server 8812
-```
-
-In a second terminal:
-
-```bash
-python3 manualshots.py     # regenerate the screenshots
-python3 manualtest.py      # check the manual against the app
-python3 offlinetest.py     # prove the page makes no network request
-```
-
----
-
-## Licence
-
-This project is released under the Apache License 2.0 — see [LICENSE](LICENSE).
-Third-party code embedded in the app is listed in
-[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
-
-Copyright 2026 Douglas Alder.
