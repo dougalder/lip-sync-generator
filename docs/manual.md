@@ -285,13 +285,42 @@ keyframes, the blur patch and the script.
 ![The Mouth and motion tab](images/08-mouth.png)
 
 1. **Built-in lips** — fifteen drawn styles, from a plain line to a rendered
-   mouth.
+   mouth, each in three head angles: **Front**, **Three-quarter** and
+   **Profile**.
 2. **Custom lips** — sets of pictures, either shipped with the app or added for
    this visit. See below.
 3. **The styles** — click one to use it. With a queue up it applies to the open
    clip only.
 4. **Chart** — all nine shapes in the current style. Click a cell to preview it
    on the stage.
+
+#### Head angles
+
+A mouth chart belongs to a head angle: the same nine shapes drawn for a
+character facing the camera are wrong on one that has turned. The turned views
+are rebuilt geometry rather than the front view squashed. Three-quarter
+foreshortens the far half and tucks that corner behind the cheek. Profile is
+drawn from scratch: an upper lip and a lower one, each a lobe running from the
+mouth corner out to a rounded free edge, with the dark of the mouth between them
+running clean out of the face — front-on the opening is a hole ringed by lip,
+and from the side it is not a hole at all. Width becomes protrusion, the jaw
+carries the opening and takes the mouth corner down with it, and a pucker
+gathers the lips into a cone with a small round hole at the very front.
+
+Both turned views face **right**. Because the styles match across all three, a
+character can keep its look through a turn — put the front set on one clip and
+the three-quarter on the next. The pane opens on **Built-in lips** and **Front**
+every time, whichever tab and angle you were last using.
+
+Two things to expect:
+
+- **Profile reads less precisely than front-on**, and that is true of profile
+  lip sync generally rather than a limitation here. Front-on, `B` `C` and `D`
+  differ mainly by how wide the mouth opens, and from the side that difference
+  largely disappears. What survives is jaw travel and lip protrusion, so `A`,
+  `F` and `G` still read strongly while the open vowels sit closer together.
+- **The angle control is not a substitute.** It turns the mouth in the picture
+  plane; a real turn foreshortens it and hides the far corner.
 
 ### Different lips per clip
 
@@ -310,10 +339,30 @@ keyframes, the blur patch and the script.
 
 1. **The sets** — anything found in a `lips/` folder beside the HTML file when
    the page loaded, plus anything you have added this visit. A set showing `7/9`
-   is missing shapes; the drawn style fills the gaps.
+   has two shapes no picture was named for; they are filled with a best guess.
 2. **Use my own lips…** — pick a folder of nine pictures named for the shapes:
    `X A B C D E F G H`. It stays on this page for this visit only. Nothing is
    uploaded, nothing is stored, and reloading clears it.
+3. **Match pictures to shapes…** — say which picture is which, by hand.
+
+#### When the names don't say which shape is which
+
+Pictures are matched to shapes by filename: a letter on its own, so `mouth-D.png`,
+`D.png` and `04_D_wide.png` all land on `D`. When a name says nothing — a folder
+of `frame01.png … frame09.png`, or one that calls its wide-open shape `aah` —
+the leftovers are handed out in name order, counting numerically, which puts a
+folder numbered in chart order (`X A B C D E F G H`) right on its own.
+
+Where that guess is wrong, **Match pictures to shapes…** opens a list of the nine
+shapes with a chooser on each: pick any picture in the folder for any shape, and
+the chart, the stage and every export follow as you go. Shapes nobody named a
+picture for are marked, so you can see which ones were a guess and which you
+chose. **Match by name again** throws away your choices and re-runs the automatic
+match.
+
+It opens by itself right after an import that left anything to guess at, which is
+the moment you still remember what is in the folder. A folder named for the
+shapes is already right, so it stays out of the way.
 
 > **Shipping your own sets**
 >

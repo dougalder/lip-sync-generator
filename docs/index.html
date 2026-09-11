@@ -532,7 +532,8 @@ keyframes, the blur patch and the script.</p>
 
 <ol class="keys">
   <li><b>Built-in lips</b> — fifteen drawn styles, from a plain line to a
-      rendered mouth.</li>
+      rendered mouth, each in three head angles: <b>Front</b>,
+      <b>Three-quarter</b> and <b>Profile</b>.</li>
   <li><b>Custom lips</b> — sets of pictures, either shipped with the app or added
       for this visit. See below.</li>
   <li><b>The styles</b> — click one to use it. With a queue up it applies to the
@@ -540,6 +541,37 @@ keyframes, the blur patch and the script.</p>
   <li><b>Chart</b> — all nine shapes in the current style. Click a cell to
       preview it on the stage.</li>
 </ol>
+
+<h4>Head angles</h4>
+
+<p>A mouth chart belongs to a head angle: the same nine shapes drawn for a
+character facing the camera are wrong on one that has turned. The turned views
+are rebuilt geometry rather than the front view squashed. Three-quarter
+foreshortens the far half and tucks that corner behind the cheek. Profile is
+drawn from scratch: an upper lip and a lower one, each a lobe running from the
+mouth corner out to a rounded free edge, with the dark of the mouth between them
+running clean out of the face — front-on the opening is a hole ringed by lip,
+and from the side it is not a hole at all. Width becomes protrusion, the jaw
+carries the opening and takes the mouth corner down with it, and a pucker
+gathers the lips into a cone with a small round hole at the very front.</p>
+
+<p>Both turned views face <b>right</b>. Because the styles match across all
+three, a character can keep its look through a turn — put the front set on one
+clip and the three-quarter on the next. The pane opens on <b>Built-in lips</b>
+and <b>Front</b> every time, whichever tab and angle you were last using.</p>
+
+<div class="note">
+  <span class="boxlabel">Two things to expect</span>
+  <p><b>Profile reads less precisely than front-on</b>, and that is true of
+  profile lip sync generally rather than a limitation here. Front-on,
+  <code>B</code> <code>C</code> and <code>D</code> differ mainly by how wide the
+  mouth opens, and from the side that difference largely disappears. What
+  survives is jaw travel and lip protrusion, so <code>A</code>, <code>F</code>
+  and <code>G</code> still read strongly while the open vowels sit closer
+  together.</p>
+  <p><b>The angle control is not a substitute.</b> It turns the mouth in the
+  picture plane; a real turn foreshortens it and hides the far corner.</p>
+</div>
 
 <h3 id="perclip">Different lips per clip</h3>
 
@@ -567,13 +599,35 @@ keyframes, the blur patch and the script.</p>
 <ol class="keys">
   <li><b>The sets</b> — anything found in a <code>lips/</code> folder beside the
       HTML file when the page loaded, plus anything you have added this visit.
-      A set showing <span class="mono">7/9</span> is missing shapes; the drawn
-      style fills the gaps.</li>
+      A set showing <span class="mono">7/9</span> has two shapes no picture was
+      named for; they are filled with a best guess.</li>
   <li><b>Use my own lips…</b> — pick a folder of nine pictures named for the
       shapes: <code>X A B C D E F G H</code>. It stays on this page for this
       visit only. Nothing is uploaded, nothing is stored, and reloading clears
       it.</li>
+  <li><b>Match pictures to shapes…</b> — say which picture is which, by hand.</li>
 </ol>
+
+<h4>When the names don't say which shape is which</h4>
+
+<p>Pictures are matched to shapes by filename: a letter on its own, so
+<code>mouth-D.png</code>, <code>D.png</code> and <code>04_D_wide.png</code> all
+land on <code>D</code>. When a name says nothing — a folder of
+<code>frame01.png … frame09.png</code>, or one that calls its wide-open shape
+<code>aah</code> — the leftovers are handed out in name order, counting
+numerically, which puts a folder numbered in chart order
+(<code>X A B C D E F G H</code>) right on its own.</p>
+
+<p>Where that guess is wrong, <b>Match pictures to shapes…</b> opens a list of
+the nine shapes with a chooser on each: pick any picture in the folder for any
+shape, and the chart, the stage and every export follow as you go. Shapes nobody
+named a picture for are marked, so you can see which ones were a guess and which
+you chose. <b>Match by name again</b> throws away your choices and re-runs the
+automatic match.</p>
+
+<p>It opens by itself right after an import that left anything to guess at, which
+is the moment you still remember what is in the folder. A folder named for the
+shapes is already right, so it stays out of the way.</p>
 
 <div class="note">
   <span class="boxlabel">Shipping your own sets</span>
