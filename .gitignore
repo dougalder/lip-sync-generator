@@ -1,3 +1,5 @@
-.DS_Store files 
-Python's __pycache__ folder
-lips/ folder 
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+lips/
