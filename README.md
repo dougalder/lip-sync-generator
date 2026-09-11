@@ -8,8 +8,7 @@ shape belongs on every frame, shows you the result as an exposure sheet you can
 correct by hand, and writes the mouths out in whatever form your animation tool
 wants.
 
-!(docs/images/lip-sync-generator-demo-short.gif)
-
+[![The generator building an exposure sheet](docs/images/lip-sync-generator-demo-short.gif)](https://dougalder.github.io/lip-sync-generator/)
 ![The exposure sheet](docs/images/06-sheet.png)
 
 ## 📖 The manual
