@@ -573,6 +573,13 @@ select, input[type=text], input[type=number]{
   background:var(--raised); border-color:var(--line); color:var(--ink); font-weight:600;
   box-shadow:0 1px 2px rgba(20,30,45,.10);
 }
+/* The head-angle row sits inside the built-in pane, so it is quieter than the
+   pair above it — a second level, not a competing one. */
+.subtabs.sub2{background:transparent; border:0; padding:0 0 9px; gap:4px}
+.subtabs.sub2 .subtab{font-size:11.5px; padding:4px 10px; border:1px solid var(--line-soft)}
+.subtabs.sub2 .subtab[aria-selected="true"]{
+  background:var(--accent-soft); border-color:var(--accent-line); color:var(--ink);
+}
 .style-opt{position:relative}
 /* A set the viewer brought is theirs to take away again, and is marked as
    temporary so it is never mistaken for one that ships with the page. */
@@ -726,6 +733,51 @@ input[type=color]{
 .toast.on{opacity:1; transform:translateX(-50%) translateY(0)}
 
 .empty{display:grid; place-items:center; min-height:120px; color:var(--ink-3); font-size:12.5px; text-align:center; padding:16px}
+
+/* Which picture is which shape. A dialog rather than another panel, because it
+   is a thing you do once per folder and then never think about again. */
+.dlg{
+  border:1px solid var(--line); border-radius:12px; padding:0; color:var(--ink);
+  background:var(--surface); width:min(580px, calc(100vw - 28px)); max-width:none;
+  box-shadow:0 18px 54px -14px rgba(0,0,0,.5);
+}
+.dlg::backdrop{background:rgba(8,11,15,.46)}
+.dlg-in{display:flex; flex-direction:column; max-height:min(80vh, 780px)}
+.dlg-head{padding:14px 16px 11px; border-bottom:1px solid var(--line-soft)}
+.dlg-head h2{margin:0 0 3px; font-size:15px; letter-spacing:-.01em}
+.dlg-head .hint{margin:0}
+.dlg-foot{
+  padding:11px 16px; border-top:1px solid var(--line-soft);
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+}
+.remap{overflow:auto; padding:4px 16px 10px}
+.remap-row{
+  display:grid; grid-template-columns:1fr 58px 1fr; align-items:center; gap:11px;
+  padding:7px 0; border-bottom:1px solid var(--line-soft); min-width:0;
+}
+.remap-row:last-child{border-bottom:0}
+.remap-key{display:flex; align-items:center; gap:8px; min-width:0}
+.remap-key b{
+  flex:none; width:22px; height:22px; display:grid; place-items:center; border-radius:5px;
+  font-family:'DM Mono',ui-monospace,monospace; font-size:12px; color:#fff; background:var(--k);
+}
+.remap-key span{font-size:11.5px; color:var(--ink-2); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.remap-thumb{
+  width:58px; height:45px; display:block; border-radius:5px;
+  background:#F3F5F8; border:1px solid var(--line-soft);
+}
+.remap-pick{
+  width:100%; min-width:0; font-size:12px; padding:5px 7px; border-radius:6px;
+  border:1px solid var(--line); background:var(--raised); color:var(--ink);
+}
+/* A shape no picture was actually named for. Marked, because a guess that
+   looks like a decision is the whole problem this dialog exists to fix. */
+.remap-row.guess .remap-pick{border-color:var(--signal)}
+.remap-row.guess .remap-key b{box-shadow:0 0 0 2px var(--signal)}
+@media (max-width:520px){
+  .remap-row{grid-template-columns:58px 1fr; grid-template-areas:"thumb key" "thumb pick"; gap:5px 10px}
+  .remap-key{grid-area:key} .remap-thumb{grid-area:thumb} .remap-pick{grid-area:pick}
+}
 
 @media (prefers-reduced-motion: reduce){*{transition:none !important; animation:none !important}}
 </style>
@@ -1042,7 +1094,26 @@ try {
         </div>
 
         <div id="stylepane-builtin" role="tabpanel" aria-labelledby="styleBtn-builtin">
-          <div class="styles" id="styles"></div>
+          <!-- A mouth chart belongs to a head angle: the same nine shapes drawn
+               for a character facing the camera are wrong on one that has
+               turned. Same fifteen styles in each, so a character can keep its
+               look through a turn. -->
+          <div class="subtabs sub2" id="viewTabs" role="tablist" aria-label="Head angle">
+            <button class="subtab" id="viewBtn-front" role="tab" aria-controls="viewpane-front" aria-selected="true">Front</button>
+            <button class="subtab" id="viewBtn-three" role="tab" aria-controls="viewpane-three" aria-selected="false">Three-quarter</button>
+            <button class="subtab" id="viewBtn-profile" role="tab" aria-controls="viewpane-profile" aria-selected="false">Profile</button>
+          </div>
+          <div id="viewpane-front" role="tabpanel" aria-labelledby="viewBtn-front">
+            <div class="styles" id="styles"></div>
+          </div>
+          <div id="viewpane-three" role="tabpanel" aria-labelledby="viewBtn-three" hidden>
+            <div class="styles" id="styles-three"></div>
+            <p class="hint">Turned about 35°, facing right. The far corner is foreshortened and tucks behind the cheek; the near half keeps almost its width.</p>
+          </div>
+          <div id="viewpane-profile" role="tabpanel" aria-labelledby="viewBtn-profile" hidden>
+            <div class="styles" id="styles-profile"></div>
+            <p class="hint">Side on, facing right. Width becomes protrusion and the jaw does the opening, so <b class="mono">B C D</b> read less distinctly than they do front-on — that is true of profile lip sync generally, not just here.</p>
+          </div>
         </div>
 
         <div id="stylepane-mine" role="tabpanel" aria-labelledby="styleBtn-mine" hidden
@@ -1052,8 +1123,10 @@ try {
           <div class="row">
             <button class="btn ghost" id="lipsPick" style="width:auto">Use my own lips…</button>
             <input type="file" id="lipsInput" webkitdirectory directory multiple hidden>
+            <button class="btn ghost" id="lipsRemap" style="width:auto" disabled
+                    title="Say which picture belongs to which of the nine shapes">Match pictures to shapes…</button>
           </div>
-          <p class="hint">Pick a folder of nine pictures named for the shapes — <b class="mono">X A B C D E F G H</b>. It stays on this page for this visit only: nothing is uploaded, nothing is kept, and reloading clears it.</p>
+          <p class="hint">Pick a folder of nine pictures named for the shapes — <b class="mono">X A B C D E F G H</b>. If they are named some other way the shapes are matched as best they can be, and <b>Match pictures to shapes…</b> lets you put any of the nine right by hand. The folder stays on this page for this visit only: nothing is uploaded, nothing is kept, and reloading clears it.</p>
         </div>
 
       </div>
@@ -1204,6 +1277,25 @@ try {
   <span id="workingMsg">Working…</span>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- The automatic match goes by filename and is wrong in ways nobody can fix
+     from outside: a folder of 1.png … 9.png carries no clue at all, and one
+     calling its wide-open shape "aah" lands it on A. Renaming and re-importing
+     works but is a poor answer once the set is already on the page. -->
+<dialog class="dlg" id="remapDlg" aria-labelledby="remapTitle">
+  <form method="dialog" class="dlg-in">
+    <header class="dlg-head">
+      <h2 id="remapTitle">Match pictures to shapes</h2>
+      <p class="hint" id="remapSub"></p>
+    </header>
+    <div class="remap" id="remapRows"></div>
+    <footer class="dlg-foot">
+      <button class="btn ghost" type="button" id="remapAuto" style="width:auto">Match by name again</button>
+      <span class="tspacer"></span>
+      <button class="btn" id="remapDone" style="width:auto">Done</button>
+    </footer>
+  </form>
+</dialog>
 
 <script>
 /* ==========================================================================
@@ -2543,25 +2635,263 @@ let engine = 'dsp';
 
 /* ------------------------------------------------------- 5. mouth rendering */
 
-function outline(cx, cy, hw, up, dn, round) {
-  const kx = hw * (0.50 + 0.42 * round);
+/* --- the three views ------------------------------------------------------
+
+   A mouth chart belongs to a head angle. The same nine shapes drawn for a
+   character facing the camera are wrong on a character in three-quarter, and
+   wronger still in profile, which is why traditional rigs carry a set per view.
+
+   What is NOT done here: taking the front drawing and squashing it. In-plane
+   rotation and a horizontal scale give you a front-on mouth at an angle, which
+   reads as a sticker. The geometry is rebuilt per view instead, from the same
+   per-viseme parameters, so all fifteen styles get a real turn for free — every
+   one of them draws from what geom() returns.
+
+   The character faces the viewer's RIGHT in both turned views: the front of the
+   mouth is to the right, the corner that wraps around the cheek to the left.
+--------------------------------------------------------------------------- */
+const VIEWS = {
+  front:   { label: 'Front', turn: 0 },
+  three:   { label: 'Three-quarter', turn: 35 },
+  profile: { label: 'Profile', turn: 90 }
+};
+
+/** The aperture, front-on or three-quarter. Asymmetric half-widths: on a turned
+    head the far half foreshortens more than the near half, and that difference
+    is most of what makes a turn read as a turn rather than as a narrow mouth. */
+function outline(cx, cy, hwL, hwR, up, dn, round) {
+  const kL = hwL * (0.50 + 0.42 * round), kR = hwR * (0.50 + 0.42 * round);
   const dip = up * 0.16;
+  // The peak of the upper lip sits over the middle of the APERTURE, which on a
+  // turned head is not the middle of the two corners.
+  const px = cx + (hwR - hwL) * 0.30;
+  // The far corner rides up and tucks as the mouth wraps the cheek.
+  const lift = (hwR - hwL) * 0.13;
   const p = new Path2D();
-  p.moveTo(cx - hw, cy);
-  p.bezierCurveTo(cx - kx, cy - up * 1.22, cx - kx * 0.34, cy - up + dip, cx, cy - up + dip);
-  p.bezierCurveTo(cx + kx * 0.34, cy - up + dip, cx + kx, cy - up * 1.22, cx + hw, cy);
-  p.bezierCurveTo(cx + kx, cy + dn * 1.26, cx - kx, cy + dn * 1.26, cx - hw, cy);
+  p.moveTo(cx - hwL, cy - lift);
+  p.bezierCurveTo(cx - kL, cy - up * 1.22 - lift, px - kL * 0.34, cy - up + dip, px, cy - up + dip);
+  p.bezierCurveTo(px + kR * 0.34, cy - up + dip, cx + kR, cy - up * 1.22, cx + hwR, cy);
+  p.bezierCurveTo(cx + kR, cy + dn * 1.26, cx - kL, cy + dn * 1.26 - lift, cx - hwL, cy - lift);
   p.closePath();
+  return p;
+}
+
+/* --- the profile primitives ------------------------------------------------
+
+   A lip seen from the side is built the opposite way round from a lip seen
+   from the front. Front-on it is fullest in the middle and dies away to both
+   corners. From the side you are looking along it: the near corner is right in
+   front of you as a point where the lip runs out into the cheek, and the whole
+   mass of the lip is at the FRONT, where the vermilion turns over. So the lobe
+   is a wedge — nothing at the back, full at the front, with a rounded free edge.
+
+   Both lips are built by the same function. What tells them apart is which way
+   they point, how far forward the free edge reaches, and how much of the
+   opening each one is carrying.
+--------------------------------------------------------------------------- */
+
+/** Where the free edge of a lip turns back on itself, given how pursed it is.
+    Kept in one place because the cavity has to end exactly where the lip does,
+    or a hairline of background shows through between them. */
+const lipFreeX = (tipX, body, roll) => tipX - body * (0.16 + roll * 0.46);
+
+/** One lip in profile, from the mouth corner (bx, by) out to a free edge at
+    (tipX, tipY).
+      sign  -1 for the upper lip, +1 for the lower — which side the body is on
+      body  the lip's own thickness at the front
+      roll  0 slack, 1 pursed — how far the free edge curls back under itself */
+function profileLobe(bx, by, tipX, tipY, sign, body0, roll, edge) {
+  const L = Math.max(1, tipX - bx);
+  // `body` is a vertical measurement, but on an open shape the lip runs up or
+  // down at a steep angle from the corner, so the same vertical figure buys a
+  // much thinner lip. Scaled by the slope, so a lip stays as fat as it was
+  // drawn instead of turning into a fin as the mouth opens.
+  const body = body0 * Math.hypot(1, (tipY - by) / L);
+  const oy = tipY + sign * body;                 // the outside of the lip there
+  const p = new Path2D();
+  p.moveTo(bx, by);
+  // The outside, running from the corner over the body of the lip. It thickens
+  // early and keeps its depth to the front: a lip that tapers evenly the whole
+  // way reads as a wedge rather than as flesh.
+  p.bezierCurveTo(bx + L * 0.22, by + sign * body * 1.12 + (tipY - by) * 0.16,
+                  bx + L * 0.80, oy + sign * body * 0.22,
+                  tipX - body * 0.34, oy);
+  // Turn over the free edge. The forward-most point sits LOW on the lip, near
+  // the free edge rather than halfway up the body: put it halfway up and the
+  // two lips fan apart at the front like a beak, which a shut mouth must not.
+  p.bezierCurveTo(tipX + body * 0.14, oy + sign * body * 0.06,
+                  tipX + body * 0.18, tipY + sign * body * 0.34,
+                  edge ? edge.fx : lipFreeX(tipX, body, roll), tipY);
+  // And back along the inside, dying into the corner. Where there is a cavity
+  // the caller hands over its own edge, control point for control point: a lip
+  // drawn to its own idea of where the opening is leaves a hairline of daylight
+  // between the two, and a hairline across every open shape is not a detail.
+  if (edge) p.bezierCurveTo(edge.c1x, edge.c1y, edge.c2x, edge.c2y, bx, by);
+  else p.bezierCurveTo(bx + L * 0.60, tipY + (by - tipY) * 0.04,
+                       bx + L * 0.24, by + (tipY - by) * 0.46, bx, by);
+  p.closePath();
+  return p;
+}
+
+/** The dark between the lips. Not a hole — that is the whole point. Front-on
+    the opening is a closed ring of lip; from the side the gap runs clean out of
+    the face, so the shape is a wedge with its apex at the mouth corner and an
+    open mouth at the front. Both edges are the inside edges of the two lobes,
+    expression for expression, so no hairline of background can show between. */
+/** The corners of the wedge, shared by the cavity and by the roof of the mouth
+    that the teeth hang from — they have to agree to the last control point or
+    the teeth show as a pale stripe floating in the dark. */
+function profileWedge(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, roll) {
+  const fu = lipFreeX(tipU, bodyU, roll), fl = lipFreeX(tipL, bodyL, roll);
+  // A pursed mouth does not open along its whole length: the lips gather into
+  // a cone and the hole is a small round one right at the front. So the apex of
+  // the wedge travels forward with the purse, while the lips themselves still
+  // run back to the corner. Leave the apex at the corner and "oo" comes out as
+  // a narrow "oh" — which was the one shape nobody could tell apart.
+  const t = roll * 0.62;
+  const ax = bx + ((fu + fl) * 0.5 - bx) * t;
+  const ay = by + ((uy + ly) * 0.5 - by) * t;
+  const LU = Math.max(1, fu - ax), LL = Math.max(1, fl - ax);
+  return {
+    fu, fl, ax, ay, LU, LL,
+    front: Math.max(fu, fl) + (bodyU + bodyL) * 0.16,
+    // the same two edges again, walked from the front back to the corner, for
+    // the lips to close on exactly
+    roofBack: { fx: fu, c1x: ax + LU * 0.62, c1y: uy + (ay - uy) * 0.04,
+                c2x: ax + LU * 0.16, c2y: ay + (uy - ay) * 0.14 },
+    floorBack: { fx: fl, c1x: ax + LL * 0.62, c1y: ly + (ay - ly) * 0.04,
+                 c2x: ax + LL * 0.16, c2y: ay + (ly - ay) * 0.14 }
+  };
+}
+
+/** The roof of the mouth, from the corner forward to the upper lip's free edge.
+    Offset vertically by `drop` it is still exact, which is what the tooth band
+    is built from. */
+function profileRoof(path, bx, by, uy, w, drop) {
+  path.moveTo(bx, by + drop);
+  path.bezierCurveTo(w.ax + w.LU * 0.16, w.ay + (uy - w.ay) * 0.14 + drop,
+                     w.ax + w.LU * 0.62, uy + (w.ay - uy) * 0.04 + drop,
+                     w.fu, uy + drop);
+}
+
+function profileCavity(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, roll) {
+  const w = profileWedge(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, roll);
+  const p = new Path2D();
+  // Still anchored at the corner — the lips run back to it whatever the purse,
+  // and a cavity that started at the apex left a sliver of daylight between
+  // the two lobes where nothing was drawn at all.
+  profileRoof(p, bx, by, uy, w, 0);
+  p.bezierCurveTo(w.front, uy + (ly - uy) * 0.34, w.front, ly - (ly - uy) * 0.34, w.fl, ly);
+  p.bezierCurveTo(w.ax + w.LL * 0.62, ly + (w.ay - ly) * 0.04,
+                  w.ax + w.LL * 0.16, w.ay + (ly - w.ay) * 0.14, bx, by);
+  p.closePath();
+  return p;
+}
+
+/** The upper teeth: a band hung off the roof, so it follows the arch instead of
+    lying level across the opening. */
+function profileTeeth(bx, by, uy, w, th) {
+  const p = new Path2D();
+  profileRoof(p, bx, by, uy, w, 0);
+  p.lineTo(w.fu, uy + th);
+  // the same curve again, dropped by `th` and walked back to the corner
+  p.bezierCurveTo(w.ax + w.LU * 0.62, uy + (w.ay - uy) * 0.04 + th,
+                  w.ax + w.LU * 0.16, w.ay + (uy - w.ay) * 0.14 + th,
+                  bx, by + th);
+  p.closePath();
+  return p;
+}
+
+/** The line where the lips meet, from the corner out to the front. A shut
+    profile mouth without it is a featureless lump; it is doing the job the
+    aperture does in every other view. */
+function profileSeam(bx, by, tipU, tipL, bodyU, roll) {
+  const fx = lipFreeX((tipU + tipL) * 0.5, bodyU, roll);
+  const L = Math.max(1, fx - bx);
+  const p = new Path2D();
+  p.moveTo(bx, by);
+  p.bezierCurveTo(bx + L * 0.42, by + L * 0.055, bx + L * 0.78, by + L * 0.045, fx, by - L * 0.02);
   return p;
 }
 
 function geom(v, W, H, C) {
   const p = VP[v];
   const mw = (C && C.widthMul) || 1, mh = (C && C.heightMul) || 1;
-  const cx = W / 2, cy = H * 0.56;
-  const hw = p.w * mw * W / 2;
+  const view = (C && C.view) || 'front';
+  const cy = H * 0.56;
+  const half = p.w * mw * W / 2;
   const up = p.h * mh * W * 0.40, dn = p.h * mh * W * 0.60;
-  return { p, cx, cy, hw, up, dn, path: outline(cx, cy, hw, up, dn, p.round) };
+
+  if (view === 'profile') {
+    const r = p.round;
+    // Width stops meaning "how wide the mouth is" and starts meaning "how far
+    // the lips stick out". A pucker protrudes hard and draws its corner in; a
+    // wide "aa" barely protrudes at all, it just drops the jaw. That swap is
+    // the whole difference between a side view and a narrow front one.
+    // The opening. Seen from the side the JAW does nearly all of it — the upper
+    // lip hardly moves — except on a pucker, where the lips do the work
+    // themselves and the two halves share it evenly. Front-on the split is
+    // always even, and keeping that even split here was what made an open shape
+    // read as a tall slab instead of a jaw coming down.
+    // A pucker also makes a SMALL hole, however far the lips travel to make it.
+    const gap = p.h * mh * W * (1.00 - 0.28 * p.h) * (1 - 0.34 * r);
+    const jawUp = gap * (0.17 + 0.31 * r);
+    const jawDn = gap - jawUp;
+    // A jaw is not hinged at the mouth corner: it pivots behind the ear, so as
+    // it drops the corner travels down as well, about a third as far as the
+    // front. Leave the corner on the mouth line and the opening has to be a
+    // near-vertical wall where it meets the cheek — which is what made the
+    // first construction read as a triangle standing on its point.
+    const drop = jawDn * 0.32;
+    // Corner and front both move back as the mouth opens: the lips are drawn
+    // thin over the teeth and the whole of it is deeper than a shut mouth.
+    const grow = 1 + 0.52 * p.h * mh;
+    // How much of the mouth's LENGTH is visible from the side — and the answer
+    // is: very little. The corner is nearly edge-on and the cheek covers most
+    // of the run back to it, so what shows is close to a cross-section of the
+    // lips. Drawing the corner where it really is, a quarter of a head-width
+    // back, gives a long tapered arrowhead: correct in plan, wrong in view, and
+    // it was the single thing making these read as something other than lips.
+    // A pucker gathers its corners in as well as pushing its lips out, so it
+    // gets shorter and deeper at once.
+    const back = W * (0.126 + 0.086 * (1 - r)) * mw * grow;
+    const fwd  = W * (0.034 + 0.134 * r) * mw;
+    const cx = W / 2 - (fwd - back) * 0.5;        // balance the drawing in the tile
+    const hw = (back + fwd) / 2;
+    // `build` is the padded silhouette the lipped renderer asks for front-on.
+    // In profile the lips are drawn lobe by lobe instead, so what comes back
+    // here is only ever used as a bounding shape.
+    const build = (padW, padU, padD) =>
+      profileCavity(cx - back, cy + drop, cx + fwd + padW, cy - jawUp - padU,
+                    cx + fwd + padW, cy + jawDn + padD, padW, padW, r);
+    return { p, view, cx, cy, hw, hwL: back, hwR: fwd, up: jawUp, dn: jawDn, drop,
+             path: build(0, 0, 0), build };
+  }
+
+  if (view === 'three') {
+    const t = VIEWS.three.turn * Math.PI / 180;
+    const c = Math.cos(t);                        // 0.819 at 35°
+    // The near half keeps almost its width; the far half loses a third again to
+    // the curve of the cheek. 0.86 / 0.60 of the front width.
+    // Measured by eye rather than by trigonometry alone: cos 35° alone gives a
+    // mouth that is merely narrower. What reads as a turn is the LOPSIDEDNESS —
+    // the near half keeping nearly its full width while the far half is eaten
+    // by the curve of the cheek.
+    const hwR = half * c * 1.16, hwL = half * c * 0.52;
+    const cx = W / 2 + half * 0.09;
+    const hw = (hwL + hwR) / 2;
+    const build = (padW, padU, padD) =>
+      outline(cx, cy, hwL + padW * 0.86, hwR + padW, up + padU, dn + padD, p.round);
+    return { p, view, cx, cy, hw, hwL, hwR, up, dn, tilt: -0.075,
+             path: build(0, 0, 0), build };
+  }
+
+  const cx = W / 2;
+  const hw = half;
+  const build = (padW, padU, padD) =>
+    outline(cx, cy, hw + padW, hw + padW, up + padU, dn + padD, p.round);
+  return { p, view, cx, cy, hw, hwL: hw, hwR: hw, up, dn,
+           path: build(0, 0, 0), build };
 }
 
 function fillCavity(ctx, g, color) { ctx.fillStyle = color; ctx.fill(g.path); }
@@ -2589,23 +2919,26 @@ function toothBand(ctx, x0, x1, y, h, col, scallop, down) {
 
 function innards(ctx, g, W, C) {
   const { p, cx, cy, hw, up, dn } = g;
+  const hwL = g.hwL == null ? hw : g.hwL, hwR = g.hwR == null ? hw : g.hwR;
   const mul = C.teethMul || 1;
   ctx.save(); ctx.clip(g.path);
   if (p.tongue > 0.02 && dn > W * 0.02) {
     const tm = C.tongueMul || 1;
     ctx.fillStyle = C.tongue;
     ctx.beginPath();
-    ctx.ellipse(cx, cy + dn * 0.66, hw * 0.66 * tm,
+    // The tongue sits toward the back of the mouth, which on a turned head is
+    // not the middle of the aperture.
+    ctx.ellipse(cx + (hwR - hwL) * 0.10, cy + dn * 0.66, hw * 0.66 * tm,
                 Math.max(2, dn * 0.52 * p.tongue * tm), 0, 0, Math.PI * 2);
     ctx.fill();
   }
   if (p.teeth > 0.02 && up > W * 0.008) {
     const th = Math.min(up * 1.05, W * 0.062) * mul;
     ctx.globalAlpha = clamp(p.teeth, 0, 1);
-    toothBand(ctx, cx - hw - 2, cx + hw + 2, cy - up - 2, th + 2, C.teeth, C.scallop, true);
+    toothBand(ctx, cx - hwL - 2, cx + hwR + 2, cy - up - 2, th + 2, C.teeth, C.scallop, true);
     if (dn > W * 0.10) {
       const bh = Math.min(dn * 0.42, W * 0.036) * mul;
-      toothBand(ctx, cx - hw - 2, cx + hw + 2, cy + dn - bh, bh + 2, C.teeth, C.scallop, false);
+      toothBand(ctx, cx - hwL - 2, cx + hwR + 2, cy + dn - bh, bh + 2, C.teeth, C.scallop, false);
     }
     ctx.globalAlpha = 1;
   }
@@ -2615,44 +2948,48 @@ function innards(ctx, g, W, C) {
 /** The two little curved marks a flat illustration uses in place of lips —
     the whole reason that style reads as a mouth rather than a hole. */
 function creases(ctx, g, W, col) {
-  const { cx, cy, hw, up, dn } = g;
+  const { cx, cy, up, dn } = g;
+  const hwL = g.hwL == null ? g.hw : g.hwL, hwR = g.hwR == null ? g.hw : g.hwR;
   const o = W * 0.019;
   ctx.save();
   ctx.strokeStyle = col;
   ctx.lineWidth = Math.max(1, W * 0.0075);
   ctx.lineCap = 'round';
   ctx.beginPath();
-  ctx.moveTo(cx - hw * 0.66, cy - up - o);
-  ctx.quadraticCurveTo(cx, cy - up - o * 1.9, cx + hw * 0.66, cy - up - o);
+  ctx.moveTo(cx - hwL * 0.66, cy - up - o);
+  ctx.quadraticCurveTo(cx, cy - up - o * 1.9, cx + hwR * 0.66, cy - up - o);
   ctx.stroke();
   ctx.beginPath();
-  ctx.moveTo(cx - hw * 0.72, cy + dn + o);
-  ctx.quadraticCurveTo(cx, cy + dn + o * 1.9, cx + hw * 0.72, cy + dn + o);
+  ctx.moveTo(cx - hwL * 0.72, cy + dn + o);
+  ctx.quadraticCurveTo(cx, cy + dn + o * 1.9, cx + hwR * 0.72, cy + dn + o);
   ctx.stroke();
   ctx.restore();
 }
 
 /** F and V: upper teeth pressed onto a tucked lower lip. */
 function biteOverlay(ctx, g, W, opt) {
-  const { cx, cy, hw } = g;
-  const th = W * 0.055;
+  const { cx, cy } = g;
+  // Unclipped — this IS the drawing for G — so unlike innards it cannot lean on
+  // the aperture path to hide a front-on shape on a turned head.
+  const hwL = g.hwL == null ? g.hw : g.hwL, hwR = g.hwR == null ? g.hw : g.hwR;
+  const th = W * 0.055 * (g.view === 'profile' ? 0.82 : 1);
   ctx.save();
   ctx.fillStyle = opt.teeth;
   ctx.beginPath();
   const r = W * 0.012;
-  ctx.moveTo(cx - hw * 0.86, cy - th);
-  ctx.lineTo(cx + hw * 0.86, cy - th);
-  ctx.quadraticCurveTo(cx + hw * 0.86, cy + r, cx + hw * 0.72, cy + r);
-  ctx.lineTo(cx - hw * 0.72, cy + r);
-  ctx.quadraticCurveTo(cx - hw * 0.86, cy + r, cx - hw * 0.86, cy - th);
+  ctx.moveTo(cx - hwL * 0.86, cy - th);
+  ctx.lineTo(cx + hwR * 0.86, cy - th);
+  ctx.quadraticCurveTo(cx + hwR * 0.86, cy + r, cx + hwR * 0.72, cy + r);
+  ctx.lineTo(cx - hwL * 0.72, cy + r);
+  ctx.quadraticCurveTo(cx - hwL * 0.86, cy + r, cx - hwL * 0.86, cy - th);
   ctx.closePath();
   ctx.fill();
   if (opt.stroke) { ctx.strokeStyle = opt.stroke; ctx.lineWidth = opt.lw * 0.7; ctx.stroke(); }
   ctx.fillStyle = opt.lip;
   ctx.beginPath();
-  ctx.moveTo(cx - hw, cy + r);
-  ctx.quadraticCurveTo(cx, cy + W * 0.075, cx + hw, cy + r);
-  ctx.quadraticCurveTo(cx, cy + W * 0.030, cx - hw, cy + r);
+  ctx.moveTo(cx - hwL, cy + r);
+  ctx.quadraticCurveTo(cx, cy + W * 0.075, cx + hwR, cy + r);
+  ctx.quadraticCurveTo(cx, cy + W * 0.030, cx - hwL, cy + r);
   ctx.closePath();
   ctx.fill();
   if (opt.stroke) ctx.stroke();
@@ -2664,8 +3001,220 @@ function biteOverlay(ctx, g, W, opt) {
    actual lip shapes. Line art and blocky stay bespoke. Every value that
    affects the picture lives in the preset, so a new style is a few lines. */
 
+/* --- the side view is drawn, not derived -----------------------------------
+
+   Three goes at deriving a profile from the front construction all failed the
+   same way, and it is worth writing down why: front-on, the opening is a HOLE
+   surrounded by lip. From the side it is not — the gap between the lips runs
+   all the way out to the front of the face, so the silhouette is two separate
+   lobes, an upper lip and a lower one, with the dark of the mouth between them.
+   No amount of narrowing a ring gets you there; a ring is closed and this is
+   not. So profile gets its own renderer, fed the same palette the front styles
+   use, which is what keeps the fifteen recognisably themselves.
+--------------------------------------------------------------------------- */
+/** Everything the profile renderers need, worked out once from the geometry
+    and the style's palette. Shared so that the line and blocky styles, which
+    draw themselves, sit on exactly the same construction as the rest. */
+function profileParts(W, g, C) {
+  const { cx, cy, hwL: back, hwR: fwd, up: ou, dn: od, p } = g;
+  const r = p.round;
+  // An inked style carries no thickness — it is a line and a dark hole — so
+  // its outline weight stands in for one.
+  const base = W * (C.thickness || Math.max(C.ow || 0, 0.026));
+  const bodyU = base * (1.00 + 0.42 * r);
+  const bodyL = base * (1.24 + 0.48 * r);       // the lower lip is the fuller one
+  const bx = cx - back;
+  const by = cy + (g.drop || 0);                // the corner, dropped with the jaw
+  const uy = cy - ou, ly = cy + od;             // the two free edges, at the front
+  const tipU = cx + fwd;
+  // The lower lip rides the jaw: as it drops it also swings back a little,
+  // which is what puts the upper lip out in front on the open shapes.
+  const tipL = cx + fwd * (0.78 + 0.22 * r) - od * 0.10;
+  return { cy, by, uy, ly, bx, tipU, tipL, ou, od, bodyU, bodyL, roll: r, base,
+           shut: ou + od < base * 0.55,
+           wedge: profileWedge(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, r),
+           cav: profileCavity(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, r),
+           seam: profileSeam(bx, by, tipU, tipL, bodyU, r) };
+}
+
+/** Teeth and tongue behind a profile opening. Both sit near the FRONT: from
+    the side you are looking in through the gap, and what is far enough back to
+    be over the tongue's root is hidden by the cheek. */
+function profileInnards(ctx, W, g, C, P) {
+  const { by, uy, ly, bx, tipU, ou, od, cav, wedge } = P;
+  const p = g.p;
+  const L = tipU - bx;
+  const span = ly - by;                          // how far the floor has dropped
+  ctx.save();
+  // Built as a Path2D and passed to clip() explicitly. ctx.clip() with no
+  // argument uses the CURRENT path, and after a fill() that is a trap: the
+  // teeth escaped the mouth and drew a grey slab across the lip.
+  ctx.clip(cav);
+  if (p.teeth > 0.02 && ou > W * 0.004) {
+    const th = Math.min(Math.max(ou, W * 0.016) * 1.15, W * 0.054) * (C.teethMul || 1);
+    // Only the front teeth are in view from the side; the rest is behind the
+    // cheek. Cut off at the back, so the band cannot taper away into a pale
+    // stripe that reads as a highlight on the lip rather than as teeth.
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(bx + L * 0.40, uy - th * 2 - W, L * 2, W * 3);
+    ctx.clip();
+    ctx.globalAlpha = clamp(p.teeth, 0, 1);
+    ctx.fillStyle = C.teeth || '#FFFAF0';
+    ctx.fill(profileTeeth(bx, by, uy, wedge, th));
+    ctx.restore();
+  }
+  if (p.tongue > 0.02 && od > W * 0.03) {
+    ctx.fillStyle = C.tongue || '#DE6E7E';
+    // A high tongue (the L shape) lifts its tip toward the ridge behind the
+    // upper teeth; a low one lies in the floor of the mouth. Front-on that
+    // difference is a blob getting bigger; from the side it is the one place
+    // in the chart where the tongue is genuinely legible, so it is drawn.
+    const lift = clamp(p.tongue, 0, 1) * (C.tongueMul || 1);
+    ctx.beginPath();
+    ctx.moveTo(bx, by + span * 0.55);
+    ctx.quadraticCurveTo(bx + L * 0.52, ly + span * 0.04,
+                         bx + L * 0.94, ly - span * (0.28 + lift * 0.60));
+    ctx.quadraticCurveTo(bx + L * 0.55, ly + span * 0.30, bx, ly + span * 0.6);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+/** F and V in profile: the upper teeth come down onto the lower lip, which
+    tucks back under them. From the side this is the clearest shape in the
+    whole chart — front-on it has to be faked with an overlay — so it is worth
+    drawing outright. */
+function profileBite(ctx, W, g, C, P, kind) {
+  const { cy, bx, tipU, bodyU, bodyL } = P;
+  const th = W * 0.042 * (C.teethMul || 1);
+  const L = tipU - bx;
+  const lipCol = C.lip || C.lipDark || C.cavity || '#C4595F';
+  const ink = C.ink || C.outline;
+  const lw = Math.max(W * (C.ow || 0.006), W * 0.004);
+  // The upper lip first, lifted off the mouth line to let the teeth down.
+  const upper = profileLobe(bx, cy - th * 1.05, tipU, cy - th * 1.45, -1, bodyU * 0.94, 0.12);
+  ctx.fillStyle = kind === 'inked' && !C.lip ? (C.ink || '#16110F') : lipCol;
+  ctx.fill(upper);
+  if (ink) { ctx.strokeStyle = ink; ctx.lineWidth = lw; ctx.lineJoin = 'round'; ctx.stroke(upper); }
+  // Then the teeth, coming down out of it. They start well forward: a band run
+  // back to the corner reads as a slab laid across the mouth rather than as
+  // the front teeth, which are the only ones in view from the side.
+  ctx.fillStyle = C.teeth || '#FFFAF0';
+  const tx0 = bx + L * 0.46, tx1 = tipU - bodyU * 0.42;
+  ctx.beginPath();
+  ctx.moveTo(tx0, cy - th * 1.35);
+  ctx.lineTo(tx1, cy - th * 1.30);
+  ctx.quadraticCurveTo(tx1 + bodyU * 0.22, cy - th * 0.60, tx1 - bodyU * 0.16, cy + th * 0.25);
+  ctx.lineTo(tx0, cy + th * 0.20);
+  ctx.closePath();
+  ctx.fill();
+  if (ink) { ctx.strokeStyle = ink; ctx.lineWidth = lw * 0.8; ctx.stroke(); }
+  // And the lower lip last, so its flesh closes over the biting edge — which
+  // is the whole shape of an F. Drawn under the teeth, it just sits there.
+  const lower = profileLobe(bx, cy + th * 0.50, tx1 - bodyU * 0.30, cy - th * 0.30,
+                            1, bodyL * 1.10, 0.30);
+  ctx.fillStyle = lipCol;
+  ctx.fill(lower);
+  if (ink) { ctx.strokeStyle = ink; ctx.lineWidth = lw; ctx.lineJoin = 'round'; ctx.stroke(lower); }
+}
+
+function profileMouth(ctx, W, g, C, kind) {
+  const P = profileParts(W, g, C);
+  const { cy, by, uy, ly, bx, tipU, tipL, ou, od, bodyU, bodyL, roll, base, cav, seam, shut } = P;
+  const p = g.p;
+  const lipped = kind === 'lipped';
+  const ink = C.ink || C.outline;
+  const lw = Math.max(W * (C.ow || 0), W * (lipped ? 0.005 : 0.020));
+
+  // Centred on where the mouth actually sits, not on the nominal mouth line:
+  // in profile the jaw carries the opening downward, so the two are not the
+  // same place and a stipple pinned to the line drags the centring off.
+  if (C.stubble) stubbleShadow(ctx, W, (cy + (od - ou) * 0.5) / 0.56, C.stubble);
+
+  if (p.bite) return profileBite(ctx, W, g, C, P, kind);
+
+  // The dark first, so the lips sit on top of it and close it off cleanly.
+  if (!shut) {
+    ctx.fillStyle = C.cavity || '#25100F';
+    ctx.fill(cav);
+    profileInnards(ctx, W, g, C, P);
+  }
+
+  if (lipped) {
+    const upper = profileLobe(bx, by, tipU, uy, -1, bodyU, roll, P.wedge.roofBack);
+    const lower = profileLobe(bx, by, tipL, ly, 1, bodyL, roll * 0.72, P.wedge.floorBack);
+    let fill = C.lip;
+    if (C.lipDark) {
+      const grd = ctx.createLinearGradient(0, uy - bodyU * 1.2, 0, ly + bodyL * 1.3);
+      grd.addColorStop(0, C.lipDark); grd.addColorStop(0.44, C.lip); grd.addColorStop(1, C.lipDark);
+      fill = grd;
+    }
+    ctx.fillStyle = fill;
+    ctx.fill(upper); ctx.fill(lower);
+    if (C.gloss) {
+      ctx.save(); ctx.clip(upper);
+      ctx.fillStyle = 'rgba(255,255,255,' + (0.44 * C.gloss).toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.ellipse(tipU - bodyU * 0.75, uy - bodyU * 0.62,
+                  bodyU * 0.85, bodyU * 0.26, -0.22, 0, Math.PI * 2);
+      ctx.fill(); ctx.restore();
+      if (C.dot) {
+        ctx.save(); ctx.clip(lower);
+        ctx.fillStyle = 'rgba(255,239,212,.9)';
+        ctx.beginPath();
+        ctx.ellipse(tipL - bodyL * 0.6, ly + bodyL * 0.66,
+                    bodyL * 0.28, bodyL * 0.17, -0.4, 0, Math.PI * 2);
+        ctx.fill(); ctx.restore();
+      }
+    }
+    // Shut, the two lobes butt together into one lump; the seam is the only
+    // thing saying there is a mouth in it at all.
+    if (shut) {
+      ctx.strokeStyle = C.cavity || ink || 'rgba(0,0,0,.5)';
+      ctx.lineWidth = Math.max(base * 0.24, W * 0.006);
+      ctx.lineCap = 'round';
+      ctx.stroke(seam);
+    }
+    if (C.outline) {
+      ctx.strokeStyle = C.outline; ctx.lineWidth = lw; ctx.lineJoin = 'round';
+      ctx.stroke(upper); ctx.stroke(lower);
+    }
+    return;
+  }
+
+  // An inked style has no lip body to draw: front-on it is a dark aperture with
+  // a heavy line round it, and that is exactly what it should be here too.
+  if (shut) {
+    ctx.strokeStyle = ink || C.cavity || '#16110F';
+    ctx.lineWidth = Math.max(lw, W * 0.017);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.stroke(seam);
+  } else if (ink) {
+    ctx.strokeStyle = ink; ctx.lineWidth = lw; ctx.lineJoin = 'round';
+    ctx.stroke(cav);
+  }
+  // Paper cut stands its lips in with two creases rather than drawing them.
+  if (C.creases) {
+    const o = W * 0.016, L = tipU - bx;
+    ctx.strokeStyle = C.creases;
+    ctx.lineWidth = Math.max(1, W * 0.0075);
+    ctx.lineCap = 'round';
+    for (const s of [-1, 1]) {
+      const edge = s < 0 ? uy : ly;
+      ctx.beginPath();
+      ctx.moveTo(bx + L * 0.30, by + (edge - by) * 0.55 + s * o);
+      ctx.quadraticCurveTo(bx + L * 0.78, edge + s * o * 1.7,
+                           tipU - bodyU * 0.3, edge + s * o * 0.6);
+      ctx.stroke();
+    }
+  }
+}
+
 function inked(ctx, W, H, v, C) {
   const g = geom(v, W, H, C);
+  if (g.view === 'profile') return profileMouth(ctx, W, g, C, 'inked');
   const lw = W * (C.ow || 0);
   if (VP[v].bite) {
     biteOverlay(ctx, g, W, { teeth: C.teeth, lip: C.lip || '#C4595F', stroke: C.ink, lw });
@@ -2727,6 +3276,7 @@ function stubbleShadow(ctx, W, H, strength) {
 
 function lipped(ctx, W, H, v, C) {
   const g = geom(v, W, H, C);
+  if (g.view === 'profile') return profileMouth(ctx, W, g, C, 'lipped');
   const p = VP[v];
   const t = W * C.thickness;
   if (C.stubble) stubbleShadow(ctx, W, H, C.stubble);
@@ -2735,7 +3285,9 @@ function lipped(ctx, W, H, v, C) {
     return;
   }
   const inner = g.path;
-  const outer = outline(g.cx, g.cy, g.hw + t * 0.5, g.up + t * 0.95, g.dn + t * 1.15, p.round);
+  // The outer lip edge, built by the same view as the aperture — g.build is
+  // what keeps a lipped style from drawing a front-on lip round a turned hole.
+  const outer = g.build(t * 0.5, t * 0.95, t * 1.15);
   if (g.up + g.dn > W * 0.03) {
     fillCavity(ctx, g, C.cavity);
     innards(ctx, g, W, C);
@@ -2760,7 +3312,8 @@ function lipped(ctx, W, H, v, C) {
     ctx.clip(ring, 'evenodd');
     ctx.fillStyle = 'rgba(255,255,255,' + (0.42 * C.gloss).toFixed(3) + ')';
     ctx.beginPath();
-    ctx.ellipse(g.cx - g.hw * 0.34, g.cy - g.up - t * 0.55, g.hw * 0.30, t * 0.24, -0.18, 0, Math.PI * 2);
+    ctx.ellipse(g.cx + (g.hwR - g.hwL) * 0.3 - g.hw * 0.34, g.cy - g.up - t * 0.55,
+                g.hw * 0.30, t * 0.24, -0.18, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,' + (0.28 * C.gloss).toFixed(3) + ')';
     ctx.beginPath();
@@ -2784,27 +3337,73 @@ function lipped(ctx, W, H, v, C) {
   }
 }
 
-const STYLES = {
+/* The fifteen styles are defined ONCE. The three views are derived from them
+   below, so a change to a style reaches its front, three-quarter and profile
+   together and they cannot drift into being three different mouths. */
+const STYLE_DEFS = {
   cartoon: {
     label: 'Cartoon',
-    draw: (c, W, H, v) => inked(c, W, H, v, {
+    draw: (c, W, H, v, V) => inked(c, W, H, v, { view: V,
       ink: '#16110F', ow: 0.030, cavity: '#25100F', teeth: '#FFFAF0', tongue: '#DE6E7E'
     })
   },
   hose: {
     label: 'Rubber hose',
-    draw: (c, W, H, v) => inked(c, W, H, v, {
+    draw: (c, W, H, v, V) => inked(c, W, H, v, { view: V,
       ink: '#191614', ow: 0.044, cavity: '#241214', teeth: '#FFFFFF', tongue: '#E8848F',
       widthMul: 0.94, heightMul: 1.18
     })
   },
   line: {
     label: 'Line art',
-    draw(ctx, W, H, v) {
-      const g = geom(v, W, H);
+    draw(ctx, W, H, v, V) {
+      const g = geom(v, W, H, { view: V });
       const lw = W * 0.017;
       const ink = '#1A1D24';
       ctx.strokeStyle = ink; ctx.lineWidth = lw; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+      if (g.view === 'profile') {
+        // Line art is the one style with nothing to fill, so it gets the
+        // profile construction as pure contour: the two lip edges and, when
+        // they are apart, whatever shows between them.
+        const C = { ow: 0.017, teeth: ink, tongue: ink };
+        const P = profileParts(W, g, C);
+        if (VP[v].bite) {
+          const th = W * 0.042, L = P.tipU - P.bx;
+          const tx0 = P.bx + L * 0.46, tx1 = P.tipU - P.bodyU * 0.42;
+          ctx.beginPath();
+          ctx.moveTo(tx0, P.cy - th * 1.35);
+          ctx.lineTo(tx1, P.cy - th * 1.30);
+          ctx.quadraticCurveTo(tx1 + P.bodyU * 0.22, P.cy - th * 0.60,
+                               tx1 - P.bodyU * 0.16, P.cy + th * 0.25);
+          ctx.stroke();
+          ctx.stroke(profileLobe(P.bx, P.cy - th * 1.05, P.tipU, P.cy - th * 1.45,
+                                 -1, P.bodyU * 0.94, 0.12));
+          ctx.stroke(profileLobe(P.bx, P.cy + th * 0.50, tx1 - P.bodyU * 0.30,
+                                 P.cy - th * 0.30, 1, P.bodyL * 1.10, 0.30));
+          return;
+        }
+        if (P.shut) { ctx.stroke(P.seam); return; }
+        ctx.stroke(P.cav);
+        const p = VP[v], L = P.tipU - P.bx, span = P.ly - P.by;
+        ctx.save(); ctx.clip(P.cav); ctx.lineWidth = lw * 0.75;
+        if (p.teeth > 0.3 && P.ou > W * 0.012) {
+          const y = P.uy + Math.min(P.ou * 1.0, W * 0.046);
+          ctx.beginPath();
+          ctx.moveTo(P.bx + L * 0.34, P.uy + (P.by - P.uy) * 0.30);
+          ctx.quadraticCurveTo(P.bx + L * 0.66, y, P.tipU, y);
+          ctx.stroke();
+        }
+        if (p.tongue > 0.4 && P.od > W * 0.05) {
+          const lift = clamp(p.tongue, 0, 1);
+          ctx.beginPath();
+          ctx.moveTo(P.bx, P.by + span * 0.55);
+          ctx.quadraticCurveTo(P.bx + L * 0.52, P.ly + span * 0.04,
+                               P.bx + L * 0.94, P.ly - span * (0.28 + lift * 0.60));
+          ctx.stroke();
+        }
+        ctx.restore();
+        return;
+      }
       if (VP[v].bite) {
         biteOverlay(ctx, g, W, { teeth: 'rgba(0,0,0,0)', lip: 'rgba(0,0,0,0)', stroke: ink, lw: lw * 1.6 });
         return;
@@ -2834,9 +3433,30 @@ const STYLES = {
   },
   block: {
     label: 'Blocky',
-    draw(ctx, W, H, v) {
-      const g = geom(v, W, H);
+    draw(ctx, W, H, v, V) {
+      const g = geom(v, W, H, { view: V });
       const p = VP[v];
+      if (g.view === 'profile') {
+        // Same two-lobe construction, drawn with the blocky palette: one slab
+        // of coral with the dark cut out of it.
+        const C = { thickness: 0.052, cavity: '#2E2530', teeth: '#F4EFE4',
+                    tongue: '#E08B93', lip: '#D2705C' };
+        const P = profileParts(W, g, C);
+        if (p.bite) { profileBite(ctx, W, g, C, P, 'lipped'); return; }
+        ctx.fillStyle = C.lip;
+        ctx.fill(profileLobe(P.bx, P.by, P.tipU, P.uy, -1, P.bodyU, P.roll, P.wedge.roofBack));
+        ctx.fill(profileLobe(P.bx, P.by, P.tipL, P.ly, 1, P.bodyL, P.roll * 0.72, P.wedge.floorBack));
+        if (!P.shut) {
+          ctx.fillStyle = C.cavity; ctx.fill(P.cav);
+          profileInnards(ctx, W, g, C, P);
+        } else {
+          ctx.strokeStyle = C.cavity;
+          ctx.lineWidth = Math.max(P.base * 0.26, W * 0.007);
+          ctx.lineCap = 'round';
+          ctx.stroke(P.seam);
+        }
+        return;
+      }
       if (p.bite) {
         biteOverlay(ctx, g, W, { teeth: '#F4EFE4', lip: '#D2705C', stroke: null, lw: 0 });
         return;
@@ -2869,28 +3489,28 @@ const STYLES = {
   },
   minimal: {
     label: 'Minimal',
-    draw: (c, W, H, v) => lipped(c, W, H, v, {
+    draw: (c, W, H, v, V) => lipped(c, W, H, v, { view: V,
       lip: '#E6D2CA', gloss: 0, thickness: 0.030, outline: '#8A6E66', ow: 0.008,
       cavity: '#4A3A38', teeth: '#FFFFFF', tongue: '#C98E92'
     })
   },
   natural: {
     label: 'Natural',
-    draw: (c, W, H, v) => lipped(c, W, H, v, {
+    draw: (c, W, H, v, V) => lipped(c, W, H, v, { view: V,
       lip: '#BE7A73', lipDark: '#96574F', gloss: 0.12, thickness: 0.046,
       cavity: '#3A1F22', teeth: '#F7F1E6', tongue: '#CE7F84', outline: 'rgba(60,32,28,.35)'
     })
   },
   full: {
     label: 'Full lips',
-    draw: (c, W, H, v) => lipped(c, W, H, v, {
+    draw: (c, W, H, v, V) => lipped(c, W, H, v, { view: V,
       lip: '#C0454F', lipDark: '#8E2C38', gloss: 0.9, thickness: 0.056,
       cavity: '#2A1218', teeth: '#FBF6EC', tongue: '#D9707F', outline: 'rgba(50,16,22,.42)'
     })
   },
   masc: {
     label: 'Masculine',
-    draw: (c, W, H, v) => lipped(c, W, H, v, {
+    draw: (c, W, H, v, V) => lipped(c, W, H, v, { view: V,
       // wider, flatter, matte, and set closer to skin than the feminine styles
       lip: '#A9736A', lipDark: '#7E4F48', gloss: 0, thickness: 0.034,
       widthMul: 1.14, heightMul: 0.96,
@@ -2900,7 +3520,7 @@ const STYLES = {
   },
   stubble: {
     label: 'Stubble',
-    draw: (c, W, H, v) => lipped(c, W, H, v, {
+    draw: (c, W, H, v, V) => lipped(c, W, H, v, { view: V,
       lip: '#A06C63', lipDark: '#77463F', gloss: 0, thickness: 0.032,
       widthMul: 1.14, heightMul: 0.96, stubble: 0.95,
       cavity: '#2B1715', teeth: '#F2EBDE', tongue: '#BC7076',
@@ -2909,7 +3529,7 @@ const STYLES = {
   },
   realistic: {
     label: 'Realistic',
-    draw: (c, W, H, v) => lipped(c, W, H, v, {
+    draw: (c, W, H, v, V) => lipped(c, W, H, v, { view: V,
       lip: '#B26A67', lipDark: '#8A4744', gloss: 0.35, thickness: 0.050,
       cavity: '#2B1517', teeth: '#FAF4E8', tongue: '#D07E82',
       outline: 'rgba(40,20,20,.30)', ow: 0.005
@@ -2921,7 +3541,7 @@ const STYLES = {
      do not. */
   sticker: {
     label: 'Sticker',
-    draw: (c, W, H, v) => lipped(c, W, H, v, {
+    draw: (c, W, H, v, V) => lipped(c, W, H, v, { view: V,
       lip: '#F2896B', gloss: 0, thickness: 0.070, widthMul: 0.97,
       outline: '#15120F', ow: 0.026,
       cavity: '#171214', teeth: '#FFFFFF', tongue: '#E8503F'
@@ -2931,7 +3551,7 @@ const STYLES = {
   /* Big scalloped teeth — the broad toon smile, where you can count them. */
   toon: {
     label: 'Toon teeth',
-    draw: (c, W, H, v) => lipped(c, W, H, v, {
+    draw: (c, W, H, v, V) => lipped(c, W, H, v, { view: V,
       lip: '#EE7059', lipDark: '#D2523E', gloss: 0.25, thickness: 0.054,
       cavity: '#7E1A22', teeth: '#FFF8EC', tongue: '#E23B3B',
       scallop: true, teethMul: 1.9,
@@ -2941,7 +3561,7 @@ const STYLES = {
 
   glossy: {
     label: 'Glossy',
-    draw: (c, W, H, v) => lipped(c, W, H, v, {
+    draw: (c, W, H, v, V) => lipped(c, W, H, v, { view: V,
       lip: '#F03A63', lipDark: '#BF1B47', gloss: 1, dot: true, thickness: 0.060,
       cavity: '#3A0E1E', teeth: '#FFFFFF', tongue: '#F0616E',
       outline: 'rgba(70,10,30,.30)', ow: 0.005
@@ -2952,7 +3572,7 @@ const STYLES = {
      small creases stand in for the lips that were never drawn. */
   paper: {
     label: 'Paper cut',
-    draw: (c, W, H, v) => inked(c, W, H, v, {
+    draw: (c, W, H, v, V) => inked(c, W, H, v, { view: V,
       ink: null, ow: 0, widthMul: 1.04,
       cavity: '#7A1626', teeth: '#FFFFFF', tongue: '#E8437A',
       teethMul: 1.15, tongueMul: 1.1, creases: '#D9A183', lip: '#D9A183'
@@ -2961,13 +3581,51 @@ const STYLES = {
 
   flat: {
     label: 'Flat',
-    draw: (c, W, H, v) => inked(c, W, H, v, {
+    draw: (c, W, H, v, V) => inked(c, W, H, v, { view: V,
       ink: null, ow: 0, widthMul: 1.10, heightMul: 0.94,
       cavity: '#5E1220', teeth: '#EDF0F1', tongue: '#EE3D6E',
       teethMul: 0.65, tongueMul: 1.35, lip: '#5E1220'
     })
   }
 };
+
+/* --- fifteen styles x three views = the forty-five on offer ----------------
+
+   Ids are `<style>` for front and `<style>-three` / `<style>-profile` for the
+   turned ones. The front id is left alone on purpose: a clip saved before the
+   views existed still names `cartoon`, and it must keep meaning what it meant.
+--------------------------------------------------------------------------- */
+const STYLE_VIEWS = ['front', 'three', 'profile'];
+const styleViewId = (base, view) => view === 'front' ? base : base + '-' + view;
+
+const STYLES = {};
+Object.keys(STYLE_DEFS).forEach(base => {
+  const def = STYLE_DEFS[base];
+  STYLE_VIEWS.forEach(view => {
+    STYLES[styleViewId(base, view)] = {
+      label: def.label,
+      base, view,
+      draw(ctx, W, H, v) {
+        // A turned mouth does not sit square on the face: it follows the curve
+        // of it. The tilt is part of the drawing rather than something applied
+        // afterwards, so the centring pass measures the shape that is really
+        // drawn.
+        const tilt = view === 'three' ? -0.055 : 0;
+        if (!tilt) return def.draw(ctx, W, H, v, view);
+        ctx.save();
+        ctx.translate(W / 2, H * 0.56);
+        ctx.rotate(tilt);
+        ctx.translate(-W / 2, -H * 0.56);
+        def.draw(ctx, W, H, v, view);
+        ctx.restore();
+      }
+    };
+  });
+});
+
+/** The styles belonging to one view, in the order they were defined. */
+const stylesInView = view =>
+  Object.keys(STYLE_DEFS).map(base => styleViewId(base, view));
 
 function roundRect(ctx, x, y, w, h, r) {
   r = Math.max(0, Math.min(r, w / 2, h / 2));
@@ -3011,10 +3669,10 @@ function paintMouth(ctx, W, H, v, styleId, bg) {
   // the whole drawing is nudged until the nine shapes together sit in the
   // middle of the frame. Measured per style rather than by one constant,
   // because the styles do not all cover the same ground.
-  const dy = styleCentreOffset(st, styleId) * H;
-  if (dy) {
+  const o = styleCentreOffset(st, styleId);
+  if (o.dx || o.dy) {
     ctx.save();
-    ctx.translate(0, dy);
+    ctx.translate(o.dx * W, o.dy * H);
     st.draw(ctx, W, H, v);
     ctx.restore();
   } else {
@@ -3029,30 +3687,35 @@ const styleOffsets = new Map();
 function styleCentreOffset(st, id) {
   const key = id || 'cartoon';
   if (styleOffsets.has(key)) return styleOffsets.get(key);
-  let off = 0;
+  // BOTH axes. Vertical alone was enough while every style was symmetrical
+  // about the middle of the tile; a turned mouth is not, and the front-on
+  // assumption put the three-quarter styles up to 18px off-centre — which would
+  // have shifted the mouth in every export, silently.
+  let off = { dx: 0, dy: 0 };
   try {
     const S = 160;
     const c = document.createElement('canvas');
     c.width = c.height = S;
     const x = c.getContext('2d', { willReadFrequently: true });
-    let top = S, bot = -1;
+    let top = S, bot = -1, left = S, right = -1;
     for (const v of VIS) {
       x.clearRect(0, 0, S, S);
       st.draw(x, S, S, v);
       const d = x.getImageData(0, 0, S, S).data;
       for (let row = 0; row < S; row++) {
-        let any = false;
         for (let col = 0; col < S; col++) {
           // A firm threshold: soft shadows and stipple must not decide where
           // the mouth is.
-          if (d[(row * S + col) * 4 + 3] >= 96) { any = true; break; }
+          if (d[(row * S + col) * 4 + 3] < 96) continue;
+          if (row < top) top = row;
+          if (row > bot) bot = row;
+          if (col < left) left = col;
+          if (col > right) right = col;
         }
-        if (!any) continue;
-        if (row < top) top = row;
-        if (row > bot) bot = row;
       }
     }
-    if (bot >= top) off = clamp(0.5 - (top + bot) / 2 / S, -0.25, 0.25);
+    if (bot >= top) off.dy = clamp(0.5 - (top + bot) / 2 / S, -0.25, 0.25);
+    if (right >= left) off.dx = clamp(0.5 - (left + right) / 2 / S, -0.25, 0.25);
   } catch (e) { /* a style that will not render is not worth a crash */ }
   styleOffsets.set(key, off);
   return off;
@@ -7318,26 +7981,43 @@ function shapeOfName(name) {
   return m ? m[1] : null;
 }
 
-/** Nine pictures out of however many turned up. Anything the folder does not
-    name falls back to a shape it does have, so a frame is never blank — and
-    the count is reported so a half-finished folder is obvious. */
-function mapFromImages(entries) {
-  const map = {}, taken = new Set();
-  entries.forEach(e => {
+/** Nine pictures out of however many turned up, as INDICES into the set's own
+    list rather than as the pictures themselves — which is what lets the viewer
+    reassign them afterwards without the folder being re-read.
+
+    Anything the folder does not name falls back to a picture it does have, so
+    a frame is never blank, and every shape filled that way is listed in
+    `guessed` so the interface can say which ones were a guess. */
+function autoAssign(pics) {
+  const by = {}, taken = new Set();
+  pics.forEach((e, i) => {
     const v = shapeOfName(e.name);
-    if (v && !taken.has(v)) { map[v] = e.src; taken.add(v); }
+    if (v && !taken.has(v)) { by[v] = i; taken.add(v); }
   });
-  const spare = entries.filter(e => !shapeOfName(e.name) || !taken.has(shapeOfName(e.name)));
+  const used = new Set(Object.values(by));
+  const spare = pics.map((_, i) => i).filter(i => !used.has(i));
   let k = 0;
-  const missing = [];
+  const guessed = [];
   VIS.forEach(v => {
-    if (map[v]) return;
-    if (spare[k]) { map[v] = spare[k++].src; return; }
-    missing.push(v);
+    if (by[v] != null) return;
+    guessed.push(v);
+    if (spare[k] != null) by[v] = spare[k++];
   });
-  const stand = map.A || map.X || Object.values(map)[0];
-  if (stand) missing.forEach(v => { map[v] = stand; });
-  return { map, missing };
+  // Whatever is left over takes a stand-in, so no frame is ever empty.
+  const stand = by.A != null ? by.A : by.X != null ? by.X : Object.values(by)[0];
+  if (stand != null) VIS.forEach(v => { if (by[v] == null) by[v] = stand; });
+  return { by, guessed };
+}
+
+/** Rebuild `map` — the thing the renderer actually reads — from the indices.
+    Called on import and again after every reassignment. */
+function relinkLipSet(set) {
+  set.map = {};
+  VIS.forEach(v => {
+    const p = set.pics[set.by[v]];
+    if (p) set.map[v] = p.src;
+  });
+  return set;
 }
 
 function asSource(img) {
@@ -7349,19 +8029,37 @@ function asSource(img) {
     for one the viewer picked; the two are treated differently in exactly one
     place, which is how long they last. */
 async function buildLipSet(id, name, blobs, origin) {
-  const entries = [];
+  const pics = [];
   for (const b of blobs) {
-    try { entries.push({ name: b.name, src: asSource(await loadImage(b.blob)) }); }
+    try { pics.push({ name: b.name, src: asSource(await loadImage(b.blob)) }); }
     catch (e) { console.warn('skipped', b.name, e); }
   }
-  if (!entries.length) return null;
-  const { map, missing } = mapFromImages(entries);
-  return { id, name, origin: origin || 'shipped', map, missing, count: entries.length };
+  if (!pics.length) return null;
+  // In name order, counting numerically — `frame2` before `frame10`. A folder
+  // picker hands its files over in whatever order it likes, and that order is
+  // what the fallback assigns by, so a set numbered 1–9 in chart order only
+  // lands right if they are sorted first. It also stops the list in the
+  // matching dialog jumping about between one import and the next.
+  pics.sort((a, b2) => a.name.localeCompare(b2.name, undefined, { numeric: true, sensitivity: 'base' }));
+  const { by, guessed } = autoAssign(pics);
+  return relinkLipSet({ id, name, origin: origin || 'shipped', pics, by,
+                        guessed, count: pics.length });
+}
+
+/** Point one shape at one picture, by hand. The viewer has just told us what
+    this picture is, so it stops counting as a guess. */
+function assignShape(set, v, index) {
+  if (!set || !set.pics[index] || !VIS.includes(v)) return;
+  set.by[v] = index;
+  set.guessed = set.guessed.filter(s => s !== v);
+  relinkLipSet(set);
+  if (lips.activeId === set.id) useLipSet(set.id, true);
+  else buildLipChips();
 }
 
 function lipSetById(id) { return lips.sets.find(s => s.id === id) || null; }
 
-function useLipSet(id) {
+function useLipSet(id, quiet) {
   const set = lipSetById(id);
   if (!set) return;
   custom.on = true;
@@ -7373,7 +8071,7 @@ function useLipSet(id) {
   const c = activeClip();
   if (c) c.lipSetId = id;
   renderQueue();
-  toast('Using “' + set.name + '”.', 1800);
+  if (!quiet) toast('Using “' + set.name + '”.', 1800);
 }
 
 /* --- reading the folder --------------------------------------------------- */
@@ -7516,8 +8214,14 @@ async function importLipFolder(files) {
   }
   buildLipChips();
   if (!added) { lipsSay('Those files did not decode as images.', true); return 0; }
-  if (added === 1) useLipSet(lips.sets[lips.sets.length - 1].id);
+  const last = lips.sets[lips.sets.length - 1];
+  if (added === 1) useLipSet(last.id);
   sayShelf();
+  // The moment to put a bad match right is the moment it happens — you have
+  // just chosen the folder and you still remember what is in it. Only when
+  // the names left something to guess; a folder named for the shapes is
+  // already right and a dialog would only be in the way.
+  if (added === 1 && last.guessed.length) openRemap(last.id);
   return added;
 }
 
@@ -7555,7 +8259,8 @@ function buildLipChips() {
     const b = document.createElement('button');
     b.className = 'style-opt' + (lips.activeId === set.id ? ' sel' : '');
     b.type = 'button';
-    b.title = set.name + ' — ' + (9 - set.missing.length) + ' of 9 shapes supplied' +
+    b.title = set.name + ' — ' + (9 - set.guessed.length) + ' of 9 shapes named, ' +
+      set.count + ' picture' + (set.count === 1 ? '' : 's') + ' in the folder' +
       (set.origin === 'session' ? ' · yours, this visit only' : '');
     // Drawn straight from this set, not through paintMouth — the chip has to
     // show its own art whether or not the set is the one in use.
@@ -7571,10 +8276,10 @@ function buildLipChips() {
     const nm = document.createElement('span');
     nm.className = 'nm';
     nm.textContent = set.name;
-    if (set.missing.length) {
+    if (set.guessed.length) {
       const w = document.createElement('span');
       w.className = 'chip-note';
-      w.textContent = (9 - set.missing.length) + '/9';
+      w.textContent = (9 - set.guessed.length) + '/9';
       b.appendChild(w);
     }
     b.append(c, nm);
@@ -7590,11 +8295,150 @@ function buildLipChips() {
     b.onclick = () => useLipSet(set.id);
     wrap.appendChild(b);
   });
+  syncRemapButton();
+}
+
+/* --- which picture is which shape -------------------------------------------
+
+   The automatic match reads filenames, which is right most of the time and
+   wrong in ways nothing else can put right: a folder of 1.png … 9.png carries
+   no clue at all, and one that calls its wide-open shape "aah" lands it on A.
+   Renaming the files and importing again does work, but it is a poor answer
+   once the set is on the page and you can see which frame is wrong. So the
+   assignment stays editable, one shape at a time, with the chart and the stage
+   following as you go — the picture you are choosing is a picture you can see.
+--------------------------------------------------------------------------- */
+
+let remapSetId = null;
+
+/** One picture, letterboxed into a canvas. Drawn straight from the set rather
+    than through paintMouth, so it shows its own art whether or not the set is
+    the one in use. */
+function drawPicInto(c, src) {
+  const x = c.getContext('2d');
+  x.clearRect(0, 0, c.width, c.height);
+  if (!src || !src.img) return;
+  const s = Math.min(c.width / src.sw, c.height / src.sh);
+  x.drawImage(src.img, src.sx, src.sy, src.sw, src.sh,
+              (c.width - src.sw * s) / 2, (c.height - src.sh * s) / 2,
+              src.sw * s, src.sh * s);
+}
+
+function sayRemap() {
+  const set = lipSetById(remapSetId), el = $('remapSub');
+  if (!set || !el) return;
+  const n = set.guessed.length;
+  el.textContent = set.name + ' — ' + set.count + ' picture' +
+    (set.count === 1 ? '' : 's') + ' in the folder. ' +
+    (n === 0 ? 'Every shape has a picture named for it.'
+     : n === 1 ? 'One shape has no picture named for it, and is marked.'
+     : n + ' shapes have no picture named for them, and are marked.');
+}
+
+function buildRemapRows() {
+  const set = lipSetById(remapSetId), wrap = $('remapRows');
+  if (!set || !wrap) return;
+  sayRemap();
+  wrap.innerHTML = '';
+  VIS.forEach(v => {
+    const row = document.createElement('div');
+    row.className = 'remap-row' + (set.guessed.includes(v) ? ' guess' : '');
+
+    const key = document.createElement('div');
+    key.className = 'remap-key';
+    key.style.setProperty('--k', VCOL[v]);
+    const tag = document.createElement('b');
+    tag.textContent = v;
+    const nm = document.createElement('span');
+    nm.textContent = VNAME[v];
+    nm.title = VNAME[v];
+    key.append(tag, nm);
+
+    const c = document.createElement('canvas');
+    c.className = 'remap-thumb';
+    c.width = 116; c.height = 90;
+    drawPicInto(c, set.map[v]);
+
+    const sel = document.createElement('select');
+    sel.className = 'remap-pick';
+    sel.setAttribute('aria-label', 'Picture for ' + v + ' — ' + VNAME[v]);
+    set.pics.forEach((pic, i) => {
+      const o = document.createElement('option');
+      o.value = String(i);
+      o.textContent = pic.name;
+      if (set.by[v] === i) o.selected = true;
+      sel.appendChild(o);
+    });
+    // Live, not on OK. Rebuilding every row here would take the focus out of
+    // the control being used, so only what changed is redrawn.
+    sel.onchange = () => {
+      assignShape(set, v, +sel.value);
+      drawPicInto(c, set.map[v]);
+      row.classList.remove('guess');
+      sayRemap();
+    };
+
+    row.append(key, c, sel);
+    wrap.appendChild(row);
+  });
+}
+
+function openRemap(id) {
+  const set = lipSetById(id || lips.activeId);
+  if (!set) return;
+  remapSetId = set.id;
+  // Editing a set you cannot see would be guesswork of a different kind.
+  if (lips.activeId !== set.id) useLipSet(set.id, true);
+  buildRemapRows();
+  const d = $('remapDlg');
+  if (!d) return;
+  if (d.showModal) d.showModal(); else d.setAttribute('open', '');
+}
+
+function wireRemap() {
+  const d = $('remapDlg');
+  if (!d) return;
+  $('lipsRemap').onclick = () => openRemap(lips.activeId);
+  $('remapAuto').onclick = () => {
+    const set = lipSetById(remapSetId);
+    if (!set) return;
+    const auto = autoAssign(set.pics);
+    set.by = auto.by; set.guessed = auto.guessed;
+    relinkLipSet(set);
+    if (lips.activeId === set.id) useLipSet(set.id, true);
+    buildRemapRows();
+  };
+  d.addEventListener('close', () => { remapSetId = null; });
+}
+
+/** The button is only meaningful with a set in front of you. */
+function syncRemapButton() {
+  const b = $('lipsRemap');
+  if (!b) return;
+  const set = lipSetById(lips.activeId);
+  b.disabled = !set;
+  b.title = set ? 'Say which picture belongs to which shape in “' + set.name + '”'
+                : 'Pick a set of lips first';
 }
 
 /* --- the two shelves ------------------------------------------------------ */
 
 const STYLE_TABS = ['builtin', 'mine'];
+const VIEW_TABS = ['front', 'three', 'profile'];
+let viewTab = 'front';
+
+function showViewTab(name) {
+  if (!VIEW_TABS.includes(name)) return;
+  viewTab = name;
+  VIEW_TABS.forEach(t => {
+    const pane = $('viewpane-' + t), btn = $('viewBtn-' + t);
+    if (!pane || !btn) return;
+    pane.hidden = t !== name;
+    btn.setAttribute('aria-selected', t === name ? 'true' : 'false');
+    btn.classList.toggle('on', t === name);
+    btn.tabIndex = t === name ? 0 : -1;
+  });
+}
 let styleTab = 'builtin';
 
 function showStyleTab(name) {
@@ -7608,7 +8452,6 @@ function showStyleTab(name) {
   });
   // Canvases in a hidden pane have no layout, so redraw on the way in.
   if (name === 'builtin') buildStyleChips(); else buildLipChips();
-  try { localStorage.setItem('mouthchart.styleTab', name); } catch (e) {}
 }
 
 function wireStyleTabs() {
@@ -7637,9 +8480,32 @@ function sayShelf() {
 
 async function initLipSets() {
   wireStyleTabs();
-  let saved = null;
-  try { saved = localStorage.getItem('mouthchart.styleTab'); } catch (e) {}
-  showStyleTab(STYLE_TABS.includes(saved) ? saved : 'builtin');
+  wireRemap();
+  // Built-in lips, and Front inside it, every time the page opens. Neither
+  // choice is remembered: a set brought in last visit is gone on reload anyway,
+  // so reopening on Custom lips would land on an empty shelf, and a page that
+  // reopens on Profile because that is where someone was last week costs more
+  // than it saves. Both are one click away.
+  showStyleTab('builtin');
+  try {
+    localStorage.removeItem('mouthchart.styleTab');
+    localStorage.removeItem('mouthchart.viewTab');
+  } catch (e) {}
+
+  VIEW_TABS.forEach(t => {
+    const b = $('viewBtn-' + t);
+    if (b) b.onclick = () => showViewTab(t);
+  });
+  const vtabs = $('viewTabs');
+  if (vtabs) vtabs.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    e.preventDefault();
+    const i = VIEW_TABS.indexOf(viewTab);
+    const n = (i + (e.key === 'ArrowRight' ? 1 : -1) + VIEW_TABS.length) % VIEW_TABS.length;
+    showViewTab(VIEW_TABS[n]);
+    $('viewBtn-' + VIEW_TABS[n]).focus();
+  });
+  showViewTab('front');
 
   $('lipsPick').onclick = () => $('lipsInput').click();
   $('lipsInput').onchange = async () => {
@@ -7720,9 +8586,16 @@ function refreshDiagnostics() {
 /* --------------------------------------------------------------- chrome */
 
 function buildStyleChips() {
-  const wrap = $('styles');
+  // One grid per head angle. Each holds the same fifteen styles, so a character
+  // keeps its look through a turn — which is the whole point of having them.
+  STYLE_VIEWS.forEach(view => buildStyleGrid(view));
+}
+
+function buildStyleGrid(view) {
+  const wrap = $(view === 'front' ? 'styles' : 'styles-' + view);
+  if (!wrap) return;
   wrap.innerHTML = '';
-  Object.keys(STYLES).forEach(id => {
+  stylesInView(view).forEach(id => {
     const b = document.createElement('button');
     b.className = 'style-opt' + (!custom.on && state.style === id ? ' sel' : '');
     b.type = 'button';
