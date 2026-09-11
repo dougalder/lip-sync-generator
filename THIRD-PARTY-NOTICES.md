@@ -271,3 +271,13 @@ The [Where Am I?](https://github.com/gpakosz/whereami) library is released under
 > WTFPLv2 is very permissive, see http://www.wtfpl.net/faq/
 >
 > However, if this WTFPLV2 is REALLY a blocker and is the reason you can't use this project, contact me and I'll dual license it.
+>
+> ### `[archivo]` Archivo
+
+Copyright 2020 The Archivo Project Authors (https://github.com/Omnibus-Type/Archivo),
+licensed under the SIL Open Font License 1.1. Full text in `fonts/Archivo-OFL.txt`.
+
+### `[dm-mono]` DM Mono
+
+Copyright 2020 The DM Mono Project Authors (https://github.com/googlefonts/dm-mono),
+licensed under the SIL Open Font License 1.1. Full text in `fonts/DMMono-OFL.txt`.
