@@ -19,6 +19,11 @@ wants.
 
 The two are checked against each other, so neither can quietly drift.
 
+**"How do I actually get the lips onto my puppet?"** —
+[Putting the lips on a puppet](docs/manual.md#putting-the-lips-on-a-puppet)
+walks through ToonSquid, Procreate Dreams, iMovie, Final Cut Pro, and finishing
+the clip in the page itself without any other software.
+
 ---
 
 ## What it's for
@@ -54,9 +59,9 @@ The two are checked against each other, so neither can quietly drift.
   three-quarter and profile — plus your own pictures
 - **Place the mouth on the video**, with keyframes to follow a moving shot and a
   blur patch to cover a printed mouth
-- **Seven export formats** — chart + timing, Final Cut Pro project, transparent
-  GIF, sprite sheet, frame sequence, chroma-key MP4, and video with the mouth
-  burned in
+- **Eight export formats** — chart + timing, Final Cut Pro project, transparent
+  GIF, animated PNG with a real alpha channel, sprite sheet, frame sequence,
+  chroma-key MP4, and video with the mouth burned in
 - **Batch any of them** across the whole queue, as one download
 
 See the [manual](docs/manual.md) for how each of these works, with annotated
