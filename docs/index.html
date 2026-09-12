@@ -214,6 +214,7 @@ td code{white-space:nowrap}
     <li><a href="#mouth">Mouth style</a></li>
     <li class="sub"><a href="#perclip">Different lips per clip</a></li>
     <li class="sub"><a href="#ownlips">Your own lips</a></li>
+    <li><a href="#puppetin">A puppet to put it on</a></li>
     <li><a href="#place">Placing the mouth</a></li>
     <li><a href="#motion">Blur patch &amp; keyframes</a></li>
     <li><a href="#script">Script</a></li>
@@ -552,13 +553,19 @@ keyframes, the blur patch and the script.</p>
 <p>A mouth chart belongs to a head angle: the same nine shapes drawn for a
 character facing the camera are wrong on one that has turned. The turned views
 are rebuilt geometry rather than the front view squashed. Three-quarter
-foreshortens the far half and tucks that corner behind the cheek. Profile is
-drawn from scratch: an upper lip and a lower one, each a lobe running from the
-mouth corner out to a rounded free edge, with the dark of the mouth between them
-running clean out of the face — front-on the opening is a hole ringed by lip,
-and from the side it is not a hole at all. Width becomes protrusion, the jaw
-carries the opening and takes the mouth corner down with it, and a pucker
-gathers the lips into a cone with a small round hole at the very front.</p>
+foreshortens the far half and tucks that corner behind the cheek. Profile takes
+the same idea further: the aperture loses its far corner altogether and becomes
+a wedge, wide at the front and running to a point where the cheek takes over,
+with the lips drawn as that same wedge grown outward &mdash; one ring of lip round
+one opening, exactly as front-on. Width stops meaning how wide the mouth is and
+starts meaning how far the lips stick out; the jaw does nearly all of the
+opening and takes the mouth corner down with it; the upper lip is grown further
+forward than the lower, so the leading edge steps back as it comes down, which
+is the overbite that says &ldquo;side of a face&rdquo;; and a pucker gathers the
+opening into a small hole up at the front while the lips themselves still run
+back to the corner. Inside, two rows of teeth run from nothing at the corner to
+their full depth at the front, leaving the dark as a slot that is widest where
+the lips part rather than as a black bubble behind them.</p>
 
 <p>Both turned views face <b>right</b>. Because the styles match across all
 three, a character can keep its look through a turn — put the front set on one
@@ -642,6 +649,88 @@ shapes is already right, so it stays out of the way.</p>
   works when the page is served over HTTP; opening the file directly from disk
   blocks the folder scan, and the <b>Use my own lips…</b> button is the way in.</p>
 </div>
+
+<hr>
+
+<h2 id="puppetin">A puppet to put it on</h2>
+
+<p>The mouth has to go on something. A video clip brings its own picture, but a
+voice recording does not — so the picture is its own input, and a photograph
+will do.</p>
+
+<figure>
+  <img src="images/20-puppet.png" alt="The preview panel with audio only offering Add a puppet, beside the same panel with a photograph added behind the mouth">
+  <figcaption>Before and after: the offer, then a photograph behind the mouth.</figcaption>
+</figure>
+
+<p>With audio alone the row under the stage says there is nothing behind the
+mouth yet and offers <b>Add a puppet…</b>. Take a photo or a video; you can also
+drop either straight onto the stage. A <b>PUPPET</b> line then appears under the
+file row with its name, size, whether it is a still, and whether it is
+transparent, plus <b>Replace…</b> and <b>Remove</b>.</p>
+
+<p>A photograph is the easy case and the good one. It is a locked-off shot by
+definition — nothing drifts, nothing needs tracking — so a picture of the doll
+and a voice note is all it takes.</p>
+
+<p>Once there is a puppet, everything the video path already offered turns on:
+placement on the stage, the blur patch, the keyframes, <b>Video with mouth
+overlay</b>, and Final Cut's <b>Match the picture</b>.</p>
+
+<h3 id="puppetclip">It belongs to the clip</h3>
+
+<p>Not to the app. Each clip in the queue carries its own, alongside its own lips
+and its own placement, so a two-hander split into lines can have one puppet on
+the odd ones and another on the even ones. Leave a clip and come back and its
+puppet is there.</p>
+
+<h3 id="puppetlen">When the lengths disagree</h3>
+
+<div class="tablewrap">
+<table>
+  <tbody>
+    <tr><td>A still</td>
+        <td>Takes the length of the take. There is nothing to disagree about.</td></tr>
+    <tr><td>A video shorter than the take</td>
+        <td>Plays <b>out and back again</b> — to its end, then in reverse to its
+            start, then out again.</td></tr>
+    <tr><td>A video longer than the take</td>
+        <td>Cut to the take. The tail is not used.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Out-and-back rather than a plain loop because a loop cuts from the last frame
+to the first every time round, and on a puppet that jolt is the thing you notice.
+Coming back the way it went has no seam in it at all.</p>
+
+<div class="note">
+  <span class="boxlabel">The preview steps through the reverse half</span>
+  <p>A <code>&lt;video&gt;</code> cannot be played backwards, so the reverse leg
+  is drawn by seeking rather than playing and moves at about twenty frames a
+  second on the stage instead of smoothly. Scrub and every frame is exact, and
+  the export renders every frame of it properly. It is only the live preview of
+  the backwards half that is steppy.</p>
+</div>
+
+<p><b>A puppet is always silent</b>, whatever its file contains. The voice track
+is the voice track; two at once is nobody's intention.</p>
+
+<h3 id="puppetalpha">Transparency</h3>
+
+<p>If the puppet has an alpha channel — a cut-out character on nothing — the app
+says <b>transparent</b> on the PUPPET line and keeps the checkerboard behind it
+on the stage rather than a black ground, so you can see that it is cut out.</p>
+
+<p>To keep it through an export, tick <b>Put the puppet behind it</b> on either
+<b>Animated PNG</b> or <b>Frame sequence</b>. Those two become the whole picture
+rather than the mouth alone: the puppet's own size, the mouth composited on top,
+and eight bits of alpha all the way through.</p>
+
+<p><b>Video cannot hold transparency at all</b> — no browser will encode an alpha
+movie, which is covered under <a href="#puppet">Putting the lips on a
+puppet</a> — so a cut-out puppet comes out of <b>Video with mouth overlay</b> on
+black. That is what the two PNG routes are for.</p>
 
 <hr>
 

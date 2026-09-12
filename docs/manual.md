@@ -24,6 +24,7 @@
 - [Mouth style](#mouth-style)
   - [Different lips per clip](#different-lips-per-clip)
   - [Your own lips](#your-own-lips)
+- [A puppet to put it on](#a-puppet-to-put-it-on)
 - [Placing the mouth](#placing-the-mouth)
 - [Blur patch and keyframes](#blur-patch-and-keyframes)
 - [Script](#script)
@@ -304,13 +305,19 @@ keyframes, the blur patch and the script.
 A mouth chart belongs to a head angle: the same nine shapes drawn for a
 character facing the camera are wrong on one that has turned. The turned views
 are rebuilt geometry rather than the front view squashed. Three-quarter
-foreshortens the far half and tucks that corner behind the cheek. Profile is
-drawn from scratch: an upper lip and a lower one, each a lobe running from the
-mouth corner out to a rounded free edge, with the dark of the mouth between them
-running clean out of the face — front-on the opening is a hole ringed by lip,
-and from the side it is not a hole at all. Width becomes protrusion, the jaw
-carries the opening and takes the mouth corner down with it, and a pucker
-gathers the lips into a cone with a small round hole at the very front.
+foreshortens the far half and tucks that corner behind the cheek. Profile takes
+the same idea further: the aperture loses its far corner altogether and becomes
+a wedge, wide at the front and running to a point where the cheek takes over,
+with the lips drawn as that same wedge grown outward — one ring of lip round one
+opening, exactly as front-on. Width stops meaning how wide the mouth is and
+starts meaning how far the lips stick out; the jaw does nearly all of the
+opening and takes the mouth corner down with it; the upper lip is grown further
+forward than the lower, so the leading edge steps back as it comes down, which
+is the overbite that says "side of a face"; and a pucker gathers the opening
+into a small hole up at the front while the lips themselves still run back to
+the corner. Inside, two rows of teeth run from nothing at the corner to their
+full depth at the front, leaving the dark as a slot that is widest where the
+lips part rather than as a black bubble behind them.
 
 Both turned views face **right**. Because the styles match across all three, a
 character can keep its look through a turn — put the front set on one clip and
@@ -376,6 +383,77 @@ shapes is already right, so it stays out of the way.
 > named for the shapes. They are found on load. This only works when the page is
 > served over HTTP; opening the file directly from disk blocks the folder scan,
 > and the **Use my own lips…** button is the way in.
+
+---
+
+## A puppet to put it on
+
+The mouth has to go on something. A video clip brings its own picture, but a
+voice recording does not — so the picture is its own input, and a photograph
+will do.
+
+![The offer, and a photograph added](images/20-puppet.png)
+
+With audio alone the row under the stage says there is nothing behind the mouth
+yet and offers **Add a puppet…**. Take a photo or a video; you can also drop
+either straight onto the stage. A **PUPPET** line then appears under the file
+row with its name, size, whether it is a still, and whether it is transparent,
+plus **Replace…** and **Remove**.
+
+A photograph is the easy case and the good one. It is a locked-off shot by
+definition — nothing drifts, nothing needs tracking — so a picture of the doll
+and a voice note is all it takes.
+
+Once there is a puppet, everything the video path already offered turns on:
+placement on the stage, the blur patch, the keyframes, **Video with mouth
+overlay**, and Final Cut's **Match the picture**.
+
+### It belongs to the clip
+
+Not to the app. Each clip in the queue carries its own, alongside its own lips
+and its own placement, so a two-hander split into lines can have one puppet on
+the odd ones and another on the even ones. Leave a clip and come back and its
+puppet is there.
+
+### When the lengths disagree
+
+| | |
+|---|---|
+| A still | Takes the length of the take. There is nothing to disagree about. |
+| A video shorter than the take | Plays **out and back again** — to its end, then in reverse to its start, then out again. |
+| A video longer than the take | Cut to the take. The tail is not used. |
+
+Out-and-back rather than a plain loop because a loop cuts from the last frame
+to the first every time round, and on a puppet that jolt is the thing you
+notice. Coming back the way it went has no seam in it at all.
+
+> **The preview steps through the reverse half**
+>
+> A `<video>` cannot be played backwards, so the reverse leg is drawn by seeking
+> rather than playing and moves at about twenty frames a second on the stage
+> instead of smoothly. Scrub and every frame is exact, and the export renders
+> every frame of it properly. It is only the live preview of the backwards half
+> that is steppy.
+
+**A puppet is always silent**, whatever its file contains. The voice track is the
+voice track; two at once is nobody's intention.
+
+### Transparency
+
+If the puppet has an alpha channel — a cut-out character on nothing — the app
+says **transparent** on the PUPPET line and keeps the checkerboard behind it on
+the stage rather than a black ground, so you can see that it is cut out.
+
+To keep it through an export, tick **Put the puppet behind it** on either
+**Animated PNG** or **Frame sequence**. Those two become the whole picture
+rather than the mouth alone: the puppet's own size, the mouth composited on
+top, and eight bits of alpha all the way through.
+
+**Video cannot hold transparency at all** — no browser will encode an alpha
+movie, which is covered under
+[Putting the lips on a puppet](#putting-the-lips-on-a-puppet) — so a cut-out
+puppet comes out of **Video with mouth overlay** on black. That is what the two
+PNG routes are for.
 
 ---
 
