@@ -546,7 +546,32 @@ select, input[type=text], input[type=number]{
   font-family:'DM Mono',ui-monospace,monospace; font-size:11.5px; color:var(--accent);
 }
 .overlay-tools .ang span{font-family:'DM Mono',ui-monospace,monospace; font-size:11.5px}
+#stagePlate, #platePlayer{display:none; width:100%; height:auto; max-width:100%}
+.stage-wrap.p-img #stagePlate, .stage-wrap.p-vid #platePlayer{display:block}
+/* A puppet replaces the clip's own footage as the thing you see. */
+.stage-wrap.p-img #stageVideo, .stage-wrap.p-vid #stageVideo{display:none}
+/* The PUPPET line, under the file row it belongs to. */
+.plate-row{
+  display:flex; align-items:center; gap:9px; flex-wrap:wrap;
+  padding:8px 0 0; margin-top:8px; border-top:1px solid var(--line-soft);
+  font-size:12px; color:var(--ink-2);
+}
+.plate-row b{color:var(--ink); font-weight:600}
+.plate-row .mono{font-size:11px; color:var(--ink-3)}
+.plate-tag{
+  font-size:9.5px; letter-spacing:.06em; color:var(--ink-3);
+  border:1px solid var(--line); border-radius:4px; padding:1px 5px;
+}
 .stage-wrap.video{background-image:none; background-color:#101317; padding:0}
+/* A cut-out puppet has to be seen to be cut out, so the checkerboard stays
+   where a dark ground would hide the very thing being kept. */
+.stage-wrap.video.alpha{
+  background-color:var(--checker-a);
+  background-image:
+    linear-gradient(45deg,var(--checker-b) 25%,transparent 25%,transparent 75%,var(--checker-b) 75%),
+    linear-gradient(45deg,var(--checker-b) 25%,transparent 25%,transparent 75%,var(--checker-b) 75%);
+  background-size:18px 18px; background-position:0 0, 9px 9px;
+}
 .stage-wrap.video #stage{border-radius:0}
 .transport{
   display:flex; align-items:center; gap:10px 6px; flex-wrap:wrap; padding:11px 14px;
@@ -867,6 +892,15 @@ try {
             </button>
           </div>
           <input type="file" id="fileInput" accept="audio/*,video/*,.wav,.mp3,.m4a,.ogg,.flac,.aac,.mp4,.mov,.webm,.m4v" multiple hidden>
+          <div class="plate-row" id="plateRow" hidden>
+            <span class="plate-tag mono">PUPPET</span>
+            <b id="plateName">—</b>
+            <span class="mono" id="plateMeta">—</span>
+            <span class="tspacer"></span>
+            <button class="btn ghost mini" id="plateSwap" style="width:auto">Replace…</button>
+            <button class="btn ghost mini" id="plateDrop" style="width:auto">Remove</button>
+          </div>
+          <p class="hint" id="puppetShortNote" hidden></p>
           <p class="hint" id="codecNote" hidden></p>
           <details class="diag" id="diagBox">
             <summary>Diagnostics</summary>
@@ -879,8 +913,27 @@ try {
       <span class="stage-badge">Frame <b id="badgeFrame" class="mono">—</b> · Shape <b id="badgeViseme" class="mono">—</b></span>
       <div class="stage-stack" id="stageStack">
         <video id="stageVideo" playsinline preload="auto"></video>
+        <!-- The puppet: a still or a video chosen separately from the voice
+             track. Same slot as the clip's own footage — behind a transparent
+             canvas that carries the mouth and the handles. -->
+        <img id="stagePlate" alt="">
+        <video id="platePlayer" playsinline preload="auto" muted></video>
         <canvas id="stage" width="472" height="472"></canvas>
       </div>
+    </div>
+    <!-- The empty slot. With audio alone the mouth preview already owns the
+         middle of the stage, so the offer goes in the row underneath — the one
+         that holds the placement hints once there is something to place on. -->
+    <div class="overlay-tools" id="puppetInvite" hidden>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="4" width="18" height="14" rx="2"/><circle cx="8.5" cy="9" r="1.6"/>
+        <path d="M21 15l-5-5-5.5 5.5L8 13l-5 5"/>
+      </svg>
+      <span class="hint">Nothing behind the mouth yet — add a photo or a video to put it on</span>
+      <span class="tspacer"></span>
+      <button class="btn ghost mini" id="puppetPick" style="width:auto">Add a puppet…</button>
+      <input type="file" id="puppetInput" accept="image/*,video/*" hidden>
     </div>
     <div class="overlay-tools" id="overlayTools" hidden>
       <span class="hint">Drag to place · corner sizes it · knob turns it</span>
@@ -1225,7 +1278,7 @@ try {
           <p class="hint warn" id="videoWarn" hidden>This browser cannot decode the picture in this file, so there is nothing to burn the mouth onto. Re-wrap the clip as H.264 and it will work.</p>
           <p class="hint" id="ovBatchNote" hidden>This one is always the open clip, whatever the scope above says — it renders about as long as the clip runs, so it is the export that wants watching rather than queueing.</p>
           <button class="btn" id="expOverlay" disabled>Export overlay video</button>
-          <p class="hint">Best on a locked-off shot — the mouth stays where you put it, it does not track the face.</p>
+          <p class="hint">Best on a locked-off shot — the mouth stays where you put it, it does not track the face. A video cannot hold transparency, so a cut-out puppet comes out on black here; for a cut-out, use the animated PNG or the frame sequence with <b>Put the puppet behind it</b>.</p>
         </div>
 
         <div class="exp">
@@ -1242,6 +1295,7 @@ try {
           <h3>Animated PNG</h3>
           <p>The same animation as the GIF in a single file, but with a real alpha channel and every colour. One <span class="mono">.png</span> that plays.</p>
           <label class="check"><input type="checkbox" id="apngLoop"><span>Loop forever</span></label>
+          <label class="check" hidden><input type="checkbox" id="apngPlate"><span>Put the puppet behind it</span></label>
           <label class="check"><input type="checkbox" class="withaud" id="audApng"><span>Include the voice track</span></label>
           <span class="est mono" id="estApng">—</span>
           <button class="btn" id="expApng" disabled>Export animated PNG</button>
@@ -1268,8 +1322,10 @@ try {
           <h3>Frame sequence</h3>
           <p>One transparent PNG for every frame, numbered. Drops straight onto a timeline — and gets big fast.</p>
           <label class="check"><input type="checkbox" class="withaud" id="audSeq"><span>Include the voice track</span></label>
+          <label class="check" hidden><input type="checkbox" id="seqPlate"><span>Put the puppet behind it</span></label>
           <span class="est mono" id="estSeq">—</span>
           <button class="btn" id="expSeq" disabled>Export frame sequence</button>
+          <p class="hint">With <b>Put the puppet behind it</b> ticked every frame is the whole picture at the puppet's own size, transparency and all; untick it for the mouth on its own.</p>
         </div>
         </div>
 
@@ -2710,37 +2766,100 @@ const lipFreeX = (tipX, body, roll) => tipX - body * (0.16 + roll * 0.46);
       sign  -1 for the upper lip, +1 for the lower — which side the body is on
       body  the lip's own thickness at the front
       roll  0 slack, 1 pursed — how far the free edge curls back under itself */
-function profileLobe(bx, by, tipX, tipY, sign, body0, roll, edge) {
+/* --- the two lips are not each other's mirror -------------------------------
+
+   This was the mistake that kept the side view reading as a beak. Both lips
+   were the same crescent, one flipped, so the silhouette came out symmetric
+   about the mouth line — and a symmetric shape says "hole" rather than "face".
+
+   A profile mouth is lopsided in three ways at once, and every drawn reference
+   has all three:
+
+     - The UPPER lip is the smaller of the two, and its outer edge RISES toward
+       the front into the philtrum rather than doming over the middle. That rise
+       is the single most face-like mark in the whole drawing.
+     - The LOWER lip is fuller, sits a little further back, and its outer edge
+       sweeps down and BACK toward the chin, with a shallow hollow behind the
+       vermilion where the labiomental crease is.
+     - The front-most point belongs to the upper lip.
+
+   So they are drawn by two functions rather than one with a sign flipped.
+--------------------------------------------------------------------------- */
+
+/** How thick a lip has to be drawn to LOOK the thickness it was given. `body`
+    is a vertical figure, but on an open shape the lip climbs steeply from a
+    dropped corner, and the same vertical measure buys a much thinner lip. */
+const lipBody = (body, dy, L) => body * Math.hypot(1, dy / Math.max(1, L));
+
+/** How much of its thickness a lip still has where it runs off into the cheek.
+    Not zero: see the note in profileUpperLip. */
+const BUTT = 0.46;
+
+function profileUpperLip(bx, by, tipX, tipY, body0, roll, edge) {
   const L = Math.max(1, tipX - bx);
-  // `body` is a vertical measurement, but on an open shape the lip runs up or
-  // down at a steep angle from the corner, so the same vertical figure buys a
-  // much thinner lip. Scaled by the slope, so a lip stays as fat as it was
-  // drawn instead of turning into a fin as the mouth opens.
-  const body = body0 * Math.hypot(1, (tipY - by) / L);
-  const oy = tipY + sign * body;                 // the outside of the lip there
+  const t = lipBody(body0, tipY - by, L);
   const p = new Path2D();
-  p.moveTo(bx, by);
-  // The outside, running from the corner over the body of the lip. It thickens
-  // early and keeps its depth to the front: a lip that tapers evenly the whole
-  // way reads as a wedge rather than as flesh.
-  p.bezierCurveTo(bx + L * 0.22, by + sign * body * 1.12 + (tipY - by) * 0.16,
-                  bx + L * 0.80, oy + sign * body * 0.22,
-                  tipX - body * 0.34, oy);
-  // Turn over the free edge. The forward-most point sits LOW on the lip, near
-  // the free edge rather than halfway up the body: put it halfway up and the
-  // two lips fan apart at the front like a beak, which a shut mouth must not.
-  p.bezierCurveTo(tipX + body * 0.14, oy + sign * body * 0.06,
-                  tipX + body * 0.18, tipY + sign * body * 0.34,
-                  edge ? edge.fx : lipFreeX(tipX, body, roll), tipY);
-  // And back along the inside, dying into the corner. Where there is a cavity
-  // the caller hands over its own edge, control point for control point: a lip
-  // drawn to its own idea of where the opening is leaves a hairline of daylight
-  // between the two, and a hairline across every open shape is not a detail.
+  // The back end is BLUNT, not a point. Both lips used to converge on the corner
+  // and the silhouette came to a needle, which is exactly what a beak is. A real
+  // mouth corner does not taper away in view — it runs into the cheek and is
+  // simply hidden, so the drawing should stop rather than sharpen. closePath()
+  // walks the short vertical face back from the inner edge at (bx, by).
+  p.moveTo(bx, by - t * BUTT);
+  // Out of the corner, then the philtrum: the top edge keeps climbing right up
+  // to the front instead of arching over the middle. Rounded over rather than
+  // peaked — a spike at the top front reads as a snout.
+  p.bezierCurveTo(bx + L * 0.34, by - t * 0.96,
+                  bx + L * 0.70, tipY - t * 1.02,
+                  tipX - t * 0.40, tipY - t * 1.12);
+  // Over the tubercle and down to the free edge. This is the forward-most point
+  // of the whole mouth.
+  p.bezierCurveTo(tipX + t * 0.32, tipY - t * 0.82,
+                  tipX + t * 0.30, tipY - t * 0.10,
+                  edge ? edge.fx : lipFreeX(tipX, t, roll), tipY);
+  // Back along the roof of the mouth. Where there is a cavity the caller hands
+  // over its own edge, control point for control point: a lip drawn to its own
+  // idea of where the opening is leaves a hairline of daylight between the two,
+  // and a hairline across every open shape is not a detail.
   if (edge) p.bezierCurveTo(edge.c1x, edge.c1y, edge.c2x, edge.c2y, bx, by);
   else p.bezierCurveTo(bx + L * 0.60, tipY + (by - tipY) * 0.04,
                        bx + L * 0.24, by + (tipY - by) * 0.46, bx, by);
   p.closePath();
   return p;
+}
+
+function profileLowerLip(bx, by, tipX, tipY, body0, roll, edge) {
+  const L = Math.max(1, tipX - bx);
+  const t = lipBody(body0, tipY - by, L) * 1.10;   // the fuller of the two
+  const p = new Path2D();
+  p.moveTo(bx, by);
+  // Along the floor to the free edge first, so the outer sweep can be walked
+  // back afterwards — it is the longer and more shaped of the two edges.
+  if (edge) {
+    p.bezierCurveTo(edge.c2x, edge.c2y, edge.c1x, edge.c1y, edge.fx, tipY);
+  } else {
+    p.bezierCurveTo(bx + L * 0.24, by + (tipY - by) * 0.46,
+                    bx + L * 0.60, tipY + (by - tipY) * 0.04, tipX, tipY);
+  }
+  // Over the vermilion, which protrudes but stops short of the upper lip.
+  p.bezierCurveTo(tipX + t * 0.24, tipY + t * 0.20,
+                  tipX + t * 0.12, tipY + t * 0.70,
+                  tipX - t * 0.62, tipY + t * 0.88);
+  // Then the hollow of the labiomental crease, and back into the chin. Back
+  // rather than down: a lower lip that drops straight off the vermilion is a
+  // blob, and what makes it a chin is the long shallow run to the corner.
+  // It stops blunt, like the upper one.
+  p.bezierCurveTo(bx + L * 0.66, tipY + t * 0.60,
+                  bx + L * 0.30, by + t * 0.82,
+                  bx, by + t * BUTT);
+  p.closePath();
+  return p;
+}
+
+/** Kept for the bite shape, which needs a plain lip with no philtrum on it. */
+function profileLobe(bx, by, tipX, tipY, sign, body0, roll, edge) {
+  return sign < 0
+    ? profileUpperLip(bx, by, tipX, tipY, body0, roll, edge)
+    : profileLowerLip(bx, by, tipX, tipY, body0, roll, edge);
 }
 
 /** The dark between the lips. Not a hole — that is the whole point. Front-on
@@ -2784,6 +2903,50 @@ function profileRoof(path, bx, by, uy, w, drop) {
                      w.fu, uy + drop);
 }
 
+/** And the floor, from the corner forward to the lower lip's free edge. Same
+    construction as the roof, so the lower tooth row can be built off it the
+    same way. */
+function profileFloor(path, bx, by, ly, w, rise) {
+  path.moveTo(bx, by + rise);
+  path.bezierCurveTo(w.ax + w.LL * 0.16, w.ay + (ly - w.ay) * 0.14 + rise,
+                     w.ax + w.LL * 0.62, ly + (w.ay - ly) * 0.04 + rise,
+                     w.fl, ly + rise);
+}
+
+/* --- one ring, not two flaps ------------------------------------------------
+
+   Two separately sculpted lobes was the wrong idea, and it took a long time to
+   see why. Drawn apart they stop being a mouth and become a pair of crescents
+   hinged at a point — a beak, or a crab's claw, depending on how far they were
+   pushed. Nothing in the tuning fixes that, because the fault is that there are
+   two shapes where the eye wants one.
+
+   Front-on, every style here draws a RING of lip around a dark aperture, and
+   that is what makes the fifteen of them read as one set. The side view is the
+   same thing foreshortened: the aperture loses its far corner and becomes a
+   wedge, wide at the front and running to a point where the cheek takes over,
+   and the lips are that same wedge grown outward. Built that way the profile
+   stops being its own invention and becomes the front view turned, which is
+   all it ever needed to be.
+
+   The overbite survives as the one asymmetry worth keeping: the upper lip is
+   grown further forward than the lower, so the leading edge steps back as it
+   comes down. That is the silhouette cue that says "side of a face", and it
+   costs one number rather than a second shape.
+--------------------------------------------------------------------------- */
+function profileRim(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, roll) {
+  // The purse is deliberately almost absent here. Inside, a pucker gathers the
+  // opening into a small hole up at the front, and the wedge's apex travels
+  // forward to say so. The OUTSIDE of the lips does no such thing — it still
+  // runs back to the corner — and letting the apex travel on the rim as well
+  // scooped the top edge out and left a long tail behind it: a fang, not a
+  // mouth.
+  return profileCavity(bx - (bodyU + bodyL) * 0.26, by,
+                       tipU + bodyU * 0.78, uy - bodyU,
+                       tipL + bodyL * 0.30, ly + bodyL,
+                       bodyU, bodyL, roll * 0.20);
+}
+
 function profileCavity(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, roll) {
   const w = profileWedge(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, roll);
   const p = new Path2D();
@@ -2798,16 +2961,44 @@ function profileCavity(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, roll) {
   return p;
 }
 
-/** The upper teeth: a band hung off the roof, so it follows the arch instead of
-    lying level across the opening. */
-function profileTeeth(bx, by, uy, w, th) {
+/* --- what is actually inside a mouth seen from the side ---------------------
+
+   This got the wrong way round first time. The opening was filled dark with a
+   thin band of teeth laid along the top, which makes a black bubble with a
+   highlight on it — realistic enough, and it reads as a hole in a face rather
+   than as a face talking.
+
+   Every drawn reference does the opposite, and they are right: from the side
+   you are looking at TEETH. Two rows of them, hanging off the roof and standing
+   on the floor, taking most of the height of the opening at the front. The dark
+   is what shows between them and, more importantly, BEHIND them — the throat,
+   deep in, where the teeth have run out. So the dark reads as a slot through
+   the middle widening to a pocket at the back, and the white is the mass. That
+   one inversion is most of the difference between the two drawings.
+--------------------------------------------------------------------------- */
+
+/** A tooth row hung off the roof (`sign` -1) or standing on the floor (+1).
+
+    The free edge runs from nothing at the mouth corner to its full depth at the
+    front, so the row is a crescent rather than a band. That shape is doing two
+    jobs: it puts the white where the teeth actually are, and it leaves the dark
+    between the two rows as a lens that is widest where the lips part — which is
+    where the eye expects the opening to be.
+
+    An earlier version ran both rows at constant depth and chopped them off at
+    the back with a rectangle. The chop showed: a hard vertical edge across the
+    middle of the drawing, and at small sizes it read as a shard of glass in the
+    mouth rather than as teeth. */
+function profileTeeth(bx, by, edgeY, w, th, sign) {
   const p = new Path2D();
-  profileRoof(p, bx, by, uy, w, 0);
-  p.lineTo(w.fu, uy + th);
-  // the same curve again, dropped by `th` and walked back to the corner
-  p.bezierCurveTo(w.ax + w.LU * 0.62, uy + (w.ay - uy) * 0.04 + th,
-                  w.ax + w.LU * 0.16, w.ay + (uy - w.ay) * 0.14 + th,
-                  bx, by + th);
+  const L = sign < 0 ? w.LU : w.LL;
+  const fx = sign < 0 ? w.fu : w.fl;
+  if (sign < 0) profileRoof(p, bx, by, edgeY, w, 0);
+  else profileFloor(p, bx, by, edgeY, w, 0);
+  p.lineTo(fx, edgeY - sign * th);
+  p.bezierCurveTo(w.ax + L * 0.66, edgeY + (w.ay - edgeY) * 0.10 - sign * th * 0.86,
+                  w.ax + L * 0.24, w.ay + (edgeY - w.ay) * 0.20 - sign * th * 0.34,
+                  bx, by);
   p.closePath();
   return p;
 }
@@ -2844,15 +3035,24 @@ function geom(v, W, H, C) {
     // always even, and keeping that even split here was what made an open shape
     // read as a tall slab instead of a jaw coming down.
     // A pucker also makes a SMALL hole, however far the lips travel to make it.
-    const gap = p.h * mh * W * (1.00 - 0.28 * p.h) * (1 - 0.34 * r);
-    const jawUp = gap * (0.17 + 0.31 * r);
+    // Far smaller than the front view's opening, and deliberately. Seen from
+    // the side a mouth is mostly LIP: the drawn references all put the flesh as
+    // the mass and the opening as a slot through it, and the first several goes
+    // at this had it the other way round — a big dark aperture with two thin
+    // rims, which is the "black bubble" it kept reading as.
+    const gap = p.h * mh * W * (1.00 - 0.28 * p.h) * (1 - 0.34 * r) * 1.00;
+    // Almost all of it belongs to the jaw. An even split draws a symmetrical V
+    // hinged at the corner — scissors, not a face. What says "side of a head" is
+    // an upper lip that stays put while the chin swings away from it. Only a
+    // pucker shares the work, because there the lips do it rather than the jaw.
+    const jawUp = gap * (0.08 + 0.34 * r);
     const jawDn = gap - jawUp;
     // A jaw is not hinged at the mouth corner: it pivots behind the ear, so as
     // it drops the corner travels down as well, about a third as far as the
     // front. Leave the corner on the mouth line and the opening has to be a
     // near-vertical wall where it meets the cheek — which is what made the
     // first construction read as a triangle standing on its point.
-    const drop = jawDn * 0.32;
+    const drop = jawDn * 0.20;
     // Corner and front both move back as the mouth opens: the lips are drawn
     // thin over the teeth and the whole of it is deeper than a shut mouth.
     const grow = 1 + 0.52 * p.h * mh;
@@ -2864,8 +3064,8 @@ function geom(v, W, H, C) {
     // it was the single thing making these read as something other than lips.
     // A pucker gathers its corners in as well as pushing its lips out, so it
     // gets shorter and deeper at once.
-    const back = W * (0.126 + 0.086 * (1 - r)) * mw * grow;
-    const fwd  = W * (0.034 + 0.134 * r) * mw;
+    const back = W * (0.090 + 0.062 * (1 - r)) * mw * grow;
+    const fwd  = W * (0.050 + 0.120 * r) * mw;
     const cx = W / 2 - (fwd - back) * 0.5;        // balance the drawing in the tile
     const hw = (back + fwd) / 2;
     // `build` is the padded silhouette the lipped renderer asks for front-on.
@@ -3030,20 +3230,28 @@ function profileParts(W, g, C) {
   const r = p.round;
   // An inked style carries no thickness — it is a line and a dark hole — so
   // its outline weight stands in for one.
-  const base = W * (C.thickness || Math.max(C.ow || 0, 0.026));
-  const bodyU = base * (1.00 + 0.42 * r);
-  const bodyL = base * (1.24 + 0.48 * r);       // the lower lip is the fuller one
+  // With a floor: a style that carries neither a thickness nor an outline —
+  // the flat one — drew its shut shapes as a hairline in profile, near enough
+  // invisible against a puppet.
+  const base = W * Math.max(C.thickness || 0, C.ow || 0, 0.030);
+  // Thick, for the same reason the opening is thin. These are the mass of the
+  // drawing now, not a rim round a hole.
+  const bodyU = base * (1.26 + 0.48 * r);
+  const bodyL = base * (1.48 + 0.55 * r);       // the lower lip is the fuller one
   const bx = cx - back;
   const by = cy + (g.drop || 0);                // the corner, dropped with the jaw
   const uy = cy - ou, ly = cy + od;             // the two free edges, at the front
   const tipU = cx + fwd;
-  // The lower lip rides the jaw: as it drops it also swings back a little,
-  // which is what puts the upper lip out in front on the open shapes.
-  const tipL = cx + fwd * (0.78 + 0.22 * r) - od * 0.10;
+  // Set well back from the upper one, and further back again as the jaw drops.
+  // This is the overbite, and it is the silhouette cue that separates a mouth
+  // seen from the side from a symmetrical pair of lips: every drawn reference
+  // has the upper lip out in front and the lower tucked behind it.
+  const tipL = tipU - bodyU * (0.62 - 0.30 * r) - od * 0.20;
   return { cy, by, uy, ly, bx, tipU, tipL, ou, od, bodyU, bodyL, roll: r, base,
            shut: ou + od < base * 0.55,
            wedge: profileWedge(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, r),
            cav: profileCavity(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, r),
+           rim: profileRim(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, r),
            seam: profileSeam(bx, by, tipU, tipL, bodyU, r) };
 }
 
@@ -3060,32 +3268,42 @@ function profileInnards(ctx, W, g, C, P) {
   // argument uses the CURRENT path, and after a fill() that is a trap: the
   // teeth escaped the mouth and drew a grey slab across the lip.
   ctx.clip(cav);
-  if (p.teeth > 0.02 && ou > W * 0.004) {
-    const th = Math.min(Math.max(ou, W * 0.016) * 1.15, W * 0.054) * (C.teethMul || 1);
-    // Only the front teeth are in view from the side; the rest is behind the
-    // cheek. Cut off at the back, so the band cannot taper away into a pale
-    // stripe that reads as a highlight on the lip rather than as teeth.
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(bx + L * 0.40, uy - th * 2 - W, L * 2, W * 3);
-    ctx.clip();
+  if (p.teeth > 0.02 && ou + od > W * 0.010) {
+    // Most of the opening, not a stripe along the top of it. Each row takes
+    // its share of the gap at the front — upper the larger, as it does on a
+    // face — leaving a dark slot between them.
+    const gap = Math.max(1, ly - uy);
+    const tm = C.teethMul || 1;
+    // Between them they take most of the slot, leaving the dark as a line
+    // through the middle that opens into a pocket at the back.
+    const thU = Math.min(gap * 0.42, W * 0.086) * tm;
+    const thL = Math.min(gap * 0.28, W * 0.058) * tm;
     ctx.globalAlpha = clamp(p.teeth, 0, 1);
     ctx.fillStyle = C.teeth || '#FFFAF0';
-    ctx.fill(profileTeeth(bx, by, uy, wedge, th));
-    ctx.restore();
+    // Both rows run from the corner to the front, deepening as they go — see
+    // profileTeeth. Cutting them off at the FRONT half instead, which is where
+    // the teeth really are, backfired badly enough to be worth recording: it
+    // leaves the dark concentrated at the back of the mouth, and the eye reads
+    // the darkest thing as the opening, so the whole mouth appeared to open
+    // backwards. The dark has to be widest where the lips part. Anatomy loses
+    // to legibility.
+    ctx.fill(profileTeeth(bx, by, uy, wedge, thU, -1));
+    if (gap > W * 0.05) ctx.fill(profileTeeth(bx, by, ly, wedge, thL, 1));
+    ctx.globalAlpha = 1;
   }
   if (p.tongue > 0.02 && od > W * 0.03) {
     ctx.fillStyle = C.tongue || '#DE6E7E';
-    // A high tongue (the L shape) lifts its tip toward the ridge behind the
-    // upper teeth; a low one lies in the floor of the mouth. Front-on that
-    // difference is a blob getting bigger; from the side it is the one place
-    // in the chart where the tongue is genuinely legible, so it is drawn.
+    // A high tongue (the L shape) reaches its tip up to the ridge behind the
+    // upper teeth; a low one lies in the floor. From the side this is the one
+    // place in the chart where a tongue is genuinely legible, so it is drawn
+    // rather than suggested — but it lives in the pocket at the BACK, behind
+    // the lower teeth, which is where it would be seen from.
     const lift = clamp(p.tongue, 0, 1) * (C.tongueMul || 1);
     ctx.beginPath();
-    ctx.moveTo(bx, by + span * 0.55);
-    ctx.quadraticCurveTo(bx + L * 0.52, ly + span * 0.04,
-                         bx + L * 0.94, ly - span * (0.28 + lift * 0.60));
-    ctx.quadraticCurveTo(bx + L * 0.55, ly + span * 0.30, bx, ly + span * 0.6);
+    ctx.moveTo(bx, by + span * 0.50);
+    ctx.quadraticCurveTo(bx + L * 0.42, ly + span * 0.02,
+                         bx + L * 0.78, ly - span * (0.22 + lift * 0.58));
+    ctx.quadraticCurveTo(bx + L * 0.44, ly + span * 0.26, bx, ly + span * 0.55);
     ctx.closePath();
     ctx.fill();
   }
@@ -3097,37 +3315,39 @@ function profileInnards(ctx, W, g, C, P) {
     whole chart — front-on it has to be faked with an overlay — so it is worth
     drawing outright. */
 function profileBite(ctx, W, g, C, P, kind) {
-  const { cy, bx, tipU, bodyU, bodyL } = P;
-  const th = W * 0.042 * (C.teethMul || 1);
-  const L = tipU - bx;
+  const { bx, tipU, uy, ly, bodyU, rim, wedge } = P;
+  const L = Math.max(1, tipU - bx);
   const lipCol = C.lip || C.lipDark || C.cavity || '#C4595F';
   const ink = C.ink || C.outline;
   const lw = Math.max(W * (C.ow || 0.006), W * 0.004);
-  // The upper lip first, lifted off the mouth line to let the teeth down.
-  const upper = profileLobe(bx, cy - th * 1.05, tipU, cy - th * 1.45, -1, bodyU * 0.94, 0.12);
-  ctx.fillStyle = kind === 'inked' && !C.lip ? (C.ink || '#16110F') : lipCol;
-  ctx.fill(upper);
-  if (ink) { ctx.strokeStyle = ink; ctx.lineWidth = lw; ctx.lineJoin = 'round'; ctx.stroke(upper); }
-  // Then the teeth, coming down out of it. They start well forward: a band run
-  // back to the corner reads as a slab laid across the mouth rather than as
-  // the front teeth, which are the only ones in view from the side.
+  const solid = kind === 'inked' && !C.lip;
+  // The lips as one shape, like every other profile viseme — the bite used to
+  // build its own pair of lobes and they drifted apart into two floating slabs
+  // that belonged to no face at all.
+  ctx.fillStyle = solid ? (C.ink || '#16110F') : lipCol;
+  ctx.fill(rim);
+  if (ink && !solid) {
+    ctx.strokeStyle = ink; ctx.lineWidth = lw; ctx.lineJoin = 'round'; ctx.stroke(rim);
+  }
+  // Then the upper teeth coming down out of it onto the lower lip. They start
+  // well forward: a band run back to the corner reads as a slab laid across the
+  // mouth rather than as the front teeth, which are the only ones in view from
+  // the side. The bottom edge is the giveaway — it sits ON the lower lip rather
+  // than floating over a gap, which is the whole shape of an F.
+  const th = Math.max(W * 0.026, (ly - uy) * 0.60) * (C.teethMul || 1);
+  const tx0 = bx + L * 0.56, tx1 = wedge.fu + bodyU * 0.10;
+  ctx.save();
+  ctx.clip(rim);
   ctx.fillStyle = C.teeth || '#FFFAF0';
-  const tx0 = bx + L * 0.46, tx1 = tipU - bodyU * 0.42;
   ctx.beginPath();
-  ctx.moveTo(tx0, cy - th * 1.35);
-  ctx.lineTo(tx1, cy - th * 1.30);
-  ctx.quadraticCurveTo(tx1 + bodyU * 0.22, cy - th * 0.60, tx1 - bodyU * 0.16, cy + th * 0.25);
-  ctx.lineTo(tx0, cy + th * 0.20);
+  ctx.moveTo(tx0, uy - th * 0.10);
+  ctx.lineTo(tx1, uy - th * 0.06);
+  ctx.quadraticCurveTo(tx1 + bodyU * 0.16, uy + th * 0.50, tx1 - bodyU * 0.20, uy + th);
+  ctx.lineTo(tx0, uy + th * 0.86);
   ctx.closePath();
   ctx.fill();
   if (ink) { ctx.strokeStyle = ink; ctx.lineWidth = lw * 0.8; ctx.stroke(); }
-  // And the lower lip last, so its flesh closes over the biting edge — which
-  // is the whole shape of an F. Drawn under the teeth, it just sits there.
-  const lower = profileLobe(bx, cy + th * 0.50, tx1 - bodyU * 0.30, cy - th * 0.30,
-                            1, bodyL * 1.10, 0.30);
-  ctx.fillStyle = lipCol;
-  ctx.fill(lower);
-  if (ink) { ctx.strokeStyle = ink; ctx.lineWidth = lw; ctx.lineJoin = 'round'; ctx.stroke(lower); }
+  ctx.restore();
 }
 
 function profileMouth(ctx, W, g, C, kind) {
@@ -3145,7 +3365,18 @@ function profileMouth(ctx, W, g, C, kind) {
 
   if (p.bite) return profileBite(ctx, W, g, C, P, kind);
 
-  // The dark first, so the lips sit on top of it and close it off cleanly.
+  // Lips first for a lipped style — one ring, with the dark laid into it after.
+  if (lipped) {
+    let fill = C.lip;
+    if (C.lipDark) {
+      const grd = ctx.createLinearGradient(0, uy - bodyU * 1.5, 0, ly + bodyL * 1.5);
+      grd.addColorStop(0, C.lipDark); grd.addColorStop(0.44, C.lip); grd.addColorStop(1, C.lipDark);
+      fill = grd;
+    }
+    ctx.fillStyle = fill;
+    ctx.fill(P.rim);
+  }
+
   if (!shut) {
     ctx.fillStyle = C.cavity || '#25100F';
     ctx.fill(cav);
@@ -3153,34 +3384,24 @@ function profileMouth(ctx, W, g, C, kind) {
   }
 
   if (lipped) {
-    const upper = profileLobe(bx, by, tipU, uy, -1, bodyU, roll, P.wedge.roofBack);
-    const lower = profileLobe(bx, by, tipL, ly, 1, bodyL, roll * 0.72, P.wedge.floorBack);
-    let fill = C.lip;
-    if (C.lipDark) {
-      const grd = ctx.createLinearGradient(0, uy - bodyU * 1.2, 0, ly + bodyL * 1.3);
-      grd.addColorStop(0, C.lipDark); grd.addColorStop(0.44, C.lip); grd.addColorStop(1, C.lipDark);
-      fill = grd;
-    }
-    ctx.fillStyle = fill;
-    ctx.fill(upper); ctx.fill(lower);
     if (C.gloss) {
-      ctx.save(); ctx.clip(upper);
+      ctx.save(); ctx.clip(P.rim);
       ctx.fillStyle = 'rgba(255,255,255,' + (0.44 * C.gloss).toFixed(3) + ')';
       ctx.beginPath();
-      ctx.ellipse(tipU - bodyU * 0.75, uy - bodyU * 0.62,
-                  bodyU * 0.85, bodyU * 0.26, -0.22, 0, Math.PI * 2);
+      ctx.ellipse(tipU - bodyU * 0.25, uy - bodyU * 1.35,
+                  bodyU * 0.95, bodyU * 0.26, -0.22, 0, Math.PI * 2);
       ctx.fill(); ctx.restore();
       if (C.dot) {
-        ctx.save(); ctx.clip(lower);
+        ctx.save(); ctx.clip(P.rim);
         ctx.fillStyle = 'rgba(255,239,212,.9)';
         ctx.beginPath();
-        ctx.ellipse(tipL - bodyL * 0.6, ly + bodyL * 0.66,
-                    bodyL * 0.28, bodyL * 0.17, -0.4, 0, Math.PI * 2);
+        ctx.ellipse(tipL - bodyL * 0.2, ly + bodyL * 1.32,
+                    bodyL * 0.30, bodyL * 0.18, -0.4, 0, Math.PI * 2);
         ctx.fill(); ctx.restore();
       }
     }
-    // Shut, the two lobes butt together into one lump; the seam is the only
-    // thing saying there is a mouth in it at all.
+    // Shut, the ring closes into one lump; the seam is the only thing saying
+    // there is a mouth in it at all.
     if (shut) {
       ctx.strokeStyle = C.cavity || ink || 'rgba(0,0,0,.5)';
       ctx.lineWidth = Math.max(base * 0.24, W * 0.006);
@@ -3189,7 +3410,7 @@ function profileMouth(ctx, W, g, C, kind) {
     }
     if (C.outline) {
       ctx.strokeStyle = C.outline; ctx.lineWidth = lw; ctx.lineJoin = 'round';
-      ctx.stroke(upper); ctx.stroke(lower);
+      ctx.stroke(P.rim);
     }
     return;
   }
@@ -3378,32 +3599,31 @@ const STYLE_DEFS = {
         const C = { ow: 0.017, teeth: ink, tongue: ink };
         const P = profileParts(W, g, C);
         if (VP[v].bite) {
-          const th = W * 0.042, L = P.tipU - P.bx;
-          const tx0 = P.bx + L * 0.46, tx1 = P.tipU - P.bodyU * 0.42;
+          const L = P.tipU - P.bx;
+          const th = Math.max(W * 0.026, (P.ly - P.uy) * 0.60);
+          const tx0 = P.bx + L * 0.56, tx1 = P.wedge.fu + P.bodyU * 0.10;
+          ctx.stroke(P.rim);
+          ctx.save(); ctx.clip(P.rim); ctx.lineWidth = lw * 0.75;
           ctx.beginPath();
-          ctx.moveTo(tx0, P.cy - th * 1.35);
-          ctx.lineTo(tx1, P.cy - th * 1.30);
-          ctx.quadraticCurveTo(tx1 + P.bodyU * 0.22, P.cy - th * 0.60,
-                               tx1 - P.bodyU * 0.16, P.cy + th * 0.25);
+          ctx.moveTo(tx0, P.uy + th * 0.86);
+          ctx.lineTo(tx1 - P.bodyU * 0.20, P.uy + th);
+          ctx.quadraticCurveTo(tx1 + P.bodyU * 0.16, P.uy + th * 0.50, tx1, P.uy - th * 0.06);
           ctx.stroke();
-          ctx.stroke(profileLobe(P.bx, P.cy - th * 1.05, P.tipU, P.cy - th * 1.45,
-                                 -1, P.bodyU * 0.94, 0.12));
-          ctx.stroke(profileLobe(P.bx, P.cy + th * 0.50, tx1 - P.bodyU * 0.30,
-                                 P.cy - th * 0.30, 1, P.bodyL * 1.10, 0.30));
+          ctx.restore();
           return;
         }
         if (P.shut) { ctx.stroke(P.seam); return; }
         ctx.stroke(P.cav);
         const p = VP[v], L = P.tipU - P.bx, span = P.ly - P.by;
         ctx.save(); ctx.clip(P.cav); ctx.lineWidth = lw * 0.75;
-        if (p.teeth > 0.3 && P.ou > W * 0.012) {
-          const y = P.uy + Math.min(P.ou * 1.0, W * 0.046);
+        if (p.teeth > 0.3 && P.ly - P.uy > W * 0.022) {
+          const y = P.uy + Math.min((P.ly - P.uy) * 0.34, W * 0.030);
           ctx.beginPath();
           ctx.moveTo(P.bx + L * 0.34, P.uy + (P.by - P.uy) * 0.30);
           ctx.quadraticCurveTo(P.bx + L * 0.66, y, P.tipU, y);
           ctx.stroke();
         }
-        if (p.tongue > 0.4 && P.od > W * 0.05) {
+        if (p.tongue > 0.4 && P.ly - P.uy > W * 0.05) {
           const lift = clamp(p.tongue, 0, 1);
           ctx.beginPath();
           ctx.moveTo(P.bx, P.by + span * 0.55);
@@ -3447,15 +3667,14 @@ const STYLE_DEFS = {
       const g = geom(v, W, H, { view: V });
       const p = VP[v];
       if (g.view === 'profile') {
-        // Same two-lobe construction, drawn with the blocky palette: one slab
-        // of coral with the dark cut out of it.
+        // Same ring construction, drawn with the blocky palette: one slab of
+        // coral with the dark cut out of it.
         const C = { thickness: 0.052, cavity: '#2E2530', teeth: '#F4EFE4',
                     tongue: '#E08B93', lip: '#D2705C' };
         const P = profileParts(W, g, C);
         if (p.bite) { profileBite(ctx, W, g, C, P, 'lipped'); return; }
         ctx.fillStyle = C.lip;
-        ctx.fill(profileLobe(P.bx, P.by, P.tipU, P.uy, -1, P.bodyU, P.roll, P.wedge.roofBack));
-        ctx.fill(profileLobe(P.bx, P.by, P.tipL, P.ly, 1, P.bodyL, P.roll * 0.72, P.wedge.floorBack));
+        ctx.fill(P.rim);
         if (!P.shut) {
           ctx.fillStyle = C.cavity; ctx.fill(P.cav);
           profileInnards(ctx, W, g, C, P);
@@ -3682,7 +3901,12 @@ function paintMouth(ctx, W, H, v, styleId, bg) {
   const o = styleCentreOffset(st, styleId);
   if (o.dx || o.dy) {
     ctx.save();
-    ctx.translate(o.dx * W, o.dy * H);
+    // Whole pixels. A half-pixel shift re-rasterises everything soft — the
+    // stipple on the masculine styles especially — and hairs that were just
+    // over the alpha threshold fall under it or the reverse, which moves the
+    // measured centre by several pixels and makes the correction wrong by
+    // about as much as it was correcting.
+    ctx.translate(Math.round(o.dx * W), Math.round(o.dy * H));
     st.draw(ctx, W, H, v);
     ctx.restore();
   } else {
@@ -3703,7 +3927,11 @@ function styleCentreOffset(st, id) {
   // have shifted the mouth in every export, silently.
   let off = { dx: 0, dy: 0 };
   try {
-    const S = 160;
+    // Measured at the size the rest of the app cares about. At 160 the soft
+    // edge of a stipple or a shadow crosses the alpha threshold on a different
+    // pixel than it does at 200, and the correction came out a few pixels wrong
+    // on exactly the styles that have one.
+    const S = 200;
     const c = document.createElement('canvas');
     c.width = c.height = S;
     const x = c.getContext('2d', { willReadFrequently: true });
@@ -4133,6 +4361,9 @@ function bankClip() {
   c.patch = { ...patch };
   c.style = state.style;
   c.lipSetId = lips.activeId;
+  // c.puppet is not touched here. It holds the File, not the decoded picture —
+  // a dozen photographs held decoded at once is how a session ends on an iPad —
+  // and it is written where the choice is made, by setPuppet and forgetPuppet.
 }
 
 /** And the other direction, for everything that is not the audio itself. */
@@ -4148,6 +4379,7 @@ function applyClipSettings(c) {
   }
   syncPatchUI();
   updateMotionUI();
+  restorePuppet(c);
 }
 
 async function openClip(id, opts) {
@@ -4720,9 +4952,9 @@ async function loadFile(file, restore) {
         (audio.numberOfChannels === 1 ? 'mono' : audio.numberOfChannels + ' ch');
 
     updateCodecNote();
-    overlayToolsVisible(!!state.video);
-    $('videoWarn').hidden = !(state.video && !state.videoDecodable);
-    if (state.video && !state.videoDecodable) {
+    overlayToolsVisible(hasPlate());
+    $('videoWarn').hidden = !(state.video && !puppet.kind && !state.videoDecodable);
+    if (state.video && !puppet.kind && !state.videoDecodable) {
       toast('The audio is fine, but no video frames reached the page' +
             (state.videoCodec ? ' — this clip is ' + state.videoCodec.name + '. Convert it to H.264.'
                               : '. Converting it to H.264 usually fixes this.'), 9000);
@@ -4795,6 +5027,9 @@ function clearAudio() {
   player.load();
   state.buffer = null; state.srcBuffer = null; state.mono = null; state.file = null; state.frames = []; state.sel = 0; state.selEnd = 0;
   state.video = null; state.needsAudio = false; state.srcAudio = null; state.videoDecodable = true; state.videoCodec = null;
+  const gone = activeClip();
+  if (gone) gone.puppet = null;
+  dropPuppet(true);
   overlayToolsVisible(false);
   overlay.keys = []; overlay.keyed = false;
   sizeStage();
@@ -4845,6 +5080,9 @@ async function runAnalysis() {
     resetHistory();
     updateSelReadout();
     setExportsEnabled(true);
+    // The offer of a puppet only makes sense once there is a take to put one
+    // behind, so it waits until here.
+    syncPuppetUI();
     layoutSheet(); drawSheet(); drawOverview(); drawStage(); updateEstimates();
   } catch (e) {
     if (token !== analysisToken) return;
@@ -4907,9 +5145,310 @@ function currentFrameIndex() {
   return selRange()[0];
 }
 
+/* ---- the puppet: the picture the mouth goes on -------------------------------
+
+   Until now the only way to get a picture under the mouth was to load a VIDEO
+   as the clip, so one file had to supply both the soundtrack and the backdrop.
+   That ruled out the most obvious job there is: a voice recording and a
+   photograph of the doll.
+
+   So the backdrop is its own input now, and it belongs to the CLIP rather than
+   to the app — banked and restored alongside its placement, its lips and its
+   edits, so a queue of lines can have a different puppet on each. Everything
+   downstream asks `hasPlate()` instead of `state.video`, which means a clip
+   that IS a video keeps behaving exactly as it did: its own footage is simply
+   the plate nobody had to go and choose.
+--------------------------------------------------------------------------- */
+
+const puppet = {
+  kind: null,                  // 'image' | 'video' | null
+  name: '', w: 0, h: 0, duration: 0, alpha: false,
+  url: null, img: null
+};
+
+const plateVideo = document.getElementById('platePlayer');
+
+const clipSeconds = () =>
+  state.buffer ? state.buffer.duration : state.frames.length / (state.fps || 12);
+
+function hasPlate() { return !!(puppet.kind || state.video); }
+function plateHasAlpha() { return !!(puppet.kind && puppet.alpha); }
+
+/** An added puppet wins over the clip's own footage. It was chosen; the footage
+    is merely what the file happened to contain. */
+function plateSize() {
+  if (puppet.kind) return { w: puppet.w, h: puppet.h };
+  if (state.video) return { w: state.video.w, h: state.video.h };
+  return null;
+}
+
+/** The element to sample and to draw FROM — null while there is nothing, or
+    while a video has not produced a frame yet. */
+function plateSource() {
+  if (puppet.kind === 'image') return puppet.img;
+  if (puppet.kind === 'video') return plateVideo.videoWidth ? plateVideo : null;
+  return state.video && player.videoWidth ? player : null;
+}
+
+/** Its own pixel size, which is what the blur patch has to sample at. */
+function plateNatural() {
+  const src = plateSource();
+  if (!src) return null;
+  return { w: src.videoWidth || src.naturalWidth, h: src.videoHeight || src.naturalHeight };
+}
+
+/** Where to look in a puppet for clip time `t`.
+
+    A puppet shorter than the take PING-PONGS: out to its end, back to its
+    start, out again. A plain loop cuts from the last frame to the first every
+    time round and on a puppet that is a visible jolt; coming back the way it
+    went has no seam in it at all. A puppet longer than the take simply has its
+    tail left unused. */
+function puppetTimeAt(t) {
+  const d = puppet.duration;
+  if (!(d > 0)) return 0;
+  const end = Math.max(0, d - 0.001);
+  if (d >= clipSeconds()) return Math.min(Math.max(0, t), end);
+  const span = d * 2;
+  const u = ((t % span) + span) % span;
+  return Math.min(u <= d ? u : span - u, end);
+}
+
+/** Does this picture carry any transparency? Asked of the pixels, not of the
+    file extension — most PNGs are opaque, and what matters for the export is
+    whether there is anything worth keeping. */
+function sampleAlpha(src, w, h) {
+  if (!w || !h) return false;
+  const s = Math.min(1, 160 / Math.max(w, h));
+  const cw = Math.max(1, Math.round(w * s)), ch = Math.max(1, Math.round(h * s));
+  const c = document.createElement('canvas');
+  c.width = cw; c.height = ch;
+  const x = c.getContext('2d', { willReadFrequently: true });
+  x.clearRect(0, 0, cw, ch);
+  try { x.drawImage(src, 0, 0, cw, ch); } catch (e) { return false; }
+  let d;
+  try { d = x.getImageData(0, 0, cw, ch).data; } catch (e) { return false; }
+  for (let i = 3; i < d.length; i += 4) if (d[i] < 250) return true;
+  return false;
+}
+
+function seekPlate(t) {
+  return new Promise(res => {
+    if (!plateVideo.src || !(plateVideo.duration > 0)) return res();
+    if (Math.abs(plateVideo.currentTime - t) < 0.003) return res();
+    let done = false;
+    const fin = () => {
+      if (done) return;
+      done = true;
+      plateVideo.removeEventListener('seeked', fin);
+      res();
+    };
+    plateVideo.addEventListener('seeked', fin);
+    setTimeout(fin, 500);
+    try { plateVideo.currentTime = t; } catch (e) { fin(); }
+  });
+}
+
+/* A video puppet is never played, only seeked. Reverse playback is not a thing
+   a <video> can do, and the ping-pong needs to run backwards half the time, so
+   the one mechanism that works in both directions is the one used. Seeks are
+   throttled during playback — the preview moves at about twenty a second
+   rather than sixty — while the export seeks every frame exactly. */
+let plateSeeking = false;
+function syncPlate(t) {
+  if (puppet.kind !== 'video') return;
+  const want = puppetTimeAt(t);
+  if (plateSeeking || Math.abs(plateVideo.currentTime - want) < 0.04) return;
+  plateSeeking = true;
+  seekPlate(want).then(() => { plateSeeking = false; if (!playing) drawStage(); });
+}
+
+/** Let go of the decoded picture. Deliberately says NOTHING about what the
+    clip owns: this is called on the way in to restoring a clip's own puppet,
+    and a version that cleared the record first destroyed the thing it was
+    about to read. Forgetting is `forgetPuppet`, and only the Remove button and
+    clearing the audio do it. */
+function dropPuppet(quiet) {
+  if (puppet.url) URL.revokeObjectURL(puppet.url);
+  puppet.kind = null; puppet.name = ''; puppet.w = puppet.h = 0;
+  puppet.duration = 0; puppet.alpha = false; puppet.url = null; puppet.img = null;
+  // Detach the listeners before load(): calling load() with no src fires an
+  // error event, and a stale one arriving mid-import rejects the NEXT puppet.
+  plateVideo.onerror = null;
+  plateVideo.removeAttribute('src');
+  plateVideo.load();
+  const el = $('stagePlate');
+  if (el) el.removeAttribute('src');
+  if (!quiet) {
+    sizeStage();
+    setExportsEnabled(state.frames.length > 0);
+    updateEstimates();
+  }
+}
+
+function forgetPuppet() {
+  const c = activeClip();
+  if (c) c.puppet = null;
+  dropPuppet();
+}
+
+/** A photo or a video chosen as the backdrop. Read inside the page like
+    everything else here: nothing is uploaded, and it goes when the clip does. */
+async function setPuppet(file, quiet) {
+  if (!file) return false;
+  const isImg = /^image\//.test(file.type) || /\.(png|jpe?g|webp|gif|avif|bmp)$/i.test(file.name);
+  const isVid = /^video\//.test(file.type) || /\.(mp4|mov|webm|m4v)$/i.test(file.name);
+  if (!isImg && !isVid) { toast('A puppet has to be a photo or a video.', 3800); return false; }
+  dropPuppet(true);
+  const url = URL.createObjectURL(file);
+  try {
+    if (isImg) {
+      const img = await new Promise((res, rej) => {
+        const i = new Image();
+        i.onload = () => res(i);
+        i.onerror = () => rej(new Error('it would not decode as a picture'));
+        i.src = url;
+      });
+      puppet.kind = 'image';
+      puppet.img = img;
+      puppet.w = img.naturalWidth; puppet.h = img.naturalHeight;
+      puppet.duration = 0;
+      puppet.alpha = sampleAlpha(img, puppet.w, puppet.h);
+    } else {
+      // Muted before anything else and never played: a puppet is a picture, and
+      // two voice tracks at once is nobody's intention.
+      plateVideo.muted = true;
+      plateVideo.defaultMuted = true;
+      await new Promise((res, rej) => {
+        const ok = () => { cleanup(); res(); };
+        const bad = () => { cleanup(); rej(new Error('it would not decode as a video')); };
+        const cleanup = () => {
+          plateVideo.removeEventListener('loadedmetadata', ok);
+          plateVideo.removeEventListener('error', bad);
+        };
+        plateVideo.addEventListener('loadedmetadata', ok);
+        plateVideo.addEventListener('error', bad);
+        plateVideo.src = url;
+        plateVideo.load();
+      });
+      plateVideo.pause();
+      puppet.kind = 'video';
+      puppet.w = plateVideo.videoWidth; puppet.h = plateVideo.videoHeight;
+      puppet.duration = plateVideo.duration > 0 ? plateVideo.duration : 0;
+      await seekPlate(Math.min(0.08, puppet.duration / 3));
+      puppet.alpha = sampleAlpha(plateVideo, puppet.w, puppet.h);
+    }
+  } catch (e) {
+    URL.revokeObjectURL(url);
+    dropPuppet(true);
+    syncPuppetUI();
+    toast('Could not use that puppet — ' + (e.message || e), 4400);
+    return false;
+  }
+  puppet.url = url;
+  puppet.name = file.name;
+  const el = $('stagePlate');
+  if (el && puppet.kind === 'image') el.src = url;
+
+  // A mouth sized as a fraction of the FRAME is wrong the moment the frame is
+  // a portrait photograph: 30% of the width of a tall picture is a mouth wider
+  // than the face it belongs to. Measured off the short edge instead, and only
+  // when the placement is still the untouched default.
+  const c = activeClip();
+  if (Math.abs(overlay.size - 0.30) < 1e-9 && !overlay.keys.length) {
+    const short = Math.min(puppet.w, puppet.h);
+    overlay.size = clamp(short * 0.17 / puppet.w, 0.05, 0.30);
+    overlay.y = 0.47;
+  }
+  if (c) c.puppet = { file, kind: puppet.kind };
+  sizeStage();
+  setExportsEnabled(state.frames.length > 0);
+  updateEstimates();
+  if (!quiet) {
+    // Choosing a picture is a statement that the picture matters, so the two
+    // exports that can carry it start carrying it. Not done for a plate that
+    // is merely the clip's own footage — those have always exported the mouth
+    // alone and people rely on that.
+    [$('apngPlate'), $('seqPlate')].forEach(b => { if (b) b.checked = true; });
+    toast((puppet.kind === 'image' ? 'Puppet added' : 'Puppet added · ' +
+          fmtTime(puppet.duration)) +
+          (puppet.alpha ? ' · transparency kept where the format allows' : ''), 2600);
+  }
+  return true;
+}
+
+/** Put the clip's own puppet back when it is opened again. The File is kept,
+    not the decoded picture, so returning to a clip re-reads it — a dozen
+    decoded photographs held at once is the kind of thing that ends a session
+    on an iPad. */
+let restoreToken = 0;
+async function restorePuppet(c) {
+  const mine = ++restoreToken;
+  const file = c && c.puppet && c.puppet.file;
+  dropPuppet(true);
+  if (file) {
+    const keep = pose();
+    const ok = await setPuppet(file, true);
+    // Clicking through the queue faster than a picture decodes would otherwise
+    // land one clip's puppet on another's stage.
+    if (mine !== restoreToken) return;
+    // setPuppet may have picked a default size; the clip's own placement wins.
+    if (ok) Object.assign(overlay, { x: keep.x, y: keep.y, size: keep.size, rot: keep.rot });
+  }
+  if (mine !== restoreToken) return;
+  sizeStage();
+  setExportsEnabled(state.frames.length > 0);
+}
+
+/** The row under the stage, and the line under the file row. Before there is a
+    puppet the row offers one; after, it says which. */
+function syncPuppetUI() {
+  const row = $('plateRow'), invite = $('puppetInvite');
+  const plate = hasPlate();
+  // One place decides what a plate turns on, so adding a puppet and loading a
+  // video cannot end up enabling different things.
+  overlayToolsVisible(plate);
+  if (invite) invite.hidden = plate || !state.frames.length;
+  if (row) {
+    row.hidden = !puppet.kind;
+    if (puppet.kind) {
+      $('plateName').textContent = puppet.name;
+      $('plateMeta').textContent = puppet.w + '×' + puppet.h + ' · ' +
+        (puppet.kind === 'image' ? 'still' : fmtTime(puppet.duration)) +
+        (puppet.alpha ? ' · transparent' : '');
+    }
+  }
+  const wrap = $('stageWrap');
+  if (wrap) {
+    wrap.classList.toggle('p-img', puppet.kind === 'image');
+    wrap.classList.toggle('p-vid', puppet.kind === 'video');
+    wrap.classList.toggle('alpha', plateHasAlpha());
+  }
+  const note = $('puppetShortNote');
+  if (note) {
+    const short = puppet.kind === 'video' && puppet.duration > 0 &&
+                  puppet.duration < clipSeconds() - 0.05;
+    note.hidden = !short;
+    if (short) {
+      note.textContent = 'The puppet is shorter than the take, so it plays out and ' +
+        'back again — ' + fmtTime(puppet.duration) + ' against ' + fmtTime(clipSeconds()) +
+        '. The preview steps through the reverse half; the export renders every frame of it.';
+    }
+  }
+  const alphaBoxes = [$('apngPlate'), $('seqPlate')];
+  alphaBoxes.forEach(b => {
+    if (!b) return;
+    const lab = b.closest('label');
+    if (lab) lab.hidden = !hasPlate();
+    if (!hasPlate()) b.checked = false;
+  });
+}
+
 function sizeStage() {
   const c = $('stage');
-  const vid = state.video;
+  // Whatever is behind the mouth decides the shape of the stage. Left keyed to
+  // state.video, a portrait photograph was letterboxed inside a square.
+  const vid = plateSize();
   const long = 640;
   if (vid) {
     const s = long / Math.max(vid.w, vid.h);
@@ -4932,6 +5471,7 @@ function sizeStage() {
     $('stageStack').style.maxWidth = '';
   }
   $('stageWrap').classList.toggle('video', !!vid);
+  syncPuppetUI();
   drawStage();
 }
 
@@ -5102,7 +5642,8 @@ function rescaleInto(dst, src, sw, sh, dw, dh) {
     underneath a transparent canvas, so there is nothing on the canvas to
     blur. Using the same source in the export keeps one code path. */
 function drawBlurPatch(ctx, W, H, b) {
-  if (!patch.on || !state.video || !player.videoWidth) return;
+  const plate = plateSource(), nat = plateNatural();
+  if (!patch.on || !plate || !nat) return;
   const rx = Math.max(2, patch.cover * b.s / 2), ry = rx * 0.72;
   const blurPx = patch.blur * W * 0.05;
   if (blurPx < 0.4) return;
@@ -5114,12 +5655,12 @@ function drawBlurPatch(ctx, W, H, b) {
   if (w < 2 || h < 2) return;
 
   const [A, B] = blurPair(w, h);
-  const sx = player.videoWidth / W, sy = player.videoHeight / H;
+  const sx = nat.w / W, sy = nat.h / H;
   const a0 = A.getContext('2d');
   a0.setTransform(1, 0, 0, 1, 0, 0);
   a0.globalCompositeOperation = 'source-over';
   a0.clearRect(0, 0, w, h);
-  a0.drawImage(player, x0 * sx, y0 * sy, w * sx, h * sy, 0, 0, w, h);
+  a0.drawImage(plate, x0 * sx, y0 * sy, w * sx, h * sy, 0, 0, w, h);
 
   // Each halving roughly doubles the blur, so the step count is the log of the
   // radius asked for.
@@ -5197,9 +5738,10 @@ function drawStage() {
 
   const v = state.frames.length ? state.frames[currentFrameIndex()].v : 'X';
 
-  if (state.video) {
-    // the picture is the <video> underneath; this layer is mouth and handles only
-    if (!state.videoDecodable) {
+  if (puppet.kind === 'video') syncPlate(playTime());
+  if (hasPlate()) {
+    // the picture is the element underneath; this layer is mouth and handles only
+    if (state.video && !puppet.kind && !state.videoDecodable) {
       // a small banner, never a wash over the frame: the picture may be
       // showing perfectly well underneath
       const fs = Math.max(11, Math.round(W * 0.026));
@@ -6162,6 +6704,13 @@ function makeZip(files) {
   return new Blob([out], { type: 'application/zip' });
 }
 
+/** A canvas as PNG bytes. The browser's own encoder, so the alpha comes out
+    as eight real bits rather than the on-or-off a palette would give. */
+async function canvasPng(c) {
+  const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  return new Uint8Array(await blob.arrayBuffer());
+}
+
 async function pngBytes(size, v) {
   const c = document.createElement('canvas');
   c.width = c.height = size;
@@ -6491,16 +7040,17 @@ let fcpSizeLock = null;
 function fcpFrameSize() {
   if (fcpSizeLock) return fcpSizeLock;
   const sel = ($('fcpSize') || {}).value || '1920x1080';
-  if (sel === 'video' && state.video) return { w: state.video.w, h: state.video.h };
+  if (sel === 'video' && plateSize()) return plateSize();
   const m = /^(\d+)x(\d+)$/.exec(sel === 'video' ? '1920x1080' : sel);
   return { w: parseInt(m[1], 10), h: parseInt(m[2], 10) };
 }
 
-/** Where the mouth sits inside an exported frame. With a video loaded that is
-    exactly the overlay you placed, angle and all. Without one there is nothing
-    to line up against, so it goes in the middle at a workable size. */
+/** Where the mouth sits inside an exported frame. With a picture behind it —
+    the clip's own footage or a puppet — that is exactly the overlay you placed,
+    angle and all. With nothing there is nothing to line up against, so it goes
+    in the middle at a workable size. */
 function fcpPlacement(W, H, p) {
-  if (state.video) {
+  if (hasPlate()) {
     p = p || pose();
     return { cx: p.x * W, cy: p.y * H, s: p.size * W, rot: p.rot * Math.PI / 180 };
   }
@@ -6893,14 +7443,33 @@ async function exportFcpxml(sink) {
 
 async function exportSequence(sink) {
   const size = parseInt($('outSize').value, 10);
+  const withPlate = !!($('seqPlate') && $('seqPlate').checked && hasPlate());
   setBusy(true, 0);
   try {
-    const chart = await renderChart(size, p => setBusy(true, p * 0.5));
     const pad = String(state.frames.length).length + 1;
-    const files = state.frames.map((f, i) => ({
-      name: 'frames/mouth_' + String(i + 1).padStart(pad, '0') + '.png',
-      data: chart[f.v]
-    }));
+    const nm = i => 'frames/mouth_' + String(i + 1).padStart(pad, '0') + '.png';
+    let files;
+    if (withPlate) {
+      // One PNG per frame with the puppet under the mouth, at the puppet's own
+      // size and on a transparent ground. Unlike the mouth-only sequence these
+      // cannot be nine pictures repeated — every frame is different.
+      const fz = plateFrameSize();
+      const c = document.createElement('canvas');
+      c.width = fz.w; c.height = fz.h;
+      const ctx = c.getContext('2d', { willReadFrequently: true });
+      files = [];
+      for (let i = 0; i < state.frames.length; i++) {
+        await composePlateFrame(ctx, fz.w, fz.h, i / state.fps);
+        files.push({ name: nm(i), data: await canvasPng(c) });
+        if (i % 4 === 0) {
+          setBusy(true, (i / state.frames.length) * 0.75);
+          await new Promise(r => setTimeout(r, 0));
+        }
+      }
+    } else {
+      const chart = await renderChart(size, p => setBusy(true, p * 0.5));
+      files = state.frames.map((f, i) => ({ name: nm(i), data: chart[f.v] }));
+    }
     const enc = new TextEncoder();
     files.push({ name: 'timing.csv', data: enc.encode(timingCSV()) });
     files.push({ name: 'README.txt', data: enc.encode(readme(size)) });
@@ -7217,6 +7786,37 @@ async function exportGif(sink) {
   setBusy(false);
 }
 
+/** A whole frame: the puppet, then the blur patch, then the mouth — at the
+    puppet's own size and on a transparent ground, so a cut-out puppet stays
+    cut out. This is the answer to "keep the transparency if you can": a PNG
+    can, an MP4 cannot, and the two exports that use this are the two that can.
+
+    Sized off the plate rather than the square the mouth-only exports use,
+    because a frame with a puppet in it is a picture of a puppet, not a mouth. */
+const PLATE_FRAME_MAX = 1600;
+
+function plateFrameSize() {
+  const pz = plateSize();
+  if (!pz) return null;
+  const s = Math.min(1, PLATE_FRAME_MAX / Math.max(pz.w, pz.h));
+  return { w: Math.max(2, Math.round(pz.w * s)), h: Math.max(2, Math.round(pz.h * s)) };
+}
+
+async function composePlateFrame(ctx, W, H, t) {
+  ctx.clearRect(0, 0, W, H);
+  await drawPlateFrame(ctx, W, H, t);
+  const fi = clamp(Math.floor(t * state.fps), 0, Math.max(0, state.frames.length - 1));
+  const b = overlayBox(W, H, poseAt(fi));
+  drawBlurPatch(ctx, W, H, b);
+  const px = Math.min(1024, Math.max(64, Math.round(b.s * 2)));
+  ctx.save();
+  ctx.translate(b.cx, b.cy);
+  ctx.rotate(b.rot);
+  ctx.drawImage(mouthImage(px, state.frames[fi] ? state.frames[fi].v : 'X', state.style),
+                -b.s / 2, -b.s / 2, b.s, b.s);
+  ctx.restore();
+}
+
 /* ---- animated PNG ----------------------------------------------------------
 
    The same nine drawings as the GIF, in the one animated format that keeps the
@@ -7385,21 +7985,45 @@ function apngEstimate(size, perFrame) {
 async function exportApng(sink) {
   const size = parseInt($('outSize').value, 10);
   const loop = $('apngLoop').checked;
+  const withPlate = !!($('apngPlate') && $('apngPlate').checked && hasPlate());
   setBusy(true, 0);
   try {
     // The same run coalescing the GIF uses: a shape held for six frames is one
     // frame with a longer delay, not six copies of the same picture.
     const segs = gifDelays();
-    const used = [...new Set(segs.map(s => s.viseme))];
-    const data = {};
-    for (let i = 0; i < used.length; i++) {
-      const img = gifImageData(size, used[i]);
-      data[used[i]] = await zlibDeflate(pngFilter(img.data, size, size));
-      setBusy(true, (i + 1) / used.length * 0.85);
-      await new Promise(r => setTimeout(r, 0));
+    let bytes, fw = size, fh = size;
+    if (withPlate) {
+      // With the puppet in it every frame is its own picture, so nothing can be
+      // compressed once and reused — and a moving puppet means even a held
+      // mouth shape is a different frame. Runs still set the TIMING.
+      const fz = plateFrameSize();
+      fw = fz.w; fh = fz.h;
+      const c = document.createElement('canvas');
+      c.width = fw; c.height = fh;
+      const ctx = c.getContext('2d', { willReadFrequently: true });
+      const frames = [];
+      let at = 0;
+      for (let i = 0; i < segs.length; i++) {
+        await composePlateFrame(ctx, fw, fh, at / 100);
+        const px = ctx.getImageData(0, 0, fw, fh);
+        frames.push({ data: await zlibDeflate(pngFilter(px.data, fw, fh)), delay: segs[i].delay });
+        at += segs[i].delay;
+        setBusy(true, (i + 1) / segs.length * 0.9);
+        await new Promise(r => setTimeout(r, 0));
+      }
+      bytes = apngBytes(frames, fw, fh, loop);
+    } else {
+      const used = [...new Set(segs.map(s => s.viseme))];
+      const data = {};
+      for (let i = 0; i < used.length; i++) {
+        const img = gifImageData(size, used[i]);
+        data[used[i]] = await zlibDeflate(pngFilter(img.data, size, size));
+        setBusy(true, (i + 1) / used.length * 0.85);
+        await new Promise(r => setTimeout(r, 0));
+      }
+      bytes = apngBytes(segs.map(s => ({ data: data[s.viseme], delay: s.delay })),
+                        size, size, loop);
     }
-    const bytes = apngBytes(segs.map(s => ({ data: data[s.viseme], delay: s.delay })),
-                            size, size, loop);
     setBusy(true, .98);
     const stem = (state.name || 'mouth') + '-mouth';
     const voice = await audioSidecar('audApng');
@@ -7413,7 +8037,8 @@ async function exportApng(sink) {
     } else {
       await deliver(stem + '.png', bytes);
     }
-    toast('Animated PNG exported · ' + segs.length + ' frames · ' + fmtBytes(bytes.length) + '.');
+    toast('Animated PNG exported · ' + segs.length + ' frames at ' + fw + '×' + fh +
+          ' · ' + fmtBytes(bytes.length) + '.');
   } catch (e) {
     console.error(e);
     toast(e && e.code === 'declined' ? 'Save cancelled.' : 'Export failed: ' + (e.message || e), 4000);
@@ -7968,12 +8593,36 @@ function seekExact(t) {
 
 function even(n) { return Math.max(2, Math.round(n / 2) * 2); }
 
+/** The plate, on a canvas, at clip time `t`. Every export that shows the
+    picture comes through here, so none of them can disagree about which frame
+    of it belongs where.
+
+    For the clip's own footage `t` has to be translated first: it is clip time,
+    and the element is playing the source file. Trimmed, or with a bit dropped,
+    those are different numbers — seeking with the clip time grabs footage from
+    the head of the file while the soundtrack comes from the trim, and the whole
+    export is out by the trim amount. */
+async function drawPlateFrame(ctx, W, H, t) {
+  if (puppet.kind === 'image') {
+    ctx.drawImage(puppet.img, 0, 0, W, H);
+    return;
+  }
+  if (puppet.kind === 'video') {
+    await seekPlate(puppetTimeAt(t));
+    if (plateVideo.videoWidth) ctx.drawImage(plateVideo, 0, 0, W, H);
+    return;
+  }
+  await seekExact(clipToSrc(activeClip(), t));
+  ctx.drawImage(player, 0, 0, W, H);
+}
+
 async function exportOverlayVideo() {
-  if (!state.video || !state.frames.length) return;
+  const pz = plateSize();
+  if (!pz || !state.frames.length) return;
   const fps = parseInt($('ovFps').value, 10);
   const long = parseInt($('ovSize').value, 10);
-  const scale = Math.min(1, long / Math.max(state.video.w, state.video.h));
-  const W = even(state.video.w * scale), H = even(state.video.h * scale);
+  const scale = Math.min(1, long / Math.max(pz.w, pz.h));
+  const W = even(pz.w * scale), H = even(pz.h * scale);
   const duration = state.buffer.duration;
   const total = Math.max(1, Math.round(duration * fps));
 
@@ -8011,12 +8660,7 @@ async function exportOverlayVideo() {
     for (let i = 0; i < total; i++) {
       if (encodeError) throw encodeError;
       const t = Math.min(duration - 0.001, i / fps);
-      // `t` is clip time; the element is playing the source file. Trimmed, or
-      // with a bit dropped, those are different numbers — seeking with the clip
-      // time grabs footage from the head of the file while the soundtrack comes
-      // from the trim, and the whole export is out of sync by the trim amount.
-      await seekExact(clipToSrc(activeClip(), t));
-      ctx.drawImage(player, 0, 0, W, H);
+      await drawPlateFrame(ctx, W, H, t);
       const fi = clamp(Math.floor(t * state.fps), 0, state.frames.length - 1);
       // One placement per frame, so a keyframed move lands on the video the
       // same way it plays on the stage.
@@ -8082,14 +8726,34 @@ async function updateEstimates() {
   const gifSegs = gifDelays().length;
   $('estGif').textContent = gifSegs.toLocaleString() + ' GIF frames at ' + size + '×' + size +
     ' · ≈ ' + fmtBytes(gifEstimate(size));
-  $('estApng').textContent = gifSegs.toLocaleString() + ' frames at ' + size + '×' + size +
-    ' · ≈ ' + fmtBytes(apngEstimate(size, estBytes));
+  // With the puppet in it the frames are the puppet's size and every one is
+  // its own picture, so neither the dimensions nor the weight are the
+  // mouth-only ones.
+  const apngPl = $('apngPlate') && $('apngPlate').checked && hasPlate();
+  const pf = apngPl ? plateFrameSize() : null;
+  // Bytes per pixel per frame, measured: a cut-out puppet is mostly nothing and
+  // deflates to about a twelfth of a byte a pixel, while an opaque photograph
+  // is real detail everywhere and runs nearer half. One number for both would
+  // be six times wrong in one direction or the other.
+  const perPx = plateHasAlpha() ? 0.12 : 0.45;
+  $('estApng').textContent = pf
+    ? gifSegs.toLocaleString() + ' frames at ' + pf.w + '×' + pf.h + ' · with the puppet · ≈ ' +
+      fmtBytes(gifSegs * pf.w * pf.h * perPx + 200)
+    : gifSegs.toLocaleString() + ' frames at ' + size + '×' + size +
+      ' · ≈ ' + fmtBytes(apngEstimate(size, estBytes));
+  const seqPl = $('seqPlate') && $('seqPlate').checked && hasPlate();
+  const sf = seqPl ? plateFrameSize() : null;
+  if (sf) {
+    $('estSeq').textContent = n.toLocaleString() + ' PNG at ' + sf.w + '×' + sf.h +
+      ' · with the puppet · ≈ ' + fmtBytes(n * sf.w * sf.h * (plateHasAlpha() ? 0.16 : 0.55));
+  }
   // The Final Cut option can match the video, but only once there is one.
   const fcpVid = $('fcpSizeVideo');
   const hadVideo = !fcpVid.hidden;
-  fcpVid.hidden = fcpVid.disabled = !state.video;
-  if (state.video) {
-    fcpVid.textContent = 'Match the video (' + state.video.w + ' × ' + state.video.h + ')';
+  const pz = plateSize();
+  fcpVid.hidden = fcpVid.disabled = !pz;
+  if (pz) {
+    fcpVid.textContent = 'Match the picture (' + pz.w + ' × ' + pz.h + ')';
     if (!hadVideo) $('fcpSize').value = 'video';
   } else if ($('fcpSize').value === 'video') {
     $('fcpSize').value = '1920x1080';
@@ -8110,11 +8774,11 @@ async function updateEstimates() {
   const plan = audioPlan();
   const planEl = $('audioPlan');
   if (planEl) { planEl.textContent = plan.label; planEl.classList.toggle('warn', plan.kind === 'none'); }
-  if (state.video) {
+  if (pz) {
     const ofps = parseInt($('ovFps').value, 10);
     const olong = parseInt($('ovSize').value, 10);
-    const os = Math.min(1, olong / Math.max(state.video.w, state.video.h));
-    const ow = even2(state.video.w * os), oh = even2(state.video.h * os);
+    const os = Math.min(1, olong / Math.max(pz.w, pz.h));
+    const ow = even2(pz.w * os), oh = even2(pz.h * os);
     $('estOverlay').textContent = ow + '×' + oh + ' · ' + Math.round(secs * ofps) +
       ' frames · about ' + fmtTime(Math.round(secs * ofps) * 0.04) + ' to render';
   }
@@ -8145,8 +8809,8 @@ function setExportsEnabled(on) {
   $('expMp4').disabled = !ready || !videoEncoderPresent;
   // The overlay video is the one export that is never batched, so it answers to
   // the open clip alone whatever the scope says.
-  $('expOverlay').disabled = !on || !videoEncoderPresent || !state.video || batchRunning;
-  $('expOverlayCard').hidden = !state.video;
+  $('expOverlay').disabled = !on || !videoEncoderPresent || !hasPlate() || batchRunning;
+  $('expOverlayCard').hidden = !hasPlate();
   $('expSeq').disabled = !ready || download.mode === 'artifact';
 }
 const videoEncoderPresent = typeof VideoEncoder !== 'undefined';
@@ -8902,12 +9566,38 @@ function wire() {
   document.addEventListener('drop', e => {
     const f = e.dataTransfer && e.dataTransfer.files[0];
     if (!f) return;
+    // A photograph cannot be a clip — there is no audio in it to analyse — so a
+    // dropped image is never ambiguous: it is the puppet. Which also means a
+    // WAV and a JPG dropped together do the obvious thing in one gesture.
     if (f.type.startsWith('image/')) {
-      toast('Mouth art comes from the ' + LIPS_DIR + ' folder beside this page, not from a drop.', 4200);
+      if (!state.frames.length) {
+        toast('Drop a voice track first — a puppet needs something to say.', 4200);
+        return;
+      }
+      setPuppet(f);
+      return;
+    }
+    // A video dropped onto the STAGE is a backdrop; dropped anywhere else it is
+    // a clip of its own. Position is the only thing that can tell them apart.
+    const onStage = $('stageWrap') && $('stageWrap').contains(e.target);
+    if (onStage && state.frames.length && /^video\//.test(f.type)) {
+      setPuppet(f);
       return;
     }
     addFiles(e.dataTransfer.files);
   });
+
+  const pick = $('puppetInput');
+  const offer = () => pick.click();
+  $('puppetPick').onclick = offer;
+  $('plateSwap').onclick = offer;
+  $('plateDrop').onclick = () => { forgetPuppet(); toast('Puppet removed.', 1800); };
+  pick.onchange = () => {
+    const f = pick.files && pick.files[0];
+    pick.value = '';
+    if (f) setPuppet(f);
+  };
+  [$('apngPlate'), $('seqPlate')].forEach(b => { if (b) b.onchange = updateEstimates; });
   $('clearBtn').onclick = () => (queue.clips.length ? removeClip(queue.activeId) : clearAudio());
   $('queueAdd').onclick = () => $('fileInput').click();
   $('queueClear').onclick = clearQueue;
@@ -8985,7 +9675,10 @@ function wire() {
   };
 
   stage.addEventListener('pointerdown', e => {
-    if (!state.video) return;
+    // hasPlate(), not state.video: a photograph is something to place a mouth
+    // on just as much as a clip's own footage is, and gating this on the old
+    // flag meant a puppet could be added and then not moved.
+    if (!hasPlate()) return;
     const p = stagePt(e);
     const hit = ovHit(p);
     if (!hit.mode) return;
@@ -9006,7 +9699,7 @@ function wire() {
   });
   stage.addEventListener('pointermove', e => {
     if (!ovMode) {
-      if (state.video) {
+      if (hasPlate()) {
         const m = ovHit(stagePt(e)).mode;
         // A turned box turns its corners with it, so the resize cursor has to
         // follow — otherwise it points across the box instead of out of it.
