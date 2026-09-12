@@ -7,7 +7,10 @@ server, nothing uploaded. Give it a voice track and it works out which mouth
 shape belongs on every frame, shows you the result as an exposure sheet you can
 correct by hand, and writes the mouths out in whatever form your animation tool
 wants.
+## Demos:
+[![Lego Movies](docs/scene-1.gif)](https://dougalder.github.io/lip-sync-generator/) [![Barbie Movies](docs/scene-2.gif)](https://dougalder.github.io/lip-sync-generator/) [![General Animation](docs/scene-3.gif)](https://dougalder.github.io/lip-sync-generator/)
 
+[![The generator building an exposure sheet](docs/images/lip-sync-generator-demo-short.gif)](https://dougalder.github.io/lip-sync-generator/)
 ![The exposure sheet](docs/images/06-sheet.png)
 
 ## 📖 The manual
