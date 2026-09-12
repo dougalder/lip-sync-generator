@@ -218,8 +218,13 @@ td code{white-space:nowrap}
     <li><a href="#motion">Blur patch &amp; keyframes</a></li>
     <li><a href="#script">Script</a></li>
     <li><a href="#export">Exporting</a></li>
-    <li class="sub"><a href="#formats">The seven formats</a></li>
+    <li class="sub"><a href="#formats">The eight formats</a></li>
     <li class="sub"><a href="#batch">Batch export</a></li>
+    <li><a href="#puppet">Putting the lips on a puppet</a></li>
+    <li class="sub"><a href="#ipad">ToonSquid and Procreate Dreams</a></li>
+    <li class="sub"><a href="#imovie">iMovie</a></li>
+    <li class="sub"><a href="#fcp">Final Cut Pro</a></li>
+    <li class="sub"><a href="#inapp">Straight from here</a></li>
     <li><a href="#keys">Keyboard shortcuts</a></li>
     <li><a href="#limits">Limits</a></li>
     <li><a href="#trouble">Troubleshooting</a></li>
@@ -542,7 +547,7 @@ keyframes, the blur patch and the script.</p>
       preview it on the stage.</li>
 </ol>
 
-<h4>Head angles</h4>
+<h4 id="angles">Head angles</h4>
 
 <p>A mouth chart belongs to a head angle: the same nine shapes drawn for a
 character facing the camera are wrong on one that has turned. The turned views
@@ -759,7 +764,7 @@ button. Read the card, set what it offers, press the button at the bottom of it.
       because those are frame sizes rather than mouth sizes.</li>
 </ol>
 
-<h3 id="formats">The seven formats</h3>
+<h3 id="formats">The eight formats</h3>
 
 <div class="tablewrap">
 <table>
@@ -782,6 +787,13 @@ button. Read the card, set what it offers, press the button at the bottom of it.
       <td><b>Transparent GIF</b></td>
       <td>An animated GIF with a see-through background</td>
       <td>A slide, a web page, a chat window — anywhere without a matte</td>
+    </tr>
+    <tr>
+      <td><b>Animated PNG</b></td>
+      <td>The same animation as one <code>.png</code> file, with a real alpha
+          channel</td>
+      <td>Anywhere the GIF's hard edge shows. Three times the size of the GIF and
+          worth it over video</td>
     </tr>
     <tr>
       <td><b>Sprite sheet + atlas</b></td>
@@ -866,6 +878,150 @@ project, switch that card to <b>Current Selection Export</b>.</p>
 as the clip runs, so it stays on the open clip whatever the other cards say.</p>
 
 <p>Stopping mid-run still gives you a zip of whatever finished.</p>
+
+<hr>
+
+<h2 id="puppet">Putting the lips on a puppet</h2>
+
+<p>This app makes the mouth. Joining it to the puppet is the next program's job,
+and every one of them does it differently.</p>
+
+<p>Wherever you do it, two things have to be true: the mouth sits on its own
+layer <b>above</b> the puppet, and something keeps the two together when the
+puppet moves. Which export to take is mostly a question of which of those the
+tool can manage.</p>
+
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Working in</th><th>Take</th><th>Because</th></tr></thead>
+  <tbody>
+    <tr><td>ToonSquid</td><td><b>Transparent GIF</b>, or <b>Frame sequence</b></td>
+        <td>It animates a GIF, and imports a run of PNGs as consecutive drawings</td></tr>
+    <tr><td>Procreate Dreams</td><td><b>Transparent GIF</b></td>
+        <td>An animated GIF arrives as a Flipbook</td></tr>
+    <tr><td>iMovie, and most Windows editors</td>
+        <td><b>Transparent GIF</b>, or <b>Chroma-key MP4</b></td>
+        <td>Picture in Picture, or the green-screen mode</td></tr>
+    <tr><td>Anything that reads an <b>Animated PNG</b></td>
+        <td><b>Animated PNG</b></td>
+        <td>One file, real alpha, no hard edge — try it before settling for the GIF</td></tr>
+    <tr><td>Final Cut Pro</td><td><b>Final Cut Pro project</b></td>
+        <td>It builds the timeline for you, and can track a moving face</td></tr>
+    <tr><td>After Effects, Blender, Spine, a game engine</td>
+        <td><b>Chart&nbsp;+&nbsp;exposure sheet</b> or <b>Frame sequence</b></td>
+        <td>Timing as data, or one PNG per frame</td></tr>
+    <tr><td>Nothing — you just want a finished clip</td>
+        <td><b>Video with mouth overlay</b></td><td>Done here, in one step</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Take the voice track with it unless the audio is already in your project —
+every card has its own <b>Include the voice track</b>.</p>
+
+<div class="note">
+  <span class="boxlabel">Why there is no alpha movie</span>
+  <p>An HEVC <code>.mov</code> with an alpha channel is the file an iPad
+  animation app would most like to be handed, and this page cannot make one.
+  Chromium answers "Alpha encoding is not currently supported" to every codec it
+  has, and Apple's HEVC-with-alpha is built by Apple's own tools. The
+  <b>Animated PNG</b> is the nearest a browser can get on its own: one file,
+  eight bits of alpha, no codec involved. For a real alpha movie, take the
+  <b>Frame sequence</b> and convert it outside.</p>
+</div>
+
+<h3 id="ipad">ToonSquid and Procreate Dreams (iPad)</h3>
+
+<p>Import the mouths and the voice track, drag them into the timeline above your
+puppet, and resize and position them there.</p>
+
+<p>Both can keep the mouth attached to the body so the two travel together, which
+is worth setting up before you animate anything:</p>
+
+<ul>
+  <li><b>ToonSquid</b> calls it the <b>transform hierarchy</b> — the button in
+      the timeline's bottom toolbar. Drag the mouth layer onto the body layer to
+      make it a child, and scaling, rotating or moving the body does the same to
+      the mouth. Layers inside a group are already in an implicit hierarchy with
+      the group as their parent.</li>
+  <li><b>Procreate Dreams</b> groups instead: select the tracks in Timeline Edit,
+      tap and hold, then <b>Group</b>. Movement, effects and filters applied to
+      the group reach everything in it.</li>
+</ul>
+
+<p>Either app will take the <b>Transparent GIF</b>, which is the quickest route:
+Dreams reads an animated GIF as a Flipbook, and ToonSquid animates one too.</p>
+
+<p>ToonSquid has a second route worth knowing about. Its <b>Image Sequence</b>
+import takes a selected run of images, in filename order, and lays them out as
+consecutive drawings on one animation layer — one mouth per drawing, the way you
+would have drawn them yourself. Take the <b>Frame sequence</b> for that. It is
+more files to shepherd, but the mouths arrive as real drawings you can paint on
+rather than as a video clip, and the transparency is a full eight bits instead of
+the GIF's on-or-off.</p>
+
+<h3 id="imovie">iMovie, on Mac or iPad</h3>
+
+<p>Stack the audio first, then the puppet, then the mouths on top. Select the
+mouth clip, open the <b>Video Overlay Settings</b> button — the overlapping
+squares — and change the menu from <b>Cutaway</b> to <b>Picture in Picture</b>.
+That gives you the resize and position handles.</p>
+
+<figure>
+  <img src="images/18-imovie-pip.png" alt="iMovie's video overlay settings, with the overlay button and the Picture in Picture menu arrowed">
+  <figcaption>iMovie on the Mac: the overlay button, then Picture in Picture.</figcaption>
+</figure>
+
+<p>iMovie has no keyframing, so this suits a puppet that stays put. If the mouth
+clip covers the face with a black rectangle, its transparency is not surviving the
+import: switch the same menu to <b>Green/Blue Screen</b> and bring in the
+<b>Chroma-key MP4</b> instead. Most Windows video editors have an equivalent pair
+of features under different names.</p>
+
+<h3 id="fcp">Final Cut Pro</h3>
+
+<p>Take the <b>Final Cut Pro project</b> export and <b>File &gt; Import &gt;
+XML</b> it. You get a whole timeline built for you — one compound clip per clip —
+which you drag over your puppet footage.</p>
+
+<p>Then use Final Cut's own tracker: mask the face, track the movement, and attach
+the mouths to it. That makes this the most flexible route by a good distance,
+because the mouth can follow a puppet that moves. It is also the one that needs
+software not everybody has.</p>
+
+<p>Leave <b>Wrap … in a Compound Clip</b> ticked. Without it the mouths arrive as
+dozens of loose one-frame pieces, and gathering them up is the first thing you
+would do anyway.</p>
+
+<h3 id="inapp">Straight from here, with nothing else</h3>
+
+<p>If you shot your puppet on video, you can finish in this page.</p>
+
+<p>Load the video, pick a mouth style, then drag the mouth onto the face, size it
+from the corner and tilt it with the knob. Turn on <b>Blur patch</b> to hide the
+mouth printed on a doll or a minifigure, and export <b>Video with mouth
+overlay</b>. The placement controls and that export only appear once a video is
+loaded, because until then there is no picture to place anything on.</p>
+
+<figure>
+  <img src="images/19-overlay-in-app.png" alt="The app with a doll's video loaded, the tilt knob and the blur patch checkbox arrowed">
+  <figcaption>Placing the mouth on a doll: the knob tilts it, the blur patch hides the mouth underneath.</figcaption>
+</figure>
+
+<div class="warn">
+  <span class="boxlabel">Lock the shot off</span>
+  <p><b>Keyframes</b> are there for a puppet that moves, and in testing they do
+  not earn their keep — the mouth slides about rather than sticking to the face.
+  Shoot on a tripod, hold the angle, and this export is solid. When the puppet
+  really has to move, that is the job Final Cut's tracker does properly.</p>
+</div>
+
+<h3 id="turned">Puppets that are not facing you</h3>
+
+<p>The fifteen styles each come in three head angles — <b>Front</b>,
+<b>Three-quarter</b> and <b>Profile</b> — so a puppet can be turned away or side
+on and still get a mouth that belongs to it. They are the sub-tabs under
+<b>Built-in lips</b>; see <a href="#angles">Head angles</a>.</p>
 
 <hr>
 

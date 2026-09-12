@@ -28,8 +28,13 @@
 - [Blur patch and keyframes](#blur-patch-and-keyframes)
 - [Script](#script)
 - [Exporting](#exporting)
-  - [The seven formats](#the-seven-formats)
+  - [The eight formats](#the-eight-formats)
   - [Batch export](#batch-export)
+- [Putting the lips on a puppet](#putting-the-lips-on-a-puppet)
+  - [ToonSquid and Procreate Dreams](#toonsquid-and-procreate-dreams-ipad)
+  - [iMovie](#imovie-on-mac-or-ipad)
+  - [Final Cut Pro](#final-cut-pro)
+  - [Straight from here](#straight-from-here-with-nothing-else)
 - [Keyboard shortcuts](#keyboard-shortcuts)
 - [Limits](#limits)
 - [Troubleshooting](#troubleshooting)
@@ -467,13 +472,14 @@ button. Read the card, set what it offers, press the button at the bottom of it.
    chroma-key MP4 and overlay video have their own size on their own cards,
    because those are frame sizes rather than mouth sizes.
 
-### The seven formats
+### The eight formats
 
 | Format | You get | Good for |
 |--------|---------|----------|
 | **Chart + exposure sheet** | Nine transparent PNGs plus frame-by-frame timing as JSON and CSV | After Effects, Blender, Spine — the small, sane option, and the one to reach for first |
 | **Final Cut Pro project** | An `.fcpxml` project plus full-frame transparent PNGs, one clip per run of frames | Cutting over real footage in Final Cut. Import > XML and paste over your clip |
 | **Transparent GIF** | An animated GIF with a see-through background | A slide, a web page, a chat window — anywhere without a matte |
+| **Animated PNG** | The same animation as one `.png` file, with a real alpha channel | Anywhere the GIF's hard edge shows. Three times the size of the GIF and worth it over video |
 | **Sprite sheet + atlas** | One PNG with all nine shapes packed in, plus a coordinate map | Game engines and web animation |
 | **Frame sequence** | One numbered transparent PNG for every frame | Dropping straight onto a timeline. The cleanest matte — and it gets big fast |
 | **Chroma-key MP4** | The mouth over a solid key colour, voice track muxed in | Any editor that can key. Note the chroma is half-resolution, so the edge is softer than the PNG alpha |
@@ -524,6 +530,124 @@ project, switch that card to **Current Selection Export**.
 clip runs, so it stays on the open clip whatever the other cards say.
 
 Stopping mid-run still gives you a zip of whatever finished.
+
+---
+
+## Putting the lips on a puppet
+
+This app makes the mouth. Joining it to the puppet is the next program's job, and
+every one of them does it differently.
+
+Wherever you do it, two things have to be true: the mouth sits on its own layer
+**above** the puppet, and something keeps the two together when the puppet moves.
+Which export to take is mostly a question of which of those the tool can manage.
+
+| Working in | Take | Because |
+|---|---|---|
+| ToonSquid | **Transparent GIF**, or **Frame sequence** | It animates a GIF, and imports a run of PNGs as consecutive drawings |
+| Procreate Dreams | **Transparent GIF** | An animated GIF arrives as a Flipbook |
+| iMovie, and most Windows editors | **Transparent GIF**, or **Chroma-key MP4** | Picture in Picture, or the green-screen mode |
+| Anything that reads an **Animated PNG** | **Animated PNG** | One file, real alpha, no hard edge — try it before settling for the GIF |
+| Final Cut Pro | **Final Cut Pro project** | It builds the timeline for you, and can track a moving face |
+| After Effects, Blender, Spine, a game engine | **Chart + exposure sheet** or **Frame sequence** | Timing as data, or one PNG per frame |
+| Nothing — you just want a finished clip | **Video with mouth overlay** | Done here, in one step |
+
+Take the voice track with it unless the audio is already in your project — every
+card has its own **Include the voice track**.
+
+> **Why there is no alpha movie**
+>
+> An HEVC `.mov` with an alpha channel is the file an iPad animation app would
+> most like to be handed, and this page cannot make one. Chromium answers
+> "Alpha encoding is not currently supported" to every codec it has, and Apple's
+> HEVC-with-alpha is built by Apple's own tools. The **Animated PNG** is the
+> nearest a browser can get on its own: one file, eight bits of alpha, no codec
+> involved. For a real alpha movie, take the **Frame sequence** and convert it
+> outside.
+
+### ToonSquid and Procreate Dreams (iPad)
+
+Import the mouths and the voice track, drag them into the timeline above your
+puppet, and resize and position them there.
+
+Both can keep the mouth attached to the body so the two travel together, which is
+worth setting up before you animate anything:
+
+- **ToonSquid** calls it the **transform hierarchy** — the button in the
+  timeline's bottom toolbar. Drag the mouth layer onto the body layer to make it
+  a child, and scaling, rotating or moving the body does the same to the mouth.
+  Layers inside a group are already in an implicit hierarchy with the group as
+  their parent.
+- **Procreate Dreams** groups instead: select the tracks in Timeline Edit, tap
+  and hold, then **Group**. Movement, effects and filters applied to the group
+  reach everything in it.
+
+Either app will take the **Transparent GIF**, which is the quickest route: Dreams
+reads an animated GIF as a Flipbook, and ToonSquid animates one too.
+
+ToonSquid has a second route worth knowing about. Its **Image Sequence** import
+takes a selected run of images, in filename order, and lays them out as
+consecutive drawings on one animation layer — one mouth per drawing, the way you
+would have drawn them yourself. Take the **Frame sequence** for that. It is more
+files to shepherd, but the mouths arrive as real drawings you can paint on rather
+than as a video clip, and the transparency is a full eight bits instead of the
+GIF's on-or-off.
+
+### iMovie, on Mac or iPad
+
+Stack the audio first, then the puppet, then the mouths on top. Select the mouth
+clip, open the **Video Overlay Settings** button — the overlapping squares — and
+change the menu from **Cutaway** to **Picture in Picture**. That gives you the
+resize and position handles.
+
+![iMovie's video overlay settings, with Picture in Picture chosen](images/18-imovie-pip.png)
+
+iMovie has no keyframing, so this suits a puppet that stays put. If the mouth
+clip covers the face with a black rectangle, its transparency is not surviving
+the import: switch the same menu to **Green/Blue Screen** and bring in the
+**Chroma-key MP4** instead. Most Windows video editors have an equivalent pair of
+features under different names.
+
+### Final Cut Pro
+
+Take the **Final Cut Pro project** export and **File > Import > XML** it. You get
+a whole timeline built for you — one compound clip per clip — which you drag over
+your puppet footage.
+
+Then use Final Cut's own tracker: mask the face, track the movement, and attach
+the mouths to it. That makes this the most flexible route by a good distance,
+because the mouth can follow a puppet that moves. It is also the one that needs
+software not everybody has.
+
+Leave **Wrap … in a Compound Clip** ticked. Without it the mouths arrive as dozens
+of loose one-frame pieces, and gathering them up is the first thing you would do
+anyway.
+
+### Straight from here, with nothing else
+
+If you shot your puppet on video, you can finish in this page.
+
+Load the video, pick a mouth style, then drag the mouth onto the face, size it
+from the corner and tilt it with the knob. Turn on **Blur patch** to hide the
+mouth printed on a doll or a minifigure, and export **Video with mouth overlay**.
+The placement controls and that export only appear once a video is loaded, because
+until then there is no picture to place anything on.
+
+![Placing the mouth on a doll, with the tilt knob and the blur patch marked](images/19-overlay-in-app.png)
+
+> ⚠️ **Lock the shot off**
+>
+> **Keyframes** are there for a puppet that moves, and in testing they do not
+> earn their keep — the mouth slides about rather than sticking to the face.
+> Shoot on a tripod, hold the angle, and this export is solid. When the puppet
+> really has to move, that is the job Final Cut's tracker does properly.
+
+### Puppets that are not facing you
+
+The fifteen styles each come in three head angles — **Front**, **Three-quarter**
+and **Profile** — so a puppet can be turned away or side on and still get a mouth
+that belongs to it. They are the sub-tabs under **Built-in lips**; see
+[Head angles](#head-angles).
 
 ---
 
