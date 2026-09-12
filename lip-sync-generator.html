@@ -1235,7 +1235,17 @@ try {
           <label class="check"><input type="checkbox" class="withaud" id="audGif"><span>Include the voice track</span></label>
           <span class="est mono" id="estGif">—</span>
           <button class="btn" id="expGif" disabled>Export transparent GIF</button>
-          <p class="hint">GIF transparency is one colour, not an alpha channel, so the soft edge of the mouth becomes a hard one and the picture is cut to 255 colours. For a clean edge over video, use the frame sequence or the Final Cut project.</p>
+          <p class="hint">GIF transparency is one colour, not an alpha channel, so the soft edge of the mouth becomes a hard one and the picture is cut to 255 colours. For a clean edge over video, use the animated PNG, the frame sequence or the Final Cut project.</p>
+        </div>
+
+        <div class="exp">
+          <h3>Animated PNG</h3>
+          <p>The same animation as the GIF in a single file, but with a real alpha channel and every colour. One <span class="mono">.png</span> that plays.</p>
+          <label class="check"><input type="checkbox" id="apngLoop"><span>Loop forever</span></label>
+          <label class="check"><input type="checkbox" class="withaud" id="audApng"><span>Include the voice track</span></label>
+          <span class="est mono" id="estApng">—</span>
+          <button class="btn" id="expApng" disabled>Export animated PNG</button>
+          <p class="hint">Soft edges survive, so it sits over video without a matte and without the GIF's staircase. Bigger than a GIF — every frame carries its own pixels. Anything that does not animate APNG shows the first frame instead of failing.</p>
         </div>
 
         <div class="exp">
@@ -6406,7 +6416,7 @@ function setBusy(on, pct) {
   $('progress').classList.toggle('on', !!on);
   $('progressBar').style.width = ((pct || 0) * 100).toFixed(0) + '%';
   working(!!on, on ? 'Exporting… ' + Math.round((pct || 0) * 100) + '%' : '');
-  if (on) ['expChart', 'expFcp', 'expSeq', 'expSprite', 'expMp4', 'expOverlay', 'expGif']
+  if (on) ['expChart', 'expFcp', 'expSeq', 'expSprite', 'expMp4', 'expOverlay', 'expGif', 'expApng']
     .forEach(id => { $(id).disabled = true; });
   else setExportsEnabled(state.frames.length > 0);
 }
@@ -7207,6 +7217,210 @@ async function exportGif(sink) {
   setBusy(false);
 }
 
+/* ---- animated PNG ----------------------------------------------------------
+
+   The same nine drawings as the GIF, in the one animated format that keeps the
+   alpha the GIF throws away. A GIF's transparency is a single palette entry — a
+   pixel is either there or it is not — so every soft edge on a mouth becomes a
+   staircase, and the picture is cut to 255 colours on the way past. An APNG is
+   PNG frames end to end: eight bits of alpha, every colour, no matte.
+
+   Nothing here needs a codec, which is the point. HEVC with an alpha channel
+   would be the file to hand an iPad animation app, and a browser cannot make
+   one: Chromium answers "Alpha encoding is not currently supported" to every
+   codec it has, and Apple's HEVC-with-alpha is made by Apple's own tools.
+   Deflate and a handful of chunk headers are something a page can do on its own.
+--------------------------------------------------------------------------- */
+
+/** One PNG chunk: length, type, payload, CRC of type+payload. */
+function pngChunk(type, data) {
+  const out = new Uint8Array(12 + data.length);
+  const dv = new DataView(out.buffer);
+  dv.setUint32(0, data.length);
+  for (let i = 0; i < 4; i++) out[4 + i] = type.charCodeAt(i);
+  out.set(data, 8);
+  dv.setUint32(8 + data.length, crc32(out.subarray(4, 8 + data.length)));
+  return out;
+}
+
+/** PNG scanline filtering. Each row is tried through all four filters this
+    encoder writes and the one leaving the smallest sum of signed bytes wins —
+    the heuristic from the PNG spec itself. On flat cartoon art it is the
+    difference between a file and a big file: Up and Paeth cost nothing to try
+    and collapse the long runs of identical rows a drawn mouth is mostly made
+    of. */
+function pngFilter(rgba, w, h) {
+  const stride = w * 4;
+  const out = new Uint8Array((stride + 1) * h);
+  const cand = [0, 1, 2, 3].map(() => new Uint8Array(stride));
+  const zero = new Uint8Array(stride);
+  let prev = zero;
+  for (let y = 0; y < h; y++) {
+    const row = rgba.subarray(y * stride, (y + 1) * stride);
+    let best = 0, bestSum = Infinity;
+    for (let f = 0; f < 4; f++) {
+      const c = cand[f];
+      let sum = 0;
+      for (let x = 0; x < stride; x++) {
+        const a = x >= 4 ? row[x - 4] : 0;
+        const b = prev[x];
+        const q = x >= 4 ? prev[x - 4] : 0;
+        let v;
+        if (f === 0) v = row[x];
+        else if (f === 1) v = row[x] - a;
+        else if (f === 2) v = row[x] - b;
+        else {
+          const p = a + b - q;
+          const pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - q);
+          v = row[x] - (pa <= pb && pa <= pc ? a : pb <= pc ? b : q);
+        }
+        const u = v & 255;
+        c[x] = u;
+        sum += u < 128 ? u : 256 - u;
+      }
+      if (sum < bestSum) { bestSum = sum; best = f; }
+    }
+    // 0 None, 1 Sub, 2 Up, 4 Paeth — 3 is Average, which is not written here.
+    out[y * (stride + 1)] = best === 3 ? 4 : best;
+    out.set(cand[best], y * (stride + 1) + 1);
+    prev = row;
+  }
+  return out;
+}
+
+/** A zlib stream that does no compressing at all — stored deflate blocks and an
+    Adler-32. Only ever reached in a browser without CompressionStream, where a
+    big correct file beats no file. */
+function zlibStore(bytes) {
+  const blocks = Math.max(1, Math.ceil(bytes.length / 65535));
+  const out = new Uint8Array(2 + blocks * 5 + bytes.length + 4);
+  out[0] = 0x78; out[1] = 0x01;
+  let o = 2, p = 0;
+  for (let i = 0; i < blocks; i++) {
+    const n = Math.min(65535, bytes.length - p);
+    const m = (~n) & 0xFFFF;
+    out[o++] = i === blocks - 1 ? 1 : 0;
+    out[o++] = n & 255; out[o++] = n >> 8;
+    out[o++] = m & 255; out[o++] = m >> 8;
+    out.set(bytes.subarray(p, p + n), o);
+    o += n; p += n;
+  }
+  let a = 1, b = 0;
+  for (let i = 0; i < bytes.length; i++) { a = (a + bytes[i]) % 65521; b = (b + a) % 65521; }
+  new DataView(out.buffer).setUint32(o, ((b << 16) | a) >>> 0);
+  return out;
+}
+
+async function zlibDeflate(bytes) {
+  if (typeof CompressionStream === 'function') {
+    try {
+      const s = new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate'));
+      return new Uint8Array(await new Response(s).arrayBuffer());
+    } catch (e) { /* and on to the stored fallback */ }
+  }
+  return zlibStore(bytes);
+}
+
+/** frames: [{data, delay}] — data already a zlib stream of filtered scanlines,
+    delay in hundredths of a second. Every frame is the full size and replaces
+    what came before, so there is no compositing to get wrong. */
+function apngBytes(frames, w, h, loop) {
+  const parts = [new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10])];
+
+  const ihdr = new Uint8Array(13);
+  const ih = new DataView(ihdr.buffer);
+  ih.setUint32(0, w); ih.setUint32(4, h);
+  ihdr[8] = 8;                          // eight bits a channel
+  ihdr[9] = 6;                          // truecolour with alpha
+  parts.push(pngChunk('IHDR', ihdr));
+
+  const actl = new Uint8Array(8);
+  const ac = new DataView(actl.buffer);
+  ac.setUint32(0, frames.length);
+  ac.setUint32(4, loop ? 0 : 1);        // 0 plays forever
+  parts.push(pngChunk('acTL', actl));
+
+  let seq = 0;
+  frames.forEach((f, i) => {
+    const fc = new Uint8Array(26);
+    const d = new DataView(fc.buffer);
+    d.setUint32(0, seq++);
+    d.setUint32(4, w); d.setUint32(8, h);
+    d.setUint32(12, 0); d.setUint32(16, 0);
+    d.setUint16(20, Math.max(1, Math.min(65535, f.delay)));
+    d.setUint16(22, 100);               // …of a hundredth-of-a-second tick
+    fc[24] = 0;                         // dispose: leave it
+    fc[25] = 0;                         // blend: replace
+    parts.push(pngChunk('fcTL', fc));
+    if (i === 0) {
+      // The first frame is the still image too, so it goes in as IDAT and any
+      // reader that knows nothing about APNG shows it and stops.
+      parts.push(pngChunk('IDAT', f.data));
+    } else {
+      const fd = new Uint8Array(4 + f.data.length);
+      new DataView(fd.buffer).setUint32(0, seq++);
+      fd.set(f.data, 4);
+      parts.push(pngChunk('fdAT', fd));
+    }
+  });
+  parts.push(pngChunk('IEND', new Uint8Array(0)));
+
+  const total = parts.reduce((n, q) => n + q.length, 0);
+  const out = new Uint8Array(total);
+  let o = 0;
+  parts.forEach(q => { out.set(q, o); o += q.length; });
+  return out;
+}
+
+/** Roughly what an APNG will weigh. Every frame carries its own copy of the
+    pixels — APNG has no way to say "the one before" — so it is the run count
+    times the cost of one picture. The coefficient is measured rather than
+    guessed: a frame inside an APNG comes out about a third of a standalone PNG
+    of the same drawing, because it is filtered per row and carries none of the
+    headers. A 256px take estimated at 183 KB this way weighed 63. */
+function apngEstimate(size, perFrame) {
+  return gifDelays().length * perFrame * 0.33 + 200;
+}
+
+async function exportApng(sink) {
+  const size = parseInt($('outSize').value, 10);
+  const loop = $('apngLoop').checked;
+  setBusy(true, 0);
+  try {
+    // The same run coalescing the GIF uses: a shape held for six frames is one
+    // frame with a longer delay, not six copies of the same picture.
+    const segs = gifDelays();
+    const used = [...new Set(segs.map(s => s.viseme))];
+    const data = {};
+    for (let i = 0; i < used.length; i++) {
+      const img = gifImageData(size, used[i]);
+      data[used[i]] = await zlibDeflate(pngFilter(img.data, size, size));
+      setBusy(true, (i + 1) / used.length * 0.85);
+      await new Promise(r => setTimeout(r, 0));
+    }
+    const bytes = apngBytes(segs.map(s => ({ data: data[s.viseme], delay: s.delay })),
+                            size, size, loop);
+    setBusy(true, .98);
+    const stem = (state.name || 'mouth') + '-mouth';
+    const voice = await audioSidecar('audApng');
+    const files = [{ name: stem + '.png', data: bytes }];
+    if (voice) files.push(voice);
+    if (Array.isArray(sink)) {
+      const at = sink.prefix ? 'apng/' : '';
+      files.forEach(f => sink.push({ name: at + f.name, data: f.data }));
+    } else if (voice) {
+      await deliver(stem + '.zip', makeZip(files));
+    } else {
+      await deliver(stem + '.png', bytes);
+    }
+    toast('Animated PNG exported · ' + segs.length + ' frames · ' + fmtBytes(bytes.length) + '.');
+  } catch (e) {
+    console.error(e);
+    toast(e && e.code === 'declined' ? 'Save cancelled.' : 'Export failed: ' + (e.message || e), 4000);
+  }
+  setBusy(false);
+}
+
 /* ---- exporting the whole queue --------------------------------------------
 
    One clip at a time, and one zip per clip. Each clip is opened for real —
@@ -7218,6 +7432,7 @@ async function exportGif(sink) {
 const BATCH_RUNNERS = {
   chart:  { label: 'chart + timing',  slug: 'charts',    run: sink => exportChart(sink) },
   gif:    { label: 'GIF',             slug: 'gifs',      run: sink => exportGif(sink) },
+  apng:   { label: 'animated PNG',    slug: 'apng',      run: sink => exportApng(sink) },
   fcp:    { label: 'Final Cut',       slug: 'final-cut', run: sink => exportFcpxml(sink) },
   sprite: { label: 'sprite sheet',    slug: 'sprites',   run: sink => exportSprite(sink) },
   seq:    { label: 'frame sequence',  slug: 'frames',    run: sink => exportSequence(sink) },
@@ -7240,6 +7455,7 @@ let batchRunning = false, batchAbort = false;
 const EXPORT_CARDS = {
   chart:  { btn: 'expChart',  one: 'Export chart + timing',    many: 'Export # chart zips' },
   gif:    { btn: 'expGif',    one: 'Export transparent GIF',   many: 'Export # GIFs' },
+  apng:   { btn: 'expApng',   one: 'Export animated PNG',      many: 'Export # animated PNGs' },
   fcp:    { btn: 'expFcp',    one: 'Export Final Cut project', many: 'Export # Final Cut projects' },
   sprite: { btn: 'expSprite', one: 'Export sprite sheet',      many: 'Export # sprite sheets' },
   seq:    { btn: 'expSeq',    one: 'Export frame sequence',    many: 'Export # frame sequences' },
@@ -7854,7 +8070,7 @@ async function updateEstimates() {
   const n = state.frames.length;
   if (!n) {
     $('estChart').textContent = $('estSeq').textContent = $('estSprite').textContent =
-      $('estFcp').textContent = $('estGif').textContent = '—';
+      $('estFcp').textContent = $('estGif').textContent = $('estApng').textContent = '—';
     return;
   }
   const probe = await pngBytes(size, 'D');
@@ -7866,6 +8082,8 @@ async function updateEstimates() {
   const gifSegs = gifDelays().length;
   $('estGif').textContent = gifSegs.toLocaleString() + ' GIF frames at ' + size + '×' + size +
     ' · ≈ ' + fmtBytes(gifEstimate(size));
+  $('estApng').textContent = gifSegs.toLocaleString() + ' frames at ' + size + '×' + size +
+    ' · ≈ ' + fmtBytes(apngEstimate(size, estBytes));
   // The Final Cut option can match the video, but only once there is one.
   const fcpVid = $('fcpSizeVideo');
   const hadVideo = !fcpVid.hidden;
@@ -7923,6 +8141,7 @@ function setExportsEnabled(on) {
   $('expFcp').disabled = !ready || download.mode === 'artifact';
   $('expSprite').disabled = !ready;
   $('expGif').disabled = !ready;
+  $('expApng').disabled = !ready;
   $('expMp4').disabled = !ready || !videoEncoderPresent;
   // The overlay video is the one export that is never batched, so it answers to
   // the open clip alone whatever the scope says.
