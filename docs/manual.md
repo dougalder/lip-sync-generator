@@ -12,6 +12,7 @@
 
 - [What it does](#what-it-does)
 - [Getting started](#getting-started)
+- [Ways to run it](#ways-to-run-it)
 - [The window](#the-window)
 - [Loading a clip](#loading-a-clip)
 - [Analysis](#analysis)
@@ -75,6 +76,116 @@ Typical jobs it is built for:
 > Drop a WAV, press play, export the **Chart + exposure sheet**. You get nine
 > transparent PNGs and a JSON/CSV timing list, which is enough to drive almost
 > any animation tool.
+
+---
+
+## Ways to run it
+
+It is one HTML file with everything inside it, so "installing" it means putting
+that file somewhere and opening it. There are two kinds of place, and the only
+difference that matters is this:
+
+| | Everything works | The `lips/` folder works |
+|---|---|---|
+| **Opened off the disk** (`file://`) | yes | **no** |
+| **Served** (a web server, local or remote) | yes | yes |
+
+Analysis, editing, the puppet and all eight exports work either way, offline,
+with no network request. The one thing that needs a server is
+[a folder of your own lip sets](#your-own-lips) shipped alongside the page — a
+browser will not let a page read a folder off the disk, and a picture loaded
+that way taints the canvas, which would break every export. So from `file://`
+the shelf says so rather than half-working.
+
+Pick by whether you want that folder.
+
+### Keep a copy on your machine
+
+The simplest thing, and enough for most people.
+
+1. Get the file. From the repository: **Code > Download ZIP**, or take
+   `lip-sync-generator.html` on its own. From a page already open in a browser:
+   **File > Save As**, and choose *Page Source* or *HTML Only* — you want the one
+   file, not a "complete page" with a folder beside it.
+2. Put it on the desktop.
+3. Double-click it.
+
+That is the whole installation. It keeps working with no network at all, and a
+copy you saved is a copy you own — nothing can change it underneath you.
+
+### Make it double-clickable like a real app
+
+The file already opens in one click; these give it a Dock icon and its own
+window without the browser's chrome around it.
+
+- **Safari, macOS Sonoma 14 or later** — open the page, then **File > Add to
+  Dock**. It lands in Applications and behaves like an app. This is the free,
+  built-in option, and it works on a page you are *serving* (see below) or on a
+  hosted copy. Chrome and Edge have their own versions of the same idea —
+  **Install this site as an app**.
+- **A wrapper app** — [Coherence X](https://www.bzgapps.com/coherence) or
+  [Web2Mac](https://ensili.co/app/web2mac/) build a real `.app` around a page,
+  with your own icon and name. Worth it if you are handing the tool to someone
+  else and want it to look like software rather than a download.
+
+> **Wrappers and the lips folder**
+>
+> A wrapper pointed at a file on the disk is still `file://` inside, so the
+> `lips/` folder will not load. Point the wrapper at a **served** address
+> instead — `http://localhost:8888/...` from the next section — and it works,
+> with the server doing the serving quietly in the background.
+
+### Serve it from your own Mac or PC
+
+This is the version that gives you the `lips/` folder: a preloaded set of custom
+mouths that is simply *there* every time the page opens, with nothing for anyone
+to import.
+
+Put the HTML file and a `lips/` folder in the same directory, and point a web
+server at it:
+
+- **MAMP** (Mac) — drop the folder into `htdocs` and open
+  `http://localhost:8888/lip-sync-generator.html`. MAMP is free, and the free
+  version is all this needs.
+- **XAMPP** (Windows) — the same idea; the folder is `htdocs` there too.
+- **One line, no install** — in a terminal, in the folder:
+  `python3 -m http.server 8000`, then open `http://localhost:8000/`. On a Mac
+  this may ask to install the developer command line tools the first time.
+
+Name the file `index.html` and the address is just `http://localhost:8888/`.
+
+### Put it on the web
+
+**GitHub Pages** is the least work: push the file to a repository, turn Pages on
+in **Settings > Pages**, and the address is
+`https://<you>.github.io/<repo>/lip-sync-generator.html`. Anyone you send it to
+gets the current version, and they can still use **File > Save As** to keep their
+own.
+
+Nothing about the page changes when it is hosted — there is still no server side
+to it, and no audio ever leaves the browser.
+
+### Getting the lips folder to be found
+
+The page looks for `lips/` next to itself and shows whatever it finds. **How** it
+finds it depends on the server:
+
+- **If the server lists directories** — MAMP, XAMPP and `python -m http.server`
+  all do by default — it reads the listing, and the files inside can be called
+  anything. `mouth-D.png`, `04_D_wide.png` and `D.png` all land on `D`.
+- **If it does not** — and **GitHub Pages does not**; it returns "not found" for
+  a folder with no `index.html` in it — the page needs two things:
+  1. A `lips/sets.json` naming the folders:
+     ```json
+     ["robot", "sock", "granny"]
+     ```
+  2. Inside each of those folders, the nine files named **exactly**
+     `X.png A.png B.png C.png D.png E.png F.png G.png H.png`. With no listing to
+     read, those are the only names the page can ask for.
+
+Adding `sets.json` does no harm anywhere else — it is only read when a listing
+is unavailable — so if you want one folder layout that works on every host, use
+the nine plain names and ship the manifest.
 
 ---
 
@@ -621,7 +732,7 @@ button. Read the card, set what it offers, press the button at the bottom of it.
 | Format | You get | Good for |
 |--------|---------|----------|
 | **Chart + exposure sheet** | Nine transparent PNGs plus frame-by-frame timing as JSON and CSV | After Effects, Blender, Spine — the small, sane option, and the one to reach for first |
-| **Final Cut Pro project** | An `.fcpxml` project plus full-frame transparent PNGs, one clip per run of frames | Cutting over real footage in Final Cut. Import > XML and paste over your clip |
+| **Final Cut Pro project** | An `.fcpxml` project plus full-frame transparent PNGs, one clip per run of frames — and the voice track and puppet in the project too, if you asked for them | Cutting over real footage in Final Cut. Import > XML and paste over your clip |
 | **Transparent GIF** | An animated GIF with a see-through background | A slide, a web page, a chat window — anywhere without a matte |
 | **Animated PNG** | The same animation as one `.png` file, with a real alpha channel | Anywhere the GIF's hard edge shows. Three times the size of the GIF and worth it over video |
 | **Sprite sheet + atlas** | One PNG with all nine shapes packed in, plus a coordinate map | Game engines and web animation |
@@ -758,6 +869,18 @@ Which export to take is mostly a question of which of those the tool can manage.
 
 Take the voice track with it unless the audio is already in your project — every
 card has its own **Include the voice track**.
+
+> **The Final Cut project takes the voice with it properly**
+>
+> On every other card, **Include the voice track** puts an audio file in the zip
+> for you to drag in yourself. On the **Final Cut Pro project** it goes into the
+> project as well: an asset in the document and a clip connected below the
+> mouths at 00:00, so the timeline opens with picture and sound already
+> together. Keep the audio file in the folder with the `.fcpxml` and the PNGs —
+> the project points at it by name, the same way it points at the pictures.
+>
+> A batch run does the same for every clip, each one's voice under its own
+> mouths at its own place on the timeline.
 
 > **Why there is no alpha movie**
 >

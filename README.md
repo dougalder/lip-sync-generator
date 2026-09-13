@@ -51,6 +51,33 @@ the clip in the page itself without any other software.
 > **Chart + exposure sheet**. Nine transparent PNGs and a JSON/CSV timing list,
 > which is enough to drive almost any animation tool.
 
+## Ways to run it
+
+One file, so "installing" it means putting that file somewhere. Two kinds of
+place, and one difference between them that matters:
+
+| | Everything works | The `lips/` folder works |
+|---|---|---|
+| **Opened off the disk** (`file://`) | yes | **no** |
+| **Served** (a web server, local or remote) | yes | yes |
+
+- **Keep a copy** — **Code > Download ZIP**, or **File > Save As** from a hosted
+  copy (choose *Page Source*, not *complete page*). Put it on the desktop and
+  double-click. Works with no network at all.
+- **Give it a Dock icon** — Safari's **File > Add to Dock** (macOS 14+), Chrome
+  and Edge's **Install this site as an app**, or a wrapper like
+  [Coherence X](https://www.bzgapps.com/coherence) or
+  [Web2Mac](https://ensili.co/app/web2mac/).
+- **Serve it yourself** — MAMP on a Mac, XAMPP on Windows, or
+  `python3 -m http.server 8000` in the folder. This is the one that gives you a
+  preloaded `lips/` folder of your own mouth art.
+- **Put it on the web** — GitHub Pages. Note that GitHub Pages does not list
+  directories, so a `lips/` folder there needs a `sets.json` and the nine files
+  named `X.png` … `H.png`.
+
+[Ways to run it](docs/manual.md#ways-to-run-it) in the manual has the detail,
+including what a wrapper does to the `lips/` folder and why.
+
 ## What it can do
 
 - **Two analysers** — a built-in formant DSP that is instant and tunable, and
