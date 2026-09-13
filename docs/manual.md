@@ -657,8 +657,9 @@ button. Read the card, set what it offers, press the button at the bottom of it.
 > So there is now one frame for every frame of the take, all the same length. A
 > held shape is a *hold frame* — a single transparent pixel that changes nothing
 > and costs about thirty bytes — so the files are barely larger and the rate is
-> declared and constant, which is what makes an editor conform the clip the way
-> it conforms any other clip: by repeating frames and keeping the length.
+> declared and constant, which is what lets an editor conform the clip the way it
+> conforms any other clip: by repeating frames and keeping the length. Most do.
+> Final Cut, on a long take, still does not — see the next box.
 >
 > **The animated PNG is exact.** It carries its own denominator, so a frame at
 > 12 fps is written as the fraction 1/12.
@@ -673,6 +674,26 @@ button. Read the card, set what it offers, press the button at the bottom of it.
 > timeline's. No frame duration lands cleanly on every grid — 1/12 of a second
 > is 2.08 frames of 25 and 2.5 frames of 30 — so matching the two rates is the
 > one thing that is exact under every reading.
+
+> **Final Cut and long takes: a known one**
+>
+> Final Cut Pro does not always hold the length of an imported animated GIF or
+> PNG, and the error grows with the length of the take — a two-minute one can
+> arrive several seconds long. It is the import rather than the file: the same
+> exports line up exactly in ToonSquid and in a browser, and the frames
+> themselves are all the same length with the rate declared.
+>
+> Three ways round it, best first:
+>
+> 1. **Use the Final Cut Pro project export.** It is built for Final Cut and is
+>    frame-accurate by construction — and it gives you the mouths as clips you
+>    can already edit rather than one item to fight with.
+> 2. **Work in shorter pieces.** Split the take into lines and export each
+>    (see [Trim, split and drop](#trim-split-and-drop)). Drift you cannot see
+>    over ten seconds is obvious over two minutes.
+> 3. **Retime the clip in Final Cut.** Select it, **Modify > Retime > Custom**,
+>    and set the duration to the audio's. One factor across the whole clip, so
+>    the mouths stay in step with each other.
 
 ### Batch export
 
@@ -904,6 +925,21 @@ Raise the **minimum hold** to 3 frames. Anything shorter gets absorbed.
 **The batch only exported one clip.**
 You are on an older build. A batch is one download now; if yours produces one
 zip per clip, the browser is blocking the rest.
+
+**In Final Cut, the GIF or the animated PNG is longer than the audio.**
+Final Cut does not always hold the length of an animated GIF or PNG when it
+imports one, and the further it drifts the longer the take. It is the import,
+not the file: the same files line up exactly in ToonSquid and in a browser. Any
+of these fixes it:
+
+- Take the **Final Cut Pro project** instead. It is built for Final Cut, it is
+  frame-accurate by construction, and it arrives as clips you can already edit.
+- Split the take into shorter clips — see
+  [Trim, split and drop](#trim-split-and-drop). A drift you cannot see over ten
+  seconds is obvious over two minutes.
+- Keep the clip and retime it: select it, **Modify > Retime > Custom**, and set
+  the duration to the audio's. The mouths stay in step because the whole clip is
+  stretched by one factor.
 
 **Final Cut says the clips are missing.**
 **File > Relink Files**, point it at the mouths folder, and they all reconnect at
