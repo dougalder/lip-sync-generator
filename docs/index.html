@@ -572,6 +572,39 @@ three, a character can keep its look through a turn — put the front set on one
 clip and the three-quarter on the next. The pane opens on <b>Built-in lips</b>
 and <b>Front</b> every time, whichever tab and angle you were last using.</p>
 
+<h4 id="flips">Facing the other way</h4>
+
+<p>Two buttons, one for each half of the picture, and they are independent:</p>
+
+<ul>
+<li><b>Flip lips</b> sits on the stage itself, top right, opposite the frame
+badge. It mirrors the mouth left to right wherever it is drawn — the stage, the
+chart, and every export. It works with a custom lip set as readily as with the
+drawn styles, and with no puppet at all.</li>
+<li><b>Flip</b> sits on the <b>PUPPET</b> line, beside Replace and Remove. It
+mirrors the picture behind the mouth.</li>
+</ul>
+
+<p>Both are horizontal only. A mouth upside down is not a mouth.</p>
+
+<p>Which one you want depends on which half is facing the wrong way. A puppet
+photographed looking left needs the lips turned round; a lip set drawn for a
+left-facing character over footage of a right-facing one needs the puppet turned
+instead. Pressing both mirrors the whole picture, which is occasionally what you
+want and is not the same as pressing either.</p>
+
+<p>Both belong to the open clip, so two speakers in a queue can face each
+other.</p>
+
+<div class="note">
+  <span class="boxlabel">Final Cut is given a transform, not a flipped file</span>
+  <p>The <b>Final Cut Pro project</b> export ships the puppet as its own file. A
+  mirrored puppet is therefore mirrored in the project — a scale of &minus;1
+  across — rather than baked into a copy of your picture. You can see it in the
+  inspector and take it off. The mouths are ours to draw, so those really are
+  flipped in the PNGs.</p>
+</div>
+
 <div class="note">
   <span class="boxlabel">Two things to expect</span>
   <p><b>Profile reads less precisely than front-on</b>, and that is true of
@@ -954,10 +987,49 @@ button. Read the card, set what it offers, press the button at the bottom of it.
 </div>
 
 <div class="note">
+  <span class="boxlabel">Every export says which one it is</span>
+  <p>The file name is the clip's, with the format on the end in capitals:
+  <code>speech-CHART.zip</code>, <code>speech-FCPXML.zip</code>,
+  <code>speech-GIF.gif</code>, <code>speech-APNG.png</code>,
+  <code>speech-SPRITE.zip</code>, <code>speech-FRAMES.zip</code>,
+  <code>speech-CHROMA.mp4</code>, <code>speech-OVERLAY.mp4</code>. A batch zip
+  carries the same tag. Eight files of one take otherwise differ by a word nobody
+  reads, and Final Cut puts the file name on the clip — so the wrong one goes on
+  the timeline and looks right until it does not.</p>
+</div>
+
+<div class="note">
   <span class="boxlabel">Everything ships the whole set</span>
   <p>Even if a take never uses <code>G</code> or <code>H</code>, those pictures
   are in the zip. That is what lets you correct a frame in your editor a week
   later without coming back here.</p>
+</div>
+
+<div class="note">
+  <span class="boxlabel">Timing: the GIF and the animated PNG run at a constant frame rate</span>
+  <p>Both used to write a held shape as one long frame — six frames of
+  <code>B</code> as a single picture with a six-frame delay. Smaller, and correct
+  in a browser, but it made the file <b>variable</b>-frame-rate, and an editor
+  importing one has to place each of those frames on its own grid by rounding up.
+  A twelve-frame animation on a 25 fps timeline came out about 14% long, and the
+  error only ever went one way.</p>
+  <p>So there is now one frame for every frame of the take, all the same length.
+  A held shape is a <i>hold frame</i> — a single transparent pixel that changes
+  nothing and costs about thirty bytes — so the files are barely larger and the
+  rate is declared and constant, which is what makes an editor conform the clip
+  the way it conforms any other clip: by repeating frames and keeping the
+  length.</p>
+  <p><b>The animated PNG is exact.</b> It carries its own denominator, so a frame
+  at 12 fps is written as the fraction 1/12.</p>
+  <p><b>The GIF is within a frame.</b> Its delays are whole hundredths of a
+  second and 12 fps is 8.3333 of them, so the GIF is written at the nearest rate
+  a hundredth can express — 8 hundredths, or 12.5 fps — and the mouth track is
+  sampled at that rate. The total comes out right and no frame is more than half
+  a frame from where it would have been.</p>
+  <p><b>If it still does not line up</b>, set the frame rate in <b>Analysis</b>
+  to your timeline's. No frame duration lands cleanly on every grid — 1/12 of a
+  second is 2.08 frames of 25 and 2.5 frames of 30 — so matching the two rates is
+  the one thing that is exact under every reading.</p>
 </div>
 
 <h3 id="batch">Batch export</h3>
@@ -1036,8 +1108,8 @@ tool can manage.</p>
     <tr><td>Anything that reads an <b>Animated PNG</b></td>
         <td><b>Animated PNG</b></td>
         <td>One file, real alpha, no hard edge — try it before settling for the GIF</td></tr>
-    <tr><td>Final Cut Pro</td><td><b>Final Cut Pro project</b></td>
-        <td>It builds the timeline for you, and can track a moving face</td></tr>
+    <tr><td>Final Cut Pro</td><td><b>Final Cut Pro project</b>, or an <b>Animated PNG</b></td>
+        <td>The project builds the timeline for you; the APNG is one file to drag in</td></tr>
     <tr><td>After Effects, Blender, Spine, a game engine</td>
         <td><b>Chart&nbsp;+&nbsp;exposure sheet</b> or <b>Frame sequence</b></td>
         <td>Timing as data, or one PNG per frame</td></tr>
@@ -1059,6 +1131,19 @@ every card has its own <b>Include the voice track</b>.</p>
   <b>Animated PNG</b> is the nearest a browser can get on its own: one file,
   eight bits of alpha, no codec involved. For a real alpha movie, take the
   <b>Frame sequence</b> and convert it outside.</p>
+</div>
+
+<div class="note">
+  <span class="boxlabel">Final Cut Pro imports and plays animated PNGs</span>
+  <p>Worth knowing, because it is not documented anywhere obvious and most
+  people assume a <code>.png</code> is a still. Drag one into an event and it
+  arrives as a clip that animates, alpha and all — no conversion, no image
+  sequence, one file. That makes it a real alternative to the <b>Final Cut Pro
+  project</b> export when all you want is the mouths as a single item to drop
+  over your own footage: the project is better when you want the run broken into
+  clips you can re-time or correct, and the APNG is better when you do not.</p>
+  <p>Other editors may well do the same. If yours opens a <code>.png</code>
+  without complaint and it moves, you have found a shortcut.</p>
 </div>
 
 <h3 id="ipad">ToonSquid and Procreate Dreams (iPad)</h3>
