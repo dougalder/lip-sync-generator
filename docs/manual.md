@@ -444,16 +444,53 @@ If the puppet has an alpha channel — a cut-out character on nothing — the ap
 says **transparent** on the PUPPET line and keeps the checkerboard behind it on
 the stage rather than a black ground, so you can see that it is cut out.
 
-To keep it through an export, tick **Put the puppet behind it** on either
-**Animated PNG** or **Frame sequence**. Those two become the whole picture
-rather than the mouth alone: the puppet's own size, the mouth composited on
-top, and eight bits of alpha all the way through.
+To keep it through an export, tick **Put the puppet behind it** on **Animated
+PNG** or **Frame sequence**. Those two become the whole picture rather than the
+mouth alone: the puppet's own size, the mouth composited on top, and eight bits
+of alpha all the way through.
 
 **Video cannot hold transparency at all** — no browser will encode an alpha
 movie, which is covered under
 [Putting the lips on a puppet](#putting-the-lips-on-a-puppet) — so a cut-out
 puppet comes out of **Video with mouth overlay** on black. That is what the two
 PNG routes are for.
+
+### Which exports carry the puppet
+
+**Put the puppet behind it** appears on six of the eight cards once there is a
+puppet, and choosing a puppet ticks five of them. Each format does something
+slightly different with it, because each format can hold something different.
+
+| Export | Default | What it does with the puppet |
+|---|---|---|
+| **Final Cut Pro project** | on | Ships the puppet file in the zip and puts it on the storyline, with the mouths connected above it in lane 1. A layer you can still move, not pixels baked together. |
+| **Chroma-key MP4** | on | The frame becomes the whole picture at the puppet's proportions instead of a square. A cut-out puppet's transparency fills with the key colour, so keying it out cuts it out again on the far side. |
+| **Transparent GIF** | on | Every frame is the whole picture, quantised against one palette so nothing shifts colour between frames. The long edge is held to 800px whatever output size is chosen. |
+| **Animated PNG** | on | The whole picture with a real alpha channel. The best of them for a cut-out. |
+| **Frame sequence** | on | One PNG per frame, the whole picture, transparency and all. |
+| **Sprite sheet + atlas** | **off** | Cells become whole pictures: nine for a still puppet that is not being moved, one per frame for a video or a keyframed move. The atlas gains a `sequence` list saying which cell each frame wants. |
+
+**Chart + exposure sheet** and **Video with mouth overlay** have no box.
+The chart is nine mouths by definition; the overlay video is already the picture
+with the mouth burned into it.
+
+Two things worth knowing:
+
+- **The boxes belong to the clip only through its puppet.** They keep their
+  setting when you click to a clip that has no puppet and back again, so a batch
+  run exports what you set, not what the last clip you looked at happened to
+  have.
+- **A clip's own footage does not tick them.** If the thing behind the mouth is
+  the video you loaded as the voice track rather than a puppet you chose, the
+  boxes appear but stay clear — that export has always been the mouth alone and
+  the footage is already on your timeline.
+
+> **Final Cut and a short puppet**
+>
+> The app plays a puppet shorter than the take out and back. A project cannot
+> say that in one clip, so the storyline runs to the puppet's own length and the
+> rest is a gap. To match it, copy the puppet, paste it into the gap and reverse
+> the copy with **Retime > Reverse Clip**. The README in the zip says the same.
 
 ---
 
