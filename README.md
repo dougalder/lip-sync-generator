@@ -70,7 +70,9 @@ the clip in the page itself without any other software.
   a blur patch to cover a printed mouth
 - **Eight export formats** — chart + timing, Final Cut Pro project, transparent
   GIF, animated PNG with a real alpha channel, sprite sheet, frame sequence,
-  chroma-key MP4, and video with the mouth burned in
+  chroma-key MP4, and video with the mouth burned in. Six of them will carry the
+  puppet: the Final Cut project puts it on the storyline as a layer you can still
+  move, and the rest composite it behind the mouth
 - **Batch any of them** across the whole queue, as one download
 
 See the [manual](docs/manual.md) for how each of these works, with annotated
