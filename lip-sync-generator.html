@@ -1232,10 +1232,11 @@ try {
             <input type="color" id="keyColor" value="#00B140" aria-label="Key colour">
           </div>
           <label class="check" style="font-size:11.5px"><input type="checkbox" id="keyAudio" checked><span>Include the voice track</span></label>
+          <label class="check" hidden style="font-size:11.5px"><input type="checkbox" id="mp4Plate"><span>Put the puppet behind it</span></label>
           <span class="est mono" id="estMp4">—</span>
           <p class="hint warn" id="mp4Warn" hidden></p>
           <button class="btn" id="expMp4" disabled>Export chroma-key MP4</button>
-          <p class="hint">Video chroma is half-resolution, so the key edge is softer than the PNG alpha. For a clean matte, use the frame sequence.</p>
+          <p class="hint">Video chroma is half-resolution, so the key edge is softer than the PNG alpha. For a clean matte, use the frame sequence. With the puppet behind it the frame becomes the whole picture at the puppet's own proportions, and a cut-out puppet's transparency fills with the key colour — so keying it out cuts it out again on the far side.</p>
         </div>
 
         <div class="exp">
@@ -1251,11 +1252,12 @@ try {
           </div>
           <input type="text" id="fcpFolder" class="pathfield" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="/Users/you/Movies/Lip sync — optional" aria-label="Folder the media will live in">
           <label class="check"><input type="checkbox" id="fcpCompound" checked><span id="fcpCompoundLabel">Wrap the mouths in a Compound Clip</span></label>
+          <label class="check" hidden><input type="checkbox" id="fcpPlate"><span>Put the puppet behind it</span></label>
           <label class="check"><input type="checkbox" class="withaud" id="audFcp"><span>Include the voice track</span></label>
           <span class="est mono" id="estFcp">—</span>
           <p class="hint" id="fcpBatchNote" hidden><b>Batch Export</b> gives you one project holding every clip on one timeline in load order, each as its own compound clip — not a project apiece. For one clip's own project, switch to <b>Current Selection Export</b>.</p>
           <button class="btn" id="expFcp" disabled>Export Final Cut project</button>
-          <p class="hint">Wrapped, the run of mouth clips arrives as one item you can slide, trim and stack in one go; open it to get at the individual shapes. Untick to drop the bare clips straight onto the spine. Leave the folder empty and the project points at the PNGs beside it, so the unzipped folder just works. Fill it in with where the folder will end up and the paths become absolute. Either way, if Final Cut shows the clips as missing, <b>File &gt; Relink Files</b> reconnects them all at once.</p>
+          <p class="hint">Wrapped, the run of mouth clips arrives as one item you can slide, trim and stack in one go; open it to get at the individual shapes. Untick to drop the bare clips straight onto the spine. Leave the folder empty and the project points at the PNGs beside it, so the unzipped folder just works. Fill it in with where the folder will end up and the paths become absolute. Either way, if Final Cut shows the clips as missing, <b>File &gt; Relink Files</b> reconnects them all at once. <b>Put the puppet behind it</b> ships the puppet itself in the zip and puts it on the storyline with the mouths connected above — a layer you can still move, not pixels baked together.</p>
         </div>
 
         <div class="exp" id="expOverlayCard" hidden>
@@ -1285,10 +1287,11 @@ try {
           <h3>Transparent GIF</h3>
           <p>The mouth on its own, animated, with a see-through background. Drops onto a slide, a web page or a chat window without a matte.</p>
           <label class="check"><input type="checkbox" id="gifLoop"><span>Loop forever</span></label>
+          <label class="check" hidden><input type="checkbox" id="gifPlate"><span>Put the puppet behind it</span></label>
           <label class="check"><input type="checkbox" class="withaud" id="audGif"><span>Include the voice track</span></label>
           <span class="est mono" id="estGif">—</span>
           <button class="btn" id="expGif" disabled>Export transparent GIF</button>
-          <p class="hint">GIF transparency is one colour, not an alpha channel, so the soft edge of the mouth becomes a hard one and the picture is cut to 255 colours. For a clean edge over video, use the animated PNG, the frame sequence or the Final Cut project.</p>
+          <p class="hint">GIF transparency is one colour, not an alpha channel, so the soft edge of the mouth becomes a hard one and the picture is cut to 255 colours. For a clean edge over video, use the animated PNG, the frame sequence or the Final Cut project. With <b>Put the puppet behind it</b> ticked every frame is the whole picture, so the long edge is held to 800px however big an output size is chosen — a GIF stores each frame whole and a full-size one is unusable.</p>
         </div>
 
         <div class="exp">
@@ -1313,6 +1316,8 @@ try {
         <div class="exp">
           <h3>Sprite sheet + atlas</h3>
           <p>Every shape packed into one PNG with a coordinate map, for game engines and web animation.</p>
+          <p class="hint">With the puppet behind it the cells become whole pictures: nine of them for a still puppet that is not being moved, and one per frame for a video or a keyframed move, with an added <span class="mono">sequence</span> list in the atlas saying which cell each frame wants. The sheet is held to 4096px either way.</p>
+          <label class="check" hidden><input type="checkbox" id="spritePlate"><span>Put the puppet behind it</span></label>
           <label class="check"><input type="checkbox" class="withaud" id="audSprite"><span>Include the voice track</span></label>
           <span class="est mono" id="estSprite">—</span>
           <button class="btn" id="expSprite" disabled>Export sprite sheet</button>
@@ -5172,7 +5177,37 @@ const clipSeconds = () =>
   state.buffer ? state.buffer.duration : state.frames.length / (state.fps || 12);
 
 function hasPlate() { return !!(puppet.kind || state.video); }
+
+/** The "Put the puppet behind it" boxes, and what each is set to the moment a
+    puppet is chosen. Every export that can carry the puppet has one, so the
+    answer to "which formats take it?" is this list rather than a hunt through
+    seven export functions.
+
+    The sprite sheet is the one that starts off. It is the export whose whole
+    point is loose parts for an engine to compose at runtime, and an engine
+    that wanted the puppet baked in would not need a sprite sheet of mouths. */
+const PLATE_BOXES = [
+  { id: 'fcpPlate',    on: true  },
+  { id: 'mp4Plate',    on: true  },
+  { id: 'gifPlate',    on: true  },
+  { id: 'apngPlate',   on: true  },
+  { id: 'seqPlate',    on: true  },
+  { id: 'spritePlate', on: false }
+];
+
+/** Is this export to carry the puppet? Both halves matter: the box can be
+    ticked from a previous clip that had one. */
+function plateOn(id) { const b = $(id); return !!(b && b.checked && hasPlate()); }
 function plateHasAlpha() { return !!(puppet.kind && puppet.alpha); }
+
+/** The file the plate was made from, for the one export that ships it rather
+    than drawing it: Final Cut wants the puppet as a layer it can move, not
+    baked into a few hundred stills. */
+function plateFile() {
+  const c = activeClip();
+  if (c && c.puppet && c.puppet.file) return c.puppet.file;
+  return state.video ? state.file : null;
+}
 
 /** An added puppet wins over the clip's own footage. It was chosen; the footage
     is merely what the file happened to contain. */
@@ -5365,11 +5400,13 @@ async function setPuppet(file, quiet) {
   setExportsEnabled(state.frames.length > 0);
   updateEstimates();
   if (!quiet) {
-    // Choosing a picture is a statement that the picture matters, so the two
-    // exports that can carry it start carrying it. Not done for a plate that
-    // is merely the clip's own footage — those have always exported the mouth
-    // alone and people rely on that.
-    [$('apngPlate'), $('seqPlate')].forEach(b => { if (b) b.checked = true; });
+    // Choosing a picture is a statement that the picture matters, so the
+    // exports that can carry it start carrying it — all but the sprite sheet,
+    // which is a bag of parts for an engine to assemble and is usually wanted
+    // as mouths alone. Not done for a plate that is merely the clip's own
+    // footage: those have always exported the mouth by itself and people rely
+    // on that, so the boxes appear but stay clear.
+    PLATE_BOXES.forEach(({ id, on }) => { const b = $(id); if (b) b.checked = on; });
     toast((puppet.kind === 'image' ? 'Puppet added' : 'Puppet added · ' +
           fmtTime(puppet.duration)) +
           (puppet.alpha ? ' · transparency kept where the format allows' : ''), 2600);
@@ -5435,12 +5472,16 @@ function syncPuppetUI() {
         '. The preview steps through the reverse half; the export renders every frame of it.';
     }
   }
-  const alphaBoxes = [$('apngPlate'), $('seqPlate')];
-  alphaBoxes.forEach(b => {
-    if (!b) return;
-    const lab = b.closest('label');
+  // Hidden when there is nothing behind the mouth, but NOT cleared. Clearing
+  // them looked tidy and quietly broke the queue: clicking a clip that has no
+  // puppet emptied the boxes, and clicking back restored the puppet but not the
+  // ticks, so a batch run exported every clip without the puppet the user had
+  // just put on it. `plateOn` already refuses a ticked box with no plate under
+  // it, so there was never anything for the clearing to protect against.
+  PLATE_BOXES.forEach(({ id }) => {
+    const b = $(id);
+    const lab = b && b.closest('label');
     if (lab) lab.hidden = !hasPlate();
-    if (!hasPlate()) b.checked = false;
   });
 }
 
@@ -6838,7 +6879,68 @@ function readme(size) {
   ].join('\n');
 }
 
+/** No sheet wider or taller than this. Plenty of engines and browsers stop
+    loading a texture somewhere past 4096, and a sheet nobody can open is worse
+    than a sheet with smaller cells in it. */
+const SPRITE_SHEET_MAX = 4096;
+
+/** The sprite sheet with the puppet in it: the cells stop being nine mouths and
+    become whole pictures.
+
+    How many there are depends on what is behind them. A still puppet that is
+    not being moved by keyframes makes the same picture every time a shape comes
+    round, so nine cells still say everything and the atlas points every run at
+    one of them. A video puppet, or a keyframed move, is different on every
+    frame, so the sheet becomes a flipbook — one cell per frame — and the cells
+    shrink to whatever fits. The atlas gains `sequence`, which is the cell to
+    show on each frame in order; an engine that only wants the nine can keep
+    reading `frames` and ignore it. */
+async function makeSpritePlateSheet() {
+  const flip = !(puppet.kind === 'image' && !overlay.keys.length);
+  const fz = plateCellSize(1024);
+  const cells = [];                       // {key, t}
+  const seqIdx = [];                      // one entry per frame, into cells
+  if (flip) {
+    for (let i = 0; i < state.frames.length; i++) { seqIdx.push(cells.length); cells.push({ key: i, t: i / state.fps }); }
+  } else {
+    const at = new Map();
+    for (let i = 0; i < state.frames.length; i++) {
+      const v = state.frames[i].v;
+      if (!at.has(v)) { at.set(v, cells.length); cells.push({ key: v, t: i / state.fps }); }
+      seqIdx.push(at.get(v));
+    }
+  }
+  // Squarish, then shrunk until the sheet fits the texture limit.
+  const cols = Math.max(1, Math.min(cells.length, Math.ceil(Math.sqrt(cells.length * fz.h / fz.w))));
+  const rows = Math.ceil(cells.length / cols);
+  const fit = Math.min(1, SPRITE_SHEET_MAX / (cols * fz.w), SPRITE_SHEET_MAX / (rows * fz.h));
+  const cw = Math.max(2, Math.floor(fz.w * fit)), ch = Math.max(2, Math.floor(fz.h * fit));
+
+  const c = document.createElement('canvas');
+  c.width = cols * cw; c.height = rows * ch;
+  const ctx = c.getContext('2d');
+  const tmp = document.createElement('canvas');
+  tmp.width = cw; tmp.height = ch;
+  const tctx = tmp.getContext('2d');
+
+  const atlas = { image: 'mouth-sprites.png', frameWidth: cw, frameHeight: ch,
+                  columns: cols, rows, withPuppet: true, frames: {}, cells: [] };
+  for (let i = 0; i < cells.length; i++) {
+    const x = (i % cols) * cw, y = Math.floor(i / cols) * ch;
+    await composePlateFrame(tctx, cw, ch, cells[i].t);
+    ctx.drawImage(tmp, x, y);
+    const box = { x, y, w: cw, h: ch };
+    atlas.cells.push(box);
+    if (!flip) atlas.frames[cells[i].key] = { ...box, name: VNAME[cells[i].key] };
+    if ((i & 3) === 3) await new Promise(r => setTimeout(r, 0));
+  }
+  atlas.sequence = seqIdx;
+  const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  return { bytes: new Uint8Array(await blob.arrayBuffer()), atlas };
+}
+
 async function makeSpriteSheet(size) {
+  if (plateOn('spritePlate')) return makeSpritePlateSheet();
   const used = VIS;
   const cols = Math.min(used.length, 5);
   const rows = Math.ceil(used.length / cols);
@@ -7155,6 +7257,38 @@ function fcpCompoundMedia(id, name, videoLines, frames, fps) {
   return L;
 }
 
+/* --- the puppet as a layer, not as baked-in pixels ---------------------------
+
+   Every other export that carries the puppet composites it: the mouth is drawn
+   onto the picture and what comes out is finished. Final Cut is the one place
+   where that would be the wrong answer. An editor opening a project wants the
+   puppet on the spine and the mouths above it, so the two can be slid apart,
+   the placement nudged, and a wrong shape swapped — which is the whole reason
+   to hand somebody a project rather than a movie.
+
+   So the puppet ships as its own file inside the zip and goes on the spine,
+   with the mouths hung off it as a connected clip in lane 1. `srcEnable="video"`
+   is what mutes it, and it mutes it at the source rather than by pulling a
+   fader down, so there is nothing to undo by accident.
+--------------------------------------------------------------------------- */
+
+/** What the export knows about the puppet it is shipping, or null. `dur` is in
+    frames of the sequence, already clamped to the take. */
+function fcpPuppetInfo() {
+  const f = plateFile();
+  const pz = plateSize();
+  if (!f || !pz) return null;
+  const kind = puppet.kind || (state.video ? 'video' : null);
+  if (!kind) return null;
+  const total = state.frames.length;
+  const dur = kind === 'image' || !(puppet.duration > 0)
+    ? total
+    : Math.max(1, Math.min(total, Math.round(puppet.duration * state.fps)));
+  return { file: f, kind, w: pz.w, h: pz.h, dur, total,
+           short: dur < total,
+           rel: 'puppet/' + safeName(f.name || (kind === 'image' ? 'puppet.png' : 'puppet.mov')) };
+}
+
 function fcpxmlDoc(opts) {
   const { w, h, folder } = opts;
   const fps = state.fps;
@@ -7193,7 +7327,29 @@ function fcpxmlDoc(opts) {
     '" start="0s" duration="' + fcpTime(g.frames, fps) + '"/>');
   const wrap = fcpWrapCompound();
   const compName = proj + ' — mouths';
-  if (wrap) fcpCompoundMedia('r' + (states.length + 3), compName, mouths, total, fps).forEach(l => L.push(l));
+  const compId = 'r' + (states.length + 3);
+  if (wrap) fcpCompoundMedia(compId, compName, mouths, total, fps).forEach(l => L.push(l));
+
+  // The puppet, if it is coming. A still needs no format of its own — it takes
+  // the RateUndefined one the mouths use. A movie gets one, at the sequence's
+  // frame duration: the file's own rate is not something a browser will tell
+  // us, and Final Cut conforms a mismatched clip on import anyway.
+  const pup = opts.puppet;
+  const pupId = 'r' + (states.length + 4), pupFmt = 'r' + (states.length + 5);
+  if (pup) {
+    if (pup.kind !== 'image') {
+      L.push('    <format id="' + pupFmt + '" frameDuration="' + fcpTime(1, fps) +
+             '" width="' + pup.w + '" height="' + pup.h + '" colorSpace="1-1-1 (Rec. 709)"/>');
+    }
+    L.push('    <asset id="' + pupId + '" name="' + xmlEsc('puppet') +
+           '" start="0s" duration="' +
+           (pup.kind === 'image' ? '0s' : fcpTime(pup.dur, fps)) +
+           '" hasVideo="1" hasAudio="0" format="' +
+           (pup.kind === 'image' ? 'r2' : pupFmt) + '" videoSources="1" audioSources="0">');
+    L.push('      <media-rep kind="original-media" src="' +
+           xmlEsc(fcpMediaSrc(folder, pup.rel)) + '"/>');
+    L.push('    </asset>');
+  }
 
   L.push('  </resources>');
   L.push('  <library>');
@@ -7202,11 +7358,35 @@ function fcpxmlDoc(opts) {
   L.push('        <sequence format="r1" duration="' + fcpTime(total, fps) +
          '" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">');
   L.push('          <spine>');
-  if (wrap) {
-    L.push('            <ref-clip ref="r' + (states.length + 3) + '" offset="0s" name="' +
-           xmlEsc(compName) + '" start="0s" duration="' + fcpTime(total, fps) + '"/>');
+  // Lane 1 when the puppet is under them, no lane when they are the spine
+  // themselves. A connected clip is written as a child of what it is connected
+  // to, which is why the two cases are shaped differently rather than differing
+  // by one attribute.
+  const lane = pup ? ' lane="1"' : '';
+  const above = wrap
+    ? ['<ref-clip ref="' + compId + '"' + lane + ' offset="0s" name="' +
+       xmlEsc(compName) + '" start="0s" duration="' + fcpTime(total, fps) + '"/>']
+    : mouths.map(v => v.replace('<video ', '<video' + lane + ' '));
+  if (pup) {
+    const open = pup.kind === 'image'
+      ? '<video ref="' + pupId + '" offset="0s" name="puppet" start="0s" duration="' +
+        fcpTime(pup.dur, fps) + '">'
+      : '<asset-clip ref="' + pupId + '" offset="0s" name="puppet" start="0s" duration="' +
+        fcpTime(pup.dur, fps) + '" format="' + pupFmt + '" srcEnable="video">';
+    L.push('            ' + open);
+    above.forEach(v => L.push('              ' + v));
+    L.push('            ' + (pup.kind === 'image' ? '</video>' : '</asset-clip>'));
+    // A puppet shorter than the take leaves the spine short, and Final Cut
+    // fills the rest with black rather than looping. The app itself plays a
+    // short puppet out and back; a project cannot express that without writing
+    // a reversed copy of the clip, so this one is left honest and the README
+    // says what to do about it.
+    if (pup.short) {
+      L.push('            <gap offset="' + fcpTime(pup.dur, fps) + '" name="Gap" start="0s" duration="' +
+             fcpTime(total - pup.dur, fps) + '"/>');
+    }
   } else {
-    mouths.forEach(v => L.push('            ' + v));
+    above.forEach(v => L.push('            ' + v));
   }
   L.push('          </spine>');
   L.push('        </sequence>');
@@ -7266,6 +7446,29 @@ function fcpxmlMulti(entries, w, h) {
     '" name="' + xmlEsc(e.name + ' · ' + g.viseme) +
     '" start="0s" duration="' + fcpTime(g.frames, fps) + '"/>'));
   const compIds = entries.map(() => 'r' + (next++));
+  // A puppet per clip, each with its own asset and — for a movie — its own
+  // format. Laid out here rather than inline below so the ids are allocated in
+  // one place; two clips can be wearing different puppets, or one and none.
+  const pups = entries.map(e => {
+    if (!e.puppet) return null;
+    const pu = { ...e.puppet, id: 'r' + (next++) };
+    if (pu.kind !== 'image') pu.fmt = 'r' + (next++);
+    return pu;
+  });
+  pups.forEach((pu, i) => {
+    if (!pu) return;
+    if (pu.fmt) {
+      L.push('    <format id="' + pu.fmt + '" frameDuration="' + fcpTime(1, fps) +
+             '" width="' + pu.w + '" height="' + pu.h + '" colorSpace="1-1-1 (Rec. 709)"/>');
+    }
+    L.push('    <asset id="' + pu.id + '" name="' + xmlEsc(entries[i].name + ' puppet') +
+           '" start="0s" duration="' + (pu.kind === 'image' ? '0s' : fcpTime(pu.dur, fps)) +
+           '" hasVideo="1" hasAudio="0" format="' + (pu.fmt || 'r2') +
+           '" videoSources="1" audioSources="0">');
+    L.push('      <media-rep kind="original-media" src="' +
+           xmlEsc(fcpMediaSrc('', pu.rel)) + '"/>');
+    L.push('    </asset>');
+  });
   // Named after the numbered folder, so the compounds sort into running order
   // in the Final Cut browser rather than alphabetically by whatever the files
   // happened to be called.
@@ -7284,17 +7487,38 @@ function fcpxmlMulti(entries, w, h) {
   L.push('          <spine>');
   let base = 0;
   entries.forEach((e, i) => {
-    if (wrap) {
-      L.push('            <ref-clip ref="' + compIds[i] + '" offset="' + fcpTime(base, fps) +
-             '" name="' + xmlEsc(compName(e)) + '" start="0s" duration="' +
-             fcpTime(e.frames, fps) + '"/>');
+    const pu = pups[i];
+    const lane = pu ? ' lane="1"' : '';
+    // Inside a puppet clip, zero is that clip's start; on the bare spine it is
+    // the start of the whole timeline. That is the only difference between the
+    // two branches, and it is the one that is easy to get wrong.
+    const off = f => fcpTime(pu ? f : base + f, fps);
+    const above = wrap
+      ? ['<ref-clip ref="' + compIds[i] + '"' + lane + ' offset="' + off(0) +
+         '" name="' + xmlEsc(compName(e)) + '" start="0s" duration="' +
+         fcpTime(e.frames, fps) + '"/>']
+      : e.segs.map(g =>
+          '<video ref="' + ids.get(e.dir + '|' + g.id) + '"' + lane +
+          ' offset="' + off(g.startFrame) +
+          '" name="' + xmlEsc(e.name + ' · ' + g.viseme) +
+          '" start="0s" duration="' + fcpTime(g.frames, fps) + '"/>');
+    if (pu) {
+      const open = pu.kind === 'image'
+        ? '<video ref="' + pu.id + '" offset="' + fcpTime(base, fps) + '" name="' +
+          xmlEsc(entries[i].name + ' puppet') + '" start="0s" duration="' +
+          fcpTime(pu.dur, fps) + '">'
+        : '<asset-clip ref="' + pu.id + '" offset="' + fcpTime(base, fps) + '" name="' +
+          xmlEsc(entries[i].name + ' puppet') + '" start="0s" duration="' +
+          fcpTime(pu.dur, fps) + '" format="' + pu.fmt + '" srcEnable="video">';
+      L.push('            ' + open);
+      above.forEach(v => L.push('              ' + v));
+      L.push('            ' + (pu.kind === 'image' ? '</video>' : '</asset-clip>'));
+      if (pu.dur < e.frames) {
+        L.push('            <gap offset="' + fcpTime(base + pu.dur, fps) +
+               '" name="Gap" start="0s" duration="' + fcpTime(e.frames - pu.dur, fps) + '"/>');
+      }
     } else {
-      e.segs.forEach(g => {
-        L.push('            <video ref="' + ids.get(e.dir + '|' + g.id) +
-               '" offset="' + fcpTime(base + g.startFrame, fps) +
-               '" name="' + xmlEsc(e.name + ' · ' + g.viseme) +
-               '" start="0s" duration="' + fcpTime(g.frames, fps) + '"/>');
-      });
+      above.forEach(v => L.push('            ' + v));
     }
     base += e.frames;
   });
@@ -7342,7 +7566,7 @@ function fcpMultiReadme(entries, w, h) {
   ].join('\n');
 }
 
-function fcpReadme(w, h, folder) {
+function fcpReadme(w, h, folder, pup) {
   const rel = !folder;
   const n = VIS.length;
   const u = usedVisemes();
@@ -7353,14 +7577,35 @@ function fcpReadme(w, h, folder) {
     'Contents',
     '  <name>.fcpxml   the project: one clip per run of frames',
     '  mouths/         ' + shapes + ', ' + w + ' x ' + h + ', one per mouth shape',
+    ...(pup ? ['  puppet/         the picture the mouths go on, on the spine beneath them'] : []),
     '',
     'To use it',
     '  1. Unzip this folder somewhere you will keep it. Keep the .fcpxml and the',
     '     mouths folder together — the project points at the PNGs by name.',
     '  2. In Final Cut Pro: File > Import > XML, and choose the .fcpxml.',
-    '  3. A project appears in a new event. Open it, select everything in the',
-    '     timeline, and paste it above your own footage.',
+    ...(pup ? [
+      '  3. A project appears in a new event. Open it and the puppet is on the',
+      '     storyline with the mouths connected above it, already lined up.',
+    ] : [
+      '  3. A project appears in a new event. Open it, select everything in the',
+      '     timeline, and paste it above your own footage.',
+    ]),
     '',
+    ...(pup ? [
+      'The puppet',
+      '  It sits on the spine with its audio switched off at the source, so there',
+      '  is no fader to find and nothing to mute by hand. The mouths are connected',
+      '  clips above it: drag the puppet and they travel with it, or select the',
+      '  mouths alone to nudge the placement.',
+      ...(pup.short ? [
+        '',
+        '  Your puppet is shorter than the take, so the storyline runs out and the',
+        '  rest is a gap. The app itself plays a short puppet out and back again;',
+        '  a project cannot say that in one clip. To match it, copy the puppet,',
+        '  paste it into the gap, and reverse the copy (Retime > Reverse Clip).',
+      ] : []),
+      '',
+    ] : []),
     ...(fcpWrapCompound() ? [
       'It comes as a compound clip',
       '  The run of mouths is wrapped in a single compound clip, so it moves,',
@@ -7425,9 +7670,24 @@ async function exportFcpxml(sink) {
                    data: await fcpFramePng(w, h, VIS[i], at) });
       setBusy(true, (++done) / VIS.length * 0.85);
     }
+    // The puppet travels as itself, beside the stills, and goes on the spine
+    // with the mouths connected above it.
+    let pup = plateOn('fcpPlate') ? fcpPuppetInfo() : null;
+    if (pup) {
+      try {
+        files.push({ name: pup.rel, data: new Uint8Array(await pup.file.arrayBuffer()) });
+      } catch (e) {
+        // A File handle that has gone stale — the user moved the picture since
+        // they chose it — is a reason to write the project without the puppet,
+        // not a reason to write no project.
+        console.warn('puppet unreadable, project written without it', e);
+        toast('The puppet file could not be read, so the project has the mouths only.', 4600);
+        pup = null;
+      }
+    }
     const enc = new TextEncoder();
-    files.push({ name: base + '.fcpxml', data: enc.encode(fcpxmlDoc({ w, h, folder })) });
-    files.push({ name: 'README.txt', data: enc.encode(fcpReadme(w, h, folder)) });
+    files.push({ name: base + '.fcpxml', data: enc.encode(fcpxmlDoc({ w, h, folder, puppet: pup })) });
+    files.push({ name: 'README.txt', data: enc.encode(fcpReadme(w, h, folder, pup)) });
     const voice = await audioSidecar('audFcp');
     if (voice) files.push(voice);
     setBusy(true, .95);
@@ -7490,6 +7750,10 @@ async function exportSequence(sink) {
 
 async function exportSprite(sink) {
   const size = parseInt($('outSize').value, 10);
+  const withPlate = plateOn('spritePlate');
+  const wasPlaying = playing;
+  if (withPlate && playing) player.pause();
+  const resumeAt = player.currentTime;
   setBusy(true, .3);
   try {
     const { bytes, atlas } = await makeSpriteSheet(size);
@@ -7511,11 +7775,15 @@ async function exportSprite(sink) {
       if (voice) spriteFiles.push(voice);
       await emit(sink, base + '-sprites.zip', 'sprites', spriteFiles);
     }
-    toast('Sprite sheet exported.');
+    toast(withPlate
+      ? 'Sprite sheet exported with the puppet · ' + atlas.cells.length + ' cells at ' +
+        atlas.frameWidth + '×' + atlas.frameHeight + '.'
+      : 'Sprite sheet exported.');
   } catch (e) {
     console.error(e);
     toast(e && e.code === 'declined' ? 'Save cancelled.' : 'Export failed: ' + (e.message || e), 4000);
   }
+  if (withPlate) { try { player.currentTime = resumeAt; if (wasPlaying) await player.play(); } catch (e) {} }
   setBusy(false);
 }
 
@@ -7534,15 +7802,26 @@ async function exportSprite(sink) {
 
 /* Median cut over a 5-bit histogram. Nine drawings share a palette, so the
    whole animation can use one table and every frame stays a plain index map. */
+/** Count one picture into a 15-bit colour histogram. Separated out so the
+    puppet path can feed frames in one at a time and throw each away: a GIF of
+    a whole picture is dozens of frames at the puppet's size, and holding them
+    all as RGBA to hand to gifPalette is a hundred megabytes and a dead tab on
+    the iPads this is meant to run on. */
+function gifCount(hist, im, alphaCut) {
+  const d = im.data;
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i + 3] < alphaCut) continue;
+    hist[((d[i] >> 3) << 10) | ((d[i + 1] >> 3) << 5) | (d[i + 2] >> 3)]++;
+  }
+}
+
 function gifPalette(images, alphaCut, want) {
   const hist = new Uint32Array(32768);
-  for (const im of images) {
-    const d = im.data;
-    for (let i = 0; i < d.length; i += 4) {
-      if (d[i + 3] < alphaCut) continue;
-      hist[((d[i] >> 3) << 10) | ((d[i + 1] >> 3) << 5) | (d[i + 2] >> 3)]++;
-    }
-  }
+  for (const im of images) gifCount(hist, im, alphaCut);
+  return gifPaletteFrom(hist, want);
+}
+
+function gifPaletteFrom(hist, want) {
   const bins = [];
   for (let k = 0; k < 32768; k++) if (hist[k]) bins.push(k);
   if (!bins.length) return [[0, 0, 0]];
@@ -7725,11 +8004,95 @@ function gifEstimate(size) {
   return gifDelays().length * size * 3.4 + 1200;
 }
 
+/** The plate GIF's long edge. Deliberately its own number rather than the
+    chosen output size: a GIF is a palette format that stores every frame whole,
+    and a 2048px one of a whole picture is tens of megabytes before it is any
+    use to anybody. The animated PNG is the export for a full-size picture. */
+const GIF_PLATE_MAX = 800;
+
+/** The GIF with the puppet in it. Every frame is its own picture — a video
+    puppet moves under the mouth — so the nine-drawings-reused trick the
+    mouth-only path uses does not apply, and the whole run is quantised against
+    one palette so nothing shifts colour between frames. */
+async function exportGifPlate(sink, loop) {
+  const long = Math.min(GIF_PLATE_MAX, parseInt($('outSize').value, 10));
+  const fz = plateCellSize(long);
+  const segs = gifDelays();
+  const runList = runs();
+  const c = document.createElement('canvas');
+  c.width = fz.w; c.height = fz.h;
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  // A still puppet with no keyframed motion draws the same picture for the same
+  // shape every time, so it is worth remembering nine of them rather than
+  // recomposing fifty. A video puppet, or any keyframed move, is different
+  // every frame and gets no cache.
+  const cacheable = puppet.kind === 'image' && !overlay.keys.length;
+  const cache = new Map();
+  const frameAt = async (i) => {
+    const key = runList[i].viseme;
+    if (cacheable && cache.has(key)) return cache.get(key);
+    await composePlateFrame(ctx, fz.w, fz.h, runList[i].startFrame / state.fps);
+    const im = ctx.getImageData(0, 0, fz.w, fz.h);
+    if (cacheable) cache.set(key, im);
+    return im;
+  };
+
+  // Pass one: the palette, counting each frame and letting it go.
+  const hist = new Uint32Array(32768);
+  for (let i = 0; i < segs.length; i++) {
+    gifCount(hist, await frameAt(i), GIF_ALPHA_CUT);
+    if ((i & 3) === 3) { setBusy(true, (i / segs.length) * 0.40); await new Promise(r => setTimeout(r, 0)); }
+  }
+  const palette = gifPaletteFrom(hist, 255);
+  const map = gifMapper(palette, 1);
+  const table = [[0, 0, 0]].concat(palette);
+
+  // Pass two: index them. One byte a pixel instead of four, which is what makes
+  // holding the whole run affordable.
+  const n = fz.w * fz.h;
+  const frames = [];
+  for (let i = 0; i < segs.length; i++) {
+    const d = (await frameAt(i)).data;
+    const idx = new Uint8Array(n);
+    for (let q = 0, o = 0; q < n; q++, o += 4) {
+      idx[q] = d[o + 3] < GIF_ALPHA_CUT ? 0 : map(d[o], d[o + 1], d[o + 2]);
+    }
+    frames.push({ index: idx, delay: segs[i].delay });
+    if ((i & 3) === 3) { setBusy(true, 0.40 + (i / segs.length) * 0.52); await new Promise(r => setTimeout(r, 0)); }
+  }
+  return { bytes: gifBytes(frames, table, fz.w, fz.h, 0, loop), count: frames.length, fz };
+}
+
 async function exportGif(sink) {
   const size = parseInt($('outSize').value, 10);
   const loop = $('gifLoop').checked;
+  const withPlate = plateOn('gifPlate');
+  const wasPlaying = playing;
+  if (withPlate && playing) player.pause();
+  const resumeAt = player.currentTime;
   setBusy(true, 0);
   try {
+    if (withPlate) {
+      const { bytes, count, fz } = await exportGifPlate(sink, loop);
+      setBusy(true, .98);
+      const stem = (state.name || 'mouth') + '-mouth';
+      const voice = await audioSidecar('audGif');
+      const out = [{ name: stem + '.gif', data: bytes }];
+      if (voice) out.push(voice);
+      if (Array.isArray(sink)) {
+        const at = sink.prefix ? 'gif/' : '';
+        out.forEach(f => sink.push({ name: at + f.name, data: f.data }));
+      } else if (voice) {
+        await deliver(stem + '.zip', makeZip(out));
+      } else {
+        await deliver(stem + '.gif', bytes);
+      }
+      toast('GIF exported with the puppet · ' + count + ' frames at ' + fz.w + '×' + fz.h +
+            ' · ' + fmtBytes(bytes.length) + '.');
+      try { player.currentTime = resumeAt; if (wasPlaying) await player.play(); } catch (e) {}
+      setBusy(false);
+      return;
+    }
     const images = {};
     for (let i = 0; i < VIS.length; i++) {
       images[VIS[i]] = gifImageData(size, VIS[i]);
@@ -7783,6 +8146,7 @@ async function exportGif(sink) {
     console.error(e);
     toast(e && e.code === 'declined' ? 'Save cancelled.' : 'Export failed: ' + (e.message || e), 4000);
   }
+  if (withPlate) { try { player.currentTime = resumeAt; if (wasPlaying) await player.play(); } catch (e) {} }
   setBusy(false);
 }
 
@@ -7795,15 +8159,25 @@ async function exportGif(sink) {
     because a frame with a puppet in it is a picture of a puppet, not a mouth. */
 const PLATE_FRAME_MAX = 1600;
 
-function plateFrameSize() {
+function plateFrameSize() { return plateCellSize(PLATE_FRAME_MAX); }
+
+/** The plate's shape at a given long edge. Every export that carries the puppet
+    works at the puppet's own proportions rather than the square the mouth-only
+    exports use — a frame with a puppet in it is a picture of a puppet — and they
+    differ only in how big they can afford to be. */
+function plateCellSize(long) {
   const pz = plateSize();
   if (!pz) return null;
-  const s = Math.min(1, PLATE_FRAME_MAX / Math.max(pz.w, pz.h));
+  const s = Math.min(1, long / Math.max(pz.w, pz.h));
   return { w: Math.max(2, Math.round(pz.w * s)), h: Math.max(2, Math.round(pz.h * s)) };
 }
 
-async function composePlateFrame(ctx, W, H, t) {
-  ctx.clearRect(0, 0, W, H);
+async function composePlateFrame(ctx, W, H, t, bg) {
+  // `bg` for the formats that cannot hold transparency: the chroma-key MP4
+  // wants the key colour behind a cut-out puppet, not black, or the cut-out
+  // arrives with a black halo that no keyer will lift.
+  if (bg) { ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H); }
+  else ctx.clearRect(0, 0, W, H);
   await drawPlateFrame(ctx, W, H, t);
   const fi = clamp(Math.floor(t * state.fps), 0, Math.max(0, state.frames.length - 1));
   const b = overlayBox(W, H, poseAt(fi));
@@ -8333,18 +8707,28 @@ function collectForCombined(combined, clip, sink, index) {
   const pngs = sink.filter(f => /(^|\/)mouths\/mouth-[XABCDEFGH]\.png$/.test(f.name))
                    .map(f => ({ name: dir + '/' + f.name.split('/').pop(), data: f.data }));
   if (!pngs.length) return;
+  // The puppet comes through the same way the pictures do — out of the zip this
+  // clip was about to become. Each clip keeps its own, so a two-hander with a
+  // different puppet per speaker arrives with both.
+  const pupFile = sink.find(f => /(^|\/)puppet\//.test(f.name));
+  const pup = pupFile && fcpPuppetInfo();
   combined.entries.push({
     name: clip.name, dir, pngs,
     frames: state.frames.length,
     segs: fcpSegments(w, h),
-    states: fcpStates(w, h)
+    states: fcpStates(w, h),
+    puppet: pup ? { ...pup, rel: dir + '/' + pupFile.name.split('/').pop(),
+                    data: pupFile.data } : null
   });
 }
 
 function combinedFiles(combined) {
   const { w, h } = combined.size;
   const files = [];
-  combined.entries.forEach(e => e.pngs.forEach(f => files.push(f)));
+  combined.entries.forEach(e => {
+    e.pngs.forEach(f => files.push(f));
+    if (e.puppet) files.push({ name: e.puppet.rel, data: e.puppet.data });
+  });
   const enc = new TextEncoder();
   files.push({ name: 'all-clips.fcpxml', data: enc.encode(fcpxmlMulti(combined.entries, w, h)) });
   files.push({ name: 'README.txt', data: enc.encode(fcpMultiReadme(combined.entries, w, h)) });
@@ -8494,10 +8878,22 @@ async function exportVideo(sink) {
   const fps = state.fps;
   const key = $('keyColor').value;
   const wantAudio = $('keyAudio').checked;
+  // With the puppet in it the frame stops being a square of key colour with a
+  // mouth on it and becomes the whole picture, at the puppet's own proportions.
+  // A cut-out puppet's transparency has nowhere to go in an MP4, so it fills
+  // with the key colour — which is the right answer rather than a compromise:
+  // key it out and the cut-out is cut out again on the far side.
+  const withPlate = plateOn('mp4Plate');
+  const pf = withPlate ? plateCellSize(size * 2) : null;
+  const W = pf ? even(pf.w) : size, H = pf ? even(pf.h) : size;
+
+  const wasPlaying = playing;
+  if (withPlate && playing) player.pause();
+  const resumeAt = player.currentTime;
 
   setBusy(true, 0);
   try {
-    const pick = await pickVideoCodec(size, fps);
+    const pick = await pickVideoCodec(Math.max(W, H), fps);
     if (!pick) {
       toast('This browser has no video encoder available. The frame-sequence export is the way out.', 5200);
       setBusy(false);
@@ -8522,16 +8918,17 @@ async function exportVideo(sink) {
       },
       error: e => { encodeError = e; }
     });
-    enc.configure(pick.cfg);
+    enc.configure({ ...pick.cfg, width: W, height: H });
 
     const c = document.createElement('canvas');
-    c.width = c.height = size;
+    c.width = W; c.height = H;
     const ctx = c.getContext('2d', { alpha: false });
     const gop = Math.max(1, Math.round(fps * 2));
 
     for (let i = 0; i < state.frames.length; i++) {
       if (encodeError) throw encodeError;
-      paintMouth(ctx, size, size, state.frames[i].v, state.style, key);
+      if (withPlate) await composePlateFrame(ctx, W, H, i / fps, key);
+      else paintMouth(ctx, size, size, state.frames[i].v, state.style, key);
       const vf = new VideoFrame(c, {
         timestamp: Math.round(i * 1e6 / fps),
         duration: Math.round(1e6 / fps)
@@ -8558,7 +8955,7 @@ async function exportVideo(sink) {
 
     setBusy(true, 0.94);
     const bytes = MP4.build({
-      codec: pick.family, width: size, height: size, timescale: TS, description, samples
+      codec: pick.family, width: W, height: H, timescale: TS, description, samples
     }, audio);
 
     if (Array.isArray(sink)) sink.push({ name: (sink.prefix ? 'chroma/' : '') +
@@ -8566,10 +8963,15 @@ async function exportVideo(sink) {
     else await deliver((state.name || 'mouth') + '-key.mp4', bytes, 'video/mp4');
     toast('Exported ' + state.frames.length + ' frames as ' +
           (pick.family === 'avc1' ? 'H.264' : 'VP9') +
+          (withPlate ? ' with the puppet' : '') +
           (audio ? ' with audio' : ' (video only)') + ' · ' + fmtBytes(bytes.length) + '.');
   } catch (e) {
     console.error(e);
     toast(e && e.code === 'declined' ? 'Save cancelled.' : 'Video export failed: ' + (e.message || e), 5200);
+  }
+  if (withPlate) {
+    // Stepping the plate moved the playhead; put it back where it was found.
+    try { player.currentTime = resumeAt; if (wasPlaying) await player.play(); } catch (e) {}
   }
   setBusy(false);
 }
@@ -8722,15 +9124,34 @@ async function updateEstimates() {
   const shapes = VIS.length;
   $('estChart').textContent = shapes + ' PNG + timing · ≈ ' + fmtBytes(estBytes * shapes + n * 40);
   $('estSeq').textContent = n.toLocaleString() + ' PNG · ≈ ' + fmtBytes(estBytes * n * 0.92);
-  $('estSprite').textContent = '1 PNG (' + Math.min(shapes, 5) + '×' + Math.ceil(shapes / 5) + ') · ≈ ' + fmtBytes(estBytes * shapes * 0.8);
+  if (plateOn('spritePlate')) {
+    // Nine cells for a still puppet that is not being moved, one per frame for
+    // anything that is.
+    const flip = !(puppet.kind === 'image' && !overlay.keys.length);
+    const cells = flip ? n : usedVisemes().length;
+    const cf = plateCellSize(1024);
+    const cols = Math.max(1, Math.min(cells, Math.ceil(Math.sqrt(cells * cf.h / cf.w))));
+    const rows = Math.ceil(cells / cols);
+    const fit = Math.min(1, SPRITE_SHEET_MAX / (cols * cf.w), SPRITE_SHEET_MAX / (rows * cf.h));
+    const cw = Math.max(2, Math.floor(cf.w * fit)), ch = Math.max(2, Math.floor(cf.h * fit));
+    $('estSprite').textContent = '1 PNG (' + cols + '×' + rows + ' of ' + cw + '×' + ch +
+      ') · with the puppet · ≈ ' + fmtBytes(cells * cw * ch * (plateHasAlpha() ? 0.16 : 0.55));
+  } else {
+    $('estSprite').textContent = '1 PNG (' + Math.min(shapes, 5) + '×' + Math.ceil(shapes / 5) + ') · ≈ ' + fmtBytes(estBytes * shapes * 0.8);
+  }
   const gifSegs = gifDelays().length;
-  $('estGif').textContent = gifSegs.toLocaleString() + ' GIF frames at ' + size + '×' + size +
-    ' · ≈ ' + fmtBytes(gifEstimate(size));
+  // A GIF of a whole picture is a different animal: every frame stores the
+  // whole thing, and the long edge is capped whatever output size is chosen.
+  const gf = plateOn('gifPlate') ? plateCellSize(Math.min(GIF_PLATE_MAX, size)) : null;
+  $('estGif').textContent = gf
+    ? gifSegs.toLocaleString() + ' GIF frames at ' + gf.w + '×' + gf.h + ' · with the puppet · ≈ ' +
+      fmtBytes(gifSegs * gf.w * gf.h * (plateHasAlpha() ? 0.10 : 0.34) + 1200)
+    : gifSegs.toLocaleString() + ' GIF frames at ' + size + '×' + size +
+      ' · ≈ ' + fmtBytes(gifEstimate(size));
   // With the puppet in it the frames are the puppet's size and every one is
   // its own picture, so neither the dimensions nor the weight are the
   // mouth-only ones.
-  const apngPl = $('apngPlate') && $('apngPlate').checked && hasPlate();
-  const pf = apngPl ? plateFrameSize() : null;
+  const pf = plateOn('apngPlate') ? plateFrameSize() : null;
   // Bytes per pixel per frame, measured: a cut-out puppet is mostly nothing and
   // deflates to about a twelfth of a byte a pixel, while an opaque photograph
   // is real detail everywhere and runs nearer half. One number for both would
@@ -8741,8 +9162,7 @@ async function updateEstimates() {
       fmtBytes(gifSegs * pf.w * pf.h * perPx + 200)
     : gifSegs.toLocaleString() + ' frames at ' + size + '×' + size +
       ' · ≈ ' + fmtBytes(apngEstimate(size, estBytes));
-  const seqPl = $('seqPlate') && $('seqPlate').checked && hasPlate();
-  const sf = seqPl ? plateFrameSize() : null;
+  const sf = plateOn('seqPlate') ? plateFrameSize() : null;
   if (sf) {
     $('estSeq').textContent = n.toLocaleString() + ' PNG at ' + sf.w + '×' + sf.h +
       ' · with the puppet · ≈ ' + fmtBytes(n * sf.w * sf.h * (plateHasAlpha() ? 0.16 : 0.55));
@@ -8762,15 +9182,23 @@ async function updateEstimates() {
   const fcpProbe = await fcpFramePng(fcp.w, fcp.h, 'D');
   const fSegs = fcpSegments(fcp.w, fcp.h).length;
   const fPngs = shapes;
+  const fPup = plateOn('fcpPlate') ? plateFile() : null;
   $('estFcp').textContent = fSegs.toLocaleString() + ' clips · ' + fPngs + ' PNG at ' +
-    fcp.w + '×' + fcp.h + ' · ≈ ' + fmtBytes(fcpProbe.length * fPngs + 400 * fSegs);
+    fcp.w + '×' + fcp.h + (fPup ? ' + the puppet' : '') + ' · ≈ ' +
+    fmtBytes(fcpProbe.length * fPngs + 400 * fSegs + (fPup ? fPup.size || 0 : 0));
 
   const secs = state.buffer ? state.buffer.duration : n / state.fps;
-  const pick = await pickVideoCodec(size, state.fps);
+  const kf = plateOn('mp4Plate') ? plateCellSize(size * 2) : null;
+  const kw = kf ? even(kf.w) : size, kh = kf ? even(kf.h) : size;
+  const pick = await pickVideoCodec(Math.max(kw, kh), state.fps);
   const label = !pick ? 'no encoder in this browser'
     : pick.family === 'avc1' ? 'H.264' : 'VP9';
-  $('estMp4').textContent = fmtTime(secs) + ' · ' + label + ' · ≈ ' +
-    fmtBytes(videoBitrate(size, size, state.fps) / 8 * secs * 0.35 + (($('keyAudio') || {}).checked ? 16000 * secs : 0));
+  // A picture with detail all over it costs more per second than a mouth on a
+  // flat key, which compresses to almost nothing.
+  $('estMp4').textContent = fmtTime(secs) + ' · ' + label +
+    (kf ? ' · with the puppet at ' + kw + '×' + kh : '') + ' · ≈ ' +
+    fmtBytes(videoBitrate(kw, kh, state.fps) / 8 * secs * (kf ? 0.8 : 0.35) +
+             (($('keyAudio') || {}).checked ? 16000 * secs : 0));
   const plan = audioPlan();
   const planEl = $('audioPlan');
   if (planEl) { planEl.textContent = plan.label; planEl.classList.toggle('warn', plan.kind === 'none'); }
@@ -9597,7 +10025,7 @@ function wire() {
     pick.value = '';
     if (f) setPuppet(f);
   };
-  [$('apngPlate'), $('seqPlate')].forEach(b => { if (b) b.onchange = updateEstimates; });
+  PLATE_BOXES.forEach(({ id }) => { const b = $(id); if (b) b.onchange = updateEstimates; });
   $('clearBtn').onclick = () => (queue.clips.length ? removeClip(queue.activeId) : clearAudio());
   $('queueAdd').onclick = () => $('fileInput').click();
   $('queueClear').onclick = clearQueue;
