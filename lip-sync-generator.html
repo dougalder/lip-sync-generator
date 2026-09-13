@@ -533,6 +533,11 @@ select, input[type=text], input[type=number]{
   padding:4px 9px; color:var(--ink-2);
 }
 .stage-badge b{color:var(--ink); font-weight:500}
+.stage-flip{
+  position:absolute; top:12px; right:12px; z-index:2; width:auto;
+  display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+  background:var(--surface);
+}
 
 .overlay-tools{
   display:flex; align-items:center; gap:9px; padding:8px 14px;
@@ -547,6 +552,11 @@ select, input[type=text], input[type=number]{
 }
 .overlay-tools .ang span{font-family:'DM Mono',ui-monospace,monospace; font-size:11.5px}
 #stagePlate, #platePlayer{display:none; width:100%; height:auto; max-width:100%}
+/* The puppet on the stage is a DOM element behind the canvas, not pixels on it,
+   so its mirror is a CSS transform. The canvas above it is not flipped — the
+   mouth has its own switch, and the handles must stay where the pointer is. */
+.stage-wrap.flip-plate #stagePlate, .stage-wrap.flip-plate #platePlayer{transform:scaleX(-1)}
+.btn.ghost.mini[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
 .stage-wrap.p-img #stagePlate, .stage-wrap.p-vid #platePlayer{display:block}
 /* A puppet replaces the clip's own footage as the thing you see. */
 .stage-wrap.p-img #stageVideo, .stage-wrap.p-vid #stageVideo{display:none}
@@ -897,6 +907,10 @@ try {
             <b id="plateName">—</b>
             <span class="mono" id="plateMeta">—</span>
             <span class="tspacer"></span>
+            <button class="btn ghost mini" id="plateFlip" aria-pressed="false" style="width:auto" title="Mirror the puppet left to right">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"/><path d="M9 7 4 12l5 5z"/><path d="M15 7l5 5-5 5z"/></svg>
+              Flip
+            </button>
             <button class="btn ghost mini" id="plateSwap" style="width:auto">Replace…</button>
             <button class="btn ghost mini" id="plateDrop" style="width:auto">Remove</button>
           </div>
@@ -911,6 +925,13 @@ try {
     </div>
     <div class="stage-wrap" id="stageWrap">
       <span class="stage-badge">Frame <b id="badgeFrame" class="mono">—</b> · Shape <b id="badgeViseme" class="mono">—</b></span>
+      <!-- On the stage rather than in the Mouth tab. It belongs next to the
+           thing it changes: down among the style pickers it was missed. -->
+      <button class="btn ghost mini stage-flip" id="flipLips" aria-pressed="false"
+              title="Mirror the mouth left to right — for a character facing the other way">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"/><path d="M9 7 4 12l5 5z"/><path d="M15 7l5 5-5 5z"/></svg>
+        <span id="flipLipsState">Flip lips</span>
+      </button>
       <div class="stage-stack" id="stageStack">
         <video id="stageVideo" playsinline preload="auto"></video>
         <!-- The puppet: a still or a video chosen separately from the voice
@@ -3877,6 +3898,20 @@ const custom = { on: false, map: {}, sources: [] };
 
 function paintMouth(ctx, W, H, v, styleId, bg) {
   if (bg) { ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H); } else ctx.clearRect(0, 0, W, H);
+  if (mirror.lips) {
+    // Around the middle of the tile, so a mirrored mouth stays where it was put
+    // rather than jumping across the frame. Restored at every return below,
+    // which is why the whole body is wrapped rather than each branch.
+    ctx.save();
+    ctx.translate(W, 0);
+    ctx.scale(-1, 1);
+    try { paintMouthArt(ctx, W, H, v, styleId); } finally { ctx.restore(); }
+    return;
+  }
+  paintMouthArt(ctx, W, H, v, styleId);
+}
+
+function paintMouthArt(ctx, W, H, v, styleId) {
   if (custom.on) {
     const src = custom.map[v];
     if (src && src.img) {
@@ -3911,6 +3946,13 @@ function paintMouth(ctx, W, H, v, styleId, bg) {
     // over the alpha threshold fall under it or the reverse, which moves the
     // measured centre by several pixels and makes the correction wrong by
     // about as much as it was correcting.
+    //
+    // Not negated under the mirror, which is worth stating because it looks
+    // wrong. The flip is applied to the finished tile, so the offset happens in
+    // art space first and is carried across by the mirror along with everything
+    // else: nudging right and then mirroring puts the drawing left, which is
+    // what a mirror of a drawing nudged right looks like. Negating it here —
+    // the first guess — put the three-quarter styles off by twice their offset.
     ctx.translate(Math.round(o.dx * W), Math.round(o.dy * H));
     st.draw(ctx, W, H, v);
     ctx.restore();
@@ -4034,6 +4076,27 @@ let playerURL = null;
 
 /* Where the mouth sits on the video, in fractions of the frame. */
 const overlay = { x: 0.5, y: 0.66, size: 0.30, rot: 0, keyed: false, keys: [] };
+/* --- two mirrors, kept apart -------------------------------------------------
+
+   A puppet photographed facing left needs lips facing left, and a lip set drawn
+   facing right has to be turned round to meet it. But the reverse happens just
+   as often: the puppet is the thing facing the wrong way and the lips are fine.
+   So they are two switches rather than one, and neither moves the other.
+
+   Only horizontal. A mouth upside down is not a mouth, and a puppet upside down
+   is a different problem.
+
+   `lips` is applied inside `paintMouth`, which is the one door every drawing of
+   a mouth goes through — stage, chart, sprite sheet, GIF, animated PNG, video,
+   Final Cut stills. The style CHIPS draw through `STYLES[id].draw` instead and
+   so stay unmirrored, which is right: they are a picker, not a preview of the
+   output.
+
+   `plate` is applied in three places because the puppet is shown three ways: as
+   a DOM element on the stage (a CSS transform), as pixels in an export
+   (`drawPlateFrame`), and as a file handed to Final Cut, which gets a transform
+   in the project instead so the file itself is untouched. */
+const mirror = { lips: false, plate: false };
 const patch = { on: false, blur: 0.35, cover: 1.25 };   // the blur that hides a printed mouth
 const mouthCanvas = document.createElement('canvas');
 function mouthImage(size, v, style) {
@@ -4347,6 +4410,7 @@ function newClip(file) {
     duration: 0, frames: [], script: [], dirty: false,
     overlay: { x: 0.5, y: 0.66, size: 0.30, rot: 0, keyed: false, keys: [] },
     patch: { on: false, blur: 0.35, cover: 1.25 },
+    mirror: { lips: false, plate: false },
     style: null, lipSetId: null,        // null = whatever is chosen globally
     video: null, analysed: false, error: null
   };
@@ -4364,6 +4428,7 @@ function bankClip() {
   c.analysed = state.frames.length > 0;
   c.overlay = JSON.parse(JSON.stringify(overlay));
   c.patch = { ...patch };
+  c.mirror = { ...mirror };
   c.style = state.style;
   c.lipSetId = lips.activeId;
   // c.puppet is not touched here. It holds the File, not the decoded picture —
@@ -4375,6 +4440,9 @@ function bankClip() {
 function applyClipSettings(c) {
   Object.assign(overlay, JSON.parse(JSON.stringify(c.overlay)));
   Object.assign(patch, c.patch);
+  // Clips banked before the mirrors existed have no record of them, and a
+  // missing record means "not mirrored" rather than "leave the last clip's".
+  Object.assign(mirror, { lips: false, plate: false }, c.mirror || {});
   if (c.lipSetId && lipSetById(c.lipSetId)) {
     useLipSet(c.lipSetId);
   } else if (c.style) {
@@ -5437,6 +5505,18 @@ async function restorePuppet(c) {
   setExportsEnabled(state.frames.length > 0);
 }
 
+/** What the two mirror buttons say they are. Kept apart from the click
+    handlers so that loading a clip, switching clips and pressing the button all
+    end up showing the same thing. */
+function syncMirrorUI() {
+  const lb = $('flipLips'), pb = $('plateFlip'), st = $('flipLipsState');
+  if (lb) lb.setAttribute('aria-pressed', mirror.lips ? 'true' : 'false');
+  if (pb) pb.setAttribute('aria-pressed', mirror.plate ? 'true' : 'false');
+  // Said in words as well as in the button's state, because "pressed" on a
+  // small button is exactly the thing people miss.
+  if (st) st.textContent = mirror.lips ? 'Lips flipped' : 'Flip lips';
+}
+
 /** The row under the stage, and the line under the file row. Before there is a
     puppet the row offers one; after, it says which. */
 function syncPuppetUI() {
@@ -5460,7 +5540,9 @@ function syncPuppetUI() {
     wrap.classList.toggle('p-img', puppet.kind === 'image');
     wrap.classList.toggle('p-vid', puppet.kind === 'video');
     wrap.classList.toggle('alpha', plateHasAlpha());
+    wrap.classList.toggle('flip-plate', mirror.plate && hasPlate());
   }
+  syncMirrorUI();
   const note = $('puppetShortNote');
   if (note) {
     const short = puppet.kind === 'video' && puppet.duration > 0 &&
@@ -5701,7 +5783,18 @@ function drawBlurPatch(ctx, W, H, b) {
   a0.setTransform(1, 0, 0, 1, 0, 0);
   a0.globalCompositeOperation = 'source-over';
   a0.clearRect(0, 0, w, h);
-  a0.drawImage(plate, x0 * sx, y0 * sy, w * sx, h * sy, 0, 0, w, h);
+  // With the puppet mirrored, the patch is over a different part of the source
+  // than its screen position suggests — and the piece it lifts has to be
+  // reversed as well, or the patch shows the picture running the wrong way
+  // inside a hole in a picture running the right way.
+  if (mirror.plate) {
+    a0.save();
+    a0.translate(w, 0); a0.scale(-1, 1);
+    a0.drawImage(plate, nat.w - x1 * sx, y0 * sy, w * sx, h * sy, 0, 0, w, h);
+    a0.restore();
+  } else {
+    a0.drawImage(plate, x0 * sx, y0 * sy, w * sx, h * sy, 0, 0, w, h);
+  }
 
   // Each halving roughly doubles the blur, so the step count is the log of the
   // radius asked for.
@@ -7074,15 +7167,15 @@ function setBusy(on, pct) {
 
 async function exportChart(sink) {
   const size = parseInt($('outSize').value, 10);
-  const base = (state.name || 'mouth') + '-chart';
+  const base = exportName('chart');
   setBusy(true, 0);
   try {
     if (download.mode === 'artifact') {
       const sheet = await makeContactSheet(size);
       setBusy(true, .5);
       await deliver(base + '.png', sheet);
-      await deliver((state.name || 'mouth') + '-timing.json', timingJSON(size));
-      await deliver((state.name || 'mouth') + '-timing.csv', timingCSV());
+      await deliver(base + '-timing.json', timingJSON(size));
+      await deliver(base + '-timing.csv', timingCSV());
       toast('Saved the chart sheet and both timing files.');
     } else {
       const chart = await renderChart(size, p => setBusy(true, p * 0.8));
@@ -7374,6 +7467,12 @@ function fcpxmlDoc(opts) {
       : '<asset-clip ref="' + pupId + '" offset="0s" name="puppet" start="0s" duration="' +
         fcpTime(pup.dur, fps) + '" format="' + pupFmt + '" srcEnable="video">';
     L.push('            ' + open);
+    // The puppet file ships untouched, so a mirrored puppet is mirrored HERE
+    // instead — a scale of -1 across, which is a transform the editor can see
+    // and undo rather than a flip baked into somebody's original picture.
+    // It has to come before the connected clips: the DTD puts the intrinsic
+    // parameters ahead of the anchored items.
+    if (mirror.plate) L.push('              <adjust-transform scale="-1 1"/>');
     above.forEach(v => L.push('              ' + v));
     L.push('            ' + (pup.kind === 'image' ? '</video>' : '</asset-clip>'));
     // A puppet shorter than the take leaves the spine short, and Final Cut
@@ -7511,6 +7610,7 @@ function fcpxmlMulti(entries, w, h) {
           xmlEsc(entries[i].name + ' puppet') + '" start="0s" duration="' +
           fcpTime(pu.dur, fps) + '" format="' + pu.fmt + '" srcEnable="video">';
       L.push('            ' + open);
+      if (pu.flip) L.push('              <adjust-transform scale="-1 1"/>');
       above.forEach(v => L.push('              ' + v));
       L.push('            ' + (pu.kind === 'image' ? '</video>' : '</asset-clip>'));
       if (pu.dur < e.frames) {
@@ -7655,7 +7755,7 @@ function fcpReadme(w, h, folder, pup) {
 async function exportFcpxml(sink) {
   const { w, h } = fcpFrameSize();
   const folder = ($('fcpFolder').value || '').trim();
-  const base = (state.name || 'mouth').replace(/\.[^.]+$/, '') + '-fcp';
+  const base = exportName('fcp');
   setBusy(true, 0);
   try {
     // Every shape at the resting placement, so a frame can be fixed by hand
@@ -7739,7 +7839,7 @@ async function exportSequence(sink) {
     await new Promise(r => setTimeout(r, 16));
     setBusy(true, .98);
     const total = files.reduce((n, f) => n + (f.data.length || f.data.byteLength || 0), 0);
-    await emit(sink, (state.name || 'mouth') + '-frames.zip', 'frames', files);
+    await emit(sink, exportName('seq') + '.zip', 'frames', files);
     toast('Exported ' + state.frames.length.toLocaleString() + ' frames · ' + fmtBytes(total) + '.');
   } catch (e) {
     console.error(e);
@@ -7759,9 +7859,9 @@ async function exportSprite(sink) {
     const { bytes, atlas } = await makeSpriteSheet(size);
     atlas.fps = state.fps;
     atlas.runs = runs();
-    const base = state.name || 'mouth';
+    const base = exportName('sprite');
     if (download.mode === 'artifact') {
-      await deliver(base + '-sprites.png', bytes);
+      await deliver(base + '.png', bytes);
       await deliver(base + '-atlas.json', JSON.stringify(atlas, null, 2));
     } else {
       const enc = new TextEncoder();
@@ -7773,7 +7873,7 @@ async function exportSprite(sink) {
       ];
       const voice = await audioSidecar('audSprite');
       if (voice) spriteFiles.push(voice);
-      await emit(sink, base + '-sprites.zip', 'sprites', spriteFiles);
+      await emit(sink, base + '.zip', 'sprites', spriteFiles);
     }
     toast(withPlate
       ? 'Sprite sheet exported with the puppet · ' + atlas.cells.length + ' cells at ' +
@@ -7961,14 +8061,21 @@ function gifBytes(frames, palette, w, h, transparent, loop) {
     for (const ch of 'NETSCAPE2.0') push(ch.charCodeAt(0));
     push(0x03); push(0x01); push16(0); push(0);
   }
+  const mcs = Math.max(2, bitsPerPixel);
   for (const f of frames) {
+    // `hold` is a frame that changes nothing: a single transparent pixel, left
+    // in place. It is what makes a constant frame rate affordable — see the
+    // note above gifFrames. `clear` is the last hold of a run, which disposes
+    // to background over the whole canvas so the next picture starts clean.
+    const rect = f.hold && !f.clear;
+    const dispose = f.hold && !f.clear ? 1 : f.hold ? 2 : (f.next ? 1 : 2);
     push(0x21); push(0xF9); push(0x04);
-    push((2 << 2) | 1);                       // dispose to background, transparent on
+    push((dispose << 2) | 1);                 // transparent colour is on
     push16(f.delay); push(transparent); push(0);
-    push(0x2C); push16(0); push16(0); push16(w); push16(h); push(0);
-    const mcs = Math.max(2, bitsPerPixel);
+    const fw = rect ? 1 : w, fh = rect ? 1 : h;
+    push(0x2C); push16(0); push16(0); push16(fw); push16(fh); push(0);
     push(mcs);
-    gifBlocks(gifLzw(f.index, mcs), push);
+    gifBlocks(gifLzw(f.index || new Uint8Array(fw * fh), mcs), push);
   }
   push(0x3B);
   return new Uint8Array(out);
@@ -7984,24 +8091,123 @@ function gifImageData(size, v) {
   return ctx.getImageData(0, 0, size, size);
 }
 
-/** Runs of identical frames become GIF frames, and the rounding left over from
-    one delay is carried into the next so a long take does not drift. */
+/* --- never round a delay UP -------------------------------------------------
+
+   Runs of identical frames become one frame with a longer delay. The question
+   is what to do about a frame rate a hundredth of a second cannot express:
+   12 fps is 8.3333cs a frame, and a GIF has nowhere to put the third of a
+   hundredth.
+
+   The first version rounded to nearest and carried the remainder into the next
+   delay, so the TOTAL came out right to a hundredth of a second. Played in a
+   browser that was correct. Imported into an editor it was 14% long, and the
+   reason is worth keeping:
+
+     an editor conforms each frame to its own grid by rounding UP. A two-frame
+     run written as 17cs is 0.17s, which is 2.04 frames at 12 fps, which becomes
+     THREE. Written as 16cs it is 1.92 frames, which becomes two. Half the runs
+     in a take gain a whole frame that way, and the drift is one-directional.
+
+   So every delay is now the true length rounded DOWN. Each run is at most its
+   own length and more than one frame less, which is exactly the condition for
+   an editor's rounding-up to land on the right number. The cost is that the
+   total is short by up to a hundredth of a second per run — about a frame over
+   a long take, in a player that honours the delays exactly — and that is the
+   better side to be wrong on, because it does not accumulate into a visible
+   offset the way a whole frame per run does.
+
+   The animated PNG does not have this problem at all: it carries its own
+   denominator, so it is written in frames over the frame rate and is exact.
+   See `apngBytes`. */
 function gifDelays() {
-  const rs = runs();
-  let ideal = 0, spent = 0;
-  return rs.map(r => {
-    ideal += r.frames * 100 / state.fps;
-    const d = Math.max(2, Math.round(ideal - spent));
-    spent += d;
-    return { viseme: r.viseme, delay: d };
-  });
+  return runs().map(r => ({
+    viseme: r.viseme,
+    frames: r.frames,
+    startFrame: r.startFrame,
+    delay: Math.max(2, Math.floor(r.frames * 100 / state.fps))
+  }));
+}
+
+/* --- and then: a constant frame rate is the only thing that travels ----------
+
+   Flooring the delays fixed an editor whose timeline ran at the CLIP's rate.
+   It did nothing for one whose timeline ran at some other rate, which is the
+   normal case — twelve-frame animation cut onto a 25 fps sequence — and there
+   the drift came back at about the same size.
+
+   The reason is that a run written as one long frame makes the file
+   VARIABLE-frame-rate, and an editor has no choice but to place each of those
+   frames on its own grid, rounding up. A third of a hundredth of a second
+   becomes a whole frame of the timeline, once per run, and it only ever goes
+   one way. No rounding rule fixes that, because the grid being rounded to is
+   not ours to know.
+
+   What travels is a file that looks like any other clip: every frame the same
+   length, the rate declared. An editor conforms that the way it conforms a
+   12 fps movie on a 25 fps timeline — by repeating frames, keeping the
+   duration — rather than by adding up rounded pieces.
+
+   So runs are no longer coalesced into long frames. There is one frame per
+   frame of the take, and a held shape is a HOLD frame: a single transparent
+   pixel that changes nothing, twenty-odd bytes, left in place. The file is
+   constant-rate and barely larger than the coalesced one.
+
+   The GIF has one more wrinkle. Its delays are whole hundredths of a second,
+   and 12 fps is 8.3333 of them — not expressible, constant or otherwise. So
+   the GIF is rendered at the nearest rate a hundredth CAN express (8cs, or
+   12.5 fps) and the mouth track is sampled at that rate rather than copied
+   frame for frame. The total then comes out exactly right, every frame is the
+   same length, and no frame is more than half a frame from where it would have
+   been. The animated PNG needs none of this: its denominator is ours to choose,
+   so it is written as 1/fps and is exact.
+--------------------------------------------------------------------------- */
+
+/** The rate a GIF should be written at, given the take's. A hundredth of a
+    second is the only unit a GIF has. */
+function gifRate() {
+  const cs = Math.max(2, Math.round(100 / state.fps));
+  return { cs, fps: 100 / cs };
+}
+
+/** One entry per frame of the finished animation, in order.
+
+      v      which mouth shape
+      frame  the frame of the take it was sampled from
+      hold   true when it is the same picture as the one before it
+      clear  true on the last hold of a run (the GIF needs to know)
+
+    `rate` is the rate these are to be played at, which is the take's rate for
+    an APNG and the nearest hundredth-expressible one for a GIF. */
+function animFrames(rate) {
+  const fps = state.fps;
+  const n = state.frames.length;
+  if (!n) return [];
+  const count = Math.max(1, Math.round((n / fps) * rate));
+  const out = [];
+  for (let i = 0; i < count; i++) {
+    // Sample at the middle of the output frame, so a shape that spans the
+    // boundary lands on whichever side it mostly covers.
+    const src = Math.min(n - 1, Math.floor(((i + 0.5) / rate) * fps));
+    const v = state.frames[src].v;
+    const prev = out[out.length - 1];
+    out.push({ v, frame: src, hold: !!prev && prev.v === v, clear: false });
+  }
+  // Mark the last hold of each run, which is where the GIF clears the canvas
+  // so the next picture is not laid over the previous one.
+  for (let i = 0; i < out.length; i++) {
+    const last = i === out.length - 1 || out[i + 1].v !== out[i].v;
+    if (last && out[i].hold) out[i].clear = true;
+  }
+  return out;
 }
 
 /* Measured rather than guessed: on this art the cost per GIF frame tracks the
    edge, not the area, so it goes with `size` and not `size²` — a 256px take
    came out at ~850 bytes a frame and the same take at 512px at ~1750. */
 function gifEstimate(size) {
-  return gifDelays().length * size * 3.4 + 1200;
+  // A picture per run, plus a cheap hold frame for every frame that repeats one.
+  const frames = Math.max(1, Math.round(state.frames.length / state.fps * gifRate().fps));
+  return runs().length * size * 3.4 + frames * 24 + 1200;
 }
 
 /** The plate GIF's long edge. Deliberately its own number rather than the
@@ -8010,38 +8216,51 @@ function gifEstimate(size) {
     use to anybody. The animated PNG is the export for a full-size picture. */
 const GIF_PLATE_MAX = 800;
 
+/** And a total pixel budget across the whole animation, which is what actually
+    decides the size once the puppet moves: a constant-rate GIF of a video
+    puppet is one real picture per frame, and eight hundred pixels across a
+    ninety-second take is a file nobody can use. The long edge comes down until
+    the whole thing fits. */
+const GIF_PLATE_BUDGET = 800 * 800 * 40;
+
 /** The GIF with the puppet in it. Every frame is its own picture — a video
     puppet moves under the mouth — so the nine-drawings-reused trick the
     mouth-only path uses does not apply, and the whole run is quantised against
     one palette so nothing shifts colour between frames. */
 async function exportGifPlate(sink, loop) {
-  const long = Math.min(GIF_PLATE_MAX, parseInt($('outSize').value, 10));
+  const rate = gifRate();
+  const seq = animFrames(rate.fps);
+  // A still puppet that is not being moved draws the same picture for the same
+  // shape, so a held frame is a hold and only the distinct pictures are ever
+  // composed. A video puppet, or a keyframed move, is different every frame:
+  // no holds, and one composed picture per frame of the animation. That is a
+  // lot of pixels, so the long edge comes down as the count goes up.
+  const moving = !(puppet.kind === 'image' && !overlay.keys.length);
+  const real = moving ? seq.length : seq.filter(f => !f.hold).length;
+  const budget = Math.sqrt(GIF_PLATE_BUDGET / Math.max(1, real));
+  const long = Math.min(GIF_PLATE_MAX, parseInt($('outSize').value, 10),
+                        Math.max(160, Math.round(budget)));
   const fz = plateCellSize(long);
-  const segs = gifDelays();
-  const runList = runs();
   const c = document.createElement('canvas');
   c.width = fz.w; c.height = fz.h;
   const ctx = c.getContext('2d', { willReadFrequently: true });
-  // A still puppet with no keyframed motion draws the same picture for the same
-  // shape every time, so it is worth remembering nine of them rather than
-  // recomposing fifty. A video puppet, or any keyframed move, is different
-  // every frame and gets no cache.
-  const cacheable = puppet.kind === 'image' && !overlay.keys.length;
   const cache = new Map();
   const frameAt = async (i) => {
-    const key = runList[i].viseme;
-    if (cacheable && cache.has(key)) return cache.get(key);
-    await composePlateFrame(ctx, fz.w, fz.h, runList[i].startFrame / state.fps);
+    const f = seq[i];
+    if (!moving && cache.has(f.v)) return cache.get(f.v);
+    await composePlateFrame(ctx, fz.w, fz.h, f.frame / state.fps);
     const im = ctx.getImageData(0, 0, fz.w, fz.h);
-    if (cacheable) cache.set(key, im);
+    if (!moving) cache.set(f.v, im);
     return im;
   };
 
-  // Pass one: the palette, counting each frame and letting it go.
+  // Pass one: the palette, counting each picture and letting it go. Holds are
+  // skipped — they are the picture before them, already counted.
   const hist = new Uint32Array(32768);
-  for (let i = 0; i < segs.length; i++) {
+  for (let i = 0; i < seq.length; i++) {
+    if (!moving && seq[i].hold) continue;
     gifCount(hist, await frameAt(i), GIF_ALPHA_CUT);
-    if ((i & 3) === 3) { setBusy(true, (i / segs.length) * 0.40); await new Promise(r => setTimeout(r, 0)); }
+    if ((i & 7) === 7) { setBusy(true, (i / seq.length) * 0.40); await new Promise(r => setTimeout(r, 0)); }
   }
   const palette = gifPaletteFrom(hist, 255);
   const map = gifMapper(palette, 1);
@@ -8050,15 +8269,23 @@ async function exportGifPlate(sink, loop) {
   // Pass two: index them. One byte a pixel instead of four, which is what makes
   // holding the whole run affordable.
   const n = fz.w * fz.h;
+  const blank = new Uint8Array(n);
   const frames = [];
-  for (let i = 0; i < segs.length; i++) {
-    const d = (await frameAt(i)).data;
-    const idx = new Uint8Array(n);
-    for (let q = 0, o = 0; q < n; q++, o += 4) {
-      idx[q] = d[o + 3] < GIF_ALPHA_CUT ? 0 : map(d[o], d[o + 1], d[o + 2]);
+  for (let i = 0; i < seq.length; i++) {
+    const f = seq[i];
+    if (!moving && f.hold) {
+      frames.push(f.clear ? { hold: true, clear: true, index: blank, delay: rate.cs }
+                          : { hold: true, delay: rate.cs });
+    } else {
+      const d = (await frameAt(i)).data;
+      const idx = new Uint8Array(n);
+      for (let q = 0, o = 0; q < n; q++, o += 4) {
+        idx[q] = d[o + 3] < GIF_ALPHA_CUT ? 0 : map(d[o], d[o + 1], d[o + 2]);
+      }
+      frames.push({ index: idx, delay: rate.cs,
+                    next: !moving && i + 1 < seq.length && seq[i + 1].hold });
     }
-    frames.push({ index: idx, delay: segs[i].delay });
-    if ((i & 3) === 3) { setBusy(true, 0.40 + (i / segs.length) * 0.52); await new Promise(r => setTimeout(r, 0)); }
+    if ((i & 7) === 7) { setBusy(true, 0.40 + (i / seq.length) * 0.52); await new Promise(r => setTimeout(r, 0)); }
   }
   return { bytes: gifBytes(frames, table, fz.w, fz.h, 0, loop), count: frames.length, fz };
 }
@@ -8075,7 +8302,7 @@ async function exportGif(sink) {
     if (withPlate) {
       const { bytes, count, fz } = await exportGifPlate(sink, loop);
       setBusy(true, .98);
-      const stem = (state.name || 'mouth') + '-mouth';
+      const stem = exportName('gif');
       const voice = await audioSidecar('audGif');
       const out = [{ name: stem + '.gif', data: bytes }];
       if (voice) out.push(voice);
@@ -8116,18 +8343,26 @@ async function exportGif(sink) {
     }
     setBusy(true, .55);
 
-    const segs = gifDelays();
+    const rate = gifRate();
+    const seq = animFrames(rate.fps);
+    const blank = new Uint8Array(size * size);     // index 0 is the transparent hole
     const frames = [];
-    for (let i = 0; i < segs.length; i++) {
-      frames.push({ index: indexed[segs[i].viseme], delay: segs[i].delay });
-      if (i % 12 === 0) {
-        setBusy(true, .55 + (i / segs.length) * 0.4);
+    for (let i = 0; i < seq.length; i++) {
+      const f = seq[i];
+      frames.push(f.hold && !f.clear
+        ? { hold: true, delay: rate.cs }
+        : f.hold
+          ? { hold: true, clear: true, index: blank, delay: rate.cs }
+          : { index: indexed[f.v], delay: rate.cs,
+              next: i + 1 < seq.length && seq[i + 1].hold });
+      if (i % 40 === 0) {
+        setBusy(true, .55 + (i / seq.length) * 0.4);
         await new Promise(r => setTimeout(r, 0));
       }
     }
     const bytes = gifBytes(frames, table, size, size, 0, loop);
     setBusy(true, .98);
-    const stem = (state.name || 'mouth') + '-mouth';
+    const stem = exportName('gif');
     // A bare .gif unless the voice track is coming too, in which case there
     // has to be something to hold both.
     const voice = await audioSidecar('audGif');
@@ -8316,15 +8551,25 @@ function apngBytes(frames, w, h, loop) {
 
   let seq = 0;
   frames.forEach((f, i) => {
+    // A hold frame is one transparent pixel in the corner, blended OVER what is
+    // already there: it changes nothing and costs about thirty bytes. It is what
+    // lets every frame be the same length without the file being one picture per
+    // frame of the take. See the note above gifFrames.
+    const fw = f.hold ? 1 : w, fh = f.hold ? 1 : h;
     const fc = new Uint8Array(26);
     const d = new DataView(fc.buffer);
     d.setUint32(0, seq++);
-    d.setUint32(4, w); d.setUint32(8, h);
+    d.setUint32(4, fw); d.setUint32(8, fh);
     d.setUint32(12, 0); d.setUint32(16, 0);
-    d.setUint16(20, Math.max(1, Math.min(65535, f.delay)));
-    d.setUint16(22, 100);               // …of a hundredth-of-a-second tick
+    // An APNG carries its own denominator, so a run of n frames at 12 fps is
+    // written as the fraction n/12 and is EXACT — no hundredth-of-a-second
+    // rounding, and nothing for an editor conforming the file to its timeline
+    // to round up. `den` is the frame rate; `num` is how many frames the shape
+    // is held for. Falls back to hundredths if a caller has no frame count.
+    d.setUint16(20, Math.max(1, Math.min(65535, f.num != null ? f.num : f.delay)));
+    d.setUint16(22, Math.max(1, Math.min(65535, f.den || 100)));
     fc[24] = 0;                         // dispose: leave it
-    fc[25] = 0;                         // blend: replace
+    fc[25] = f.hold ? 1 : 0;            // blend: over for a hold, replace for a picture
     parts.push(pngChunk('fcTL', fc));
     if (i === 0) {
       // The first frame is the still image too, so it goes in as IDAT and any
@@ -8362,9 +8607,11 @@ async function exportApng(sink) {
   const withPlate = !!($('apngPlate') && $('apngPlate').checked && hasPlate());
   setBusy(true, 0);
   try {
-    // The same run coalescing the GIF uses: a shape held for six frames is one
-    // frame with a longer delay, not six copies of the same picture.
-    const segs = gifDelays();
+    // One frame per frame of the take, every one the same length — see the note
+    // above gifFrames for why a constant rate is the thing that survives an
+    // import. A held shape costs a thirty-byte hold frame, not a second copy of
+    // the picture.
+    const seq = animFrames(state.fps);
     let bytes, fw = size, fh = size;
     if (withPlate) {
       // With the puppet in it every frame is its own picture, so nothing can be
@@ -8375,19 +8622,27 @@ async function exportApng(sink) {
       const c = document.createElement('canvas');
       c.width = fw; c.height = fh;
       const ctx = c.getContext('2d', { willReadFrequently: true });
+      // A still puppet that is not being moved draws the same picture for the
+      // same shape, so a held frame really is a hold. A video puppet, or a
+      // keyframed move, is a different picture every frame and gets a real one.
+      const movingPlate = !(puppet.kind === 'image' && !overlay.keys.length);
+      const blank = await zlibDeflate(new Uint8Array(5));
       const frames = [];
-      let at = 0;
-      for (let i = 0; i < segs.length; i++) {
-        await composePlateFrame(ctx, fw, fh, at / 100);
-        const px = ctx.getImageData(0, 0, fw, fh);
-        frames.push({ data: await zlibDeflate(pngFilter(px.data, fw, fh)), delay: segs[i].delay });
-        at += segs[i].delay;
-        setBusy(true, (i + 1) / segs.length * 0.9);
-        await new Promise(r => setTimeout(r, 0));
+      for (let i = 0; i < seq.length; i++) {
+        if (seq[i].hold && !movingPlate) {
+          frames.push({ data: blank, hold: true, num: 1, den: state.fps });
+        } else {
+          await composePlateFrame(ctx, fw, fh, seq[i].frame / state.fps);
+          const px = ctx.getImageData(0, 0, fw, fh);
+          frames.push({ data: await zlibDeflate(pngFilter(px.data, fw, fh)),
+                        num: 1, den: state.fps });
+        }
+        setBusy(true, (i + 1) / seq.length * 0.9);
+        if ((i & 3) === 3) await new Promise(r => setTimeout(r, 0));
       }
       bytes = apngBytes(frames, fw, fh, loop);
     } else {
-      const used = [...new Set(segs.map(s => s.viseme))];
+      const used = [...new Set(seq.map(f => f.v))];
       const data = {};
       for (let i = 0; i < used.length; i++) {
         const img = gifImageData(size, used[i]);
@@ -8395,11 +8650,14 @@ async function exportApng(sink) {
         setBusy(true, (i + 1) / used.length * 0.85);
         await new Promise(r => setTimeout(r, 0));
       }
-      bytes = apngBytes(segs.map(s => ({ data: data[s.viseme], delay: s.delay })),
-                        size, size, loop);
+      const blank = await zlibDeflate(new Uint8Array(5));   // one transparent pixel
+      bytes = apngBytes(seq.map(f => f.hold
+        ? { data: blank, hold: true, num: 1, den: state.fps }
+        : { data: data[f.v], num: 1, den: state.fps }),
+        size, size, loop);
     }
     setBusy(true, .98);
-    const stem = (state.name || 'mouth') + '-mouth';
+    const stem = exportName('apng');
     const voice = await audioSidecar('audApng');
     const files = [{ name: stem + '.png', data: bytes }];
     if (voice) files.push(voice);
@@ -8411,7 +8669,7 @@ async function exportApng(sink) {
     } else {
       await deliver(stem + '.png', bytes);
     }
-    toast('Animated PNG exported · ' + segs.length + ' frames at ' + fw + '×' + fh +
+    toast('Animated PNG exported · ' + seq.length + ' frames at ' + fw + '×' + fh +
           ' · ' + fmtBytes(bytes.length) + '.');
   } catch (e) {
     console.error(e);
@@ -8682,7 +8940,11 @@ async function exportQueue(picks) {
 /** What the run's single zip is called. Named after the source when every clip
     came out of the same file, which is what splitting a conversation gives. */
 function runZipName(picks, clips) {
-  const slug = picks.length === 1 ? (BATCH_RUNNERS[picks[0]].slug || picks[0]) : 'exports';
+  // The same tag the single-clip exports carry, so a batch zip and a one-off
+  // of the same format sort together and read the same way.
+  const slug = picks.length === 1
+    ? (EXPORT_TAG[picks[0]] || BATCH_RUNNERS[picks[0]].slug || picks[0])
+    : 'EXPORTS';
   const files = new Set(clips.map(c => c.file));
   const stem = files.size === 1
     ? safeName((clips[0].file.name || 'lip-sync').replace(/\.[^.]+$/, '').replace(/-\d+$/, ''))
@@ -8718,7 +8980,7 @@ function collectForCombined(combined, clip, sink, index) {
     segs: fcpSegments(w, h),
     states: fcpStates(w, h),
     puppet: pup ? { ...pup, rel: dir + '/' + pupFile.name.split('/').pop(),
-                    data: pupFile.data } : null
+                    data: pupFile.data, flip: mirror.plate } : null
   });
 }
 
@@ -8739,6 +9001,30 @@ function combinedFiles(combined) {
 }
 
 const safeName = n => (n || 'clip').replace(/[\\/:*?"<>|]+/g, '-').slice(0, 80);
+
+/* --- what an export is called ------------------------------------------------
+
+   Eight formats, one take, and until now several of them came down with names
+   that differed by a word nobody reads: "-mouth" was the GIF AND the animated
+   PNG, "-key" was the chroma MP4, "-fcp" the project. Eight files of one clip
+   in a Downloads folder is exactly the moment you cannot tell them apart, and
+   Final Cut shows the file name on the clip, so the wrong one goes on the
+   timeline and looks right until it does not.
+
+   So the tag is loud and it is last: SPEECH-APNG.png, SPEECH-CHROMA.mp4. Upper
+   case because it is a label rather than part of the name, and at the end
+   because that is where the eye goes when the beginnings are all the same. */
+const EXPORT_TAG = {
+  chart: 'CHART', fcp: 'FCPXML', gif: 'GIF', apng: 'APNG',
+  sprite: 'SPRITE', seq: 'FRAMES', mp4: 'CHROMA', overlay: 'OVERLAY'
+};
+
+/** The stem an export's files are built from: the clip's name with whatever
+    extension it arrived with taken off, and the format's tag on the end. */
+function exportName(kind) {
+  const stem = (state.name || 'mouth').replace(/\.[^.]+$/, '');
+  return safeName(stem) + '-' + (EXPORT_TAG[kind] || kind.toUpperCase());
+}
 
 /* ---- chroma-key video ---------------------------------------------------
 
@@ -8959,8 +9245,8 @@ async function exportVideo(sink) {
     }, audio);
 
     if (Array.isArray(sink)) sink.push({ name: (sink.prefix ? 'chroma/' : '') +
-      (state.name || 'mouth') + '-key.mp4', data: bytes });
-    else await deliver((state.name || 'mouth') + '-key.mp4', bytes, 'video/mp4');
+      exportName('mp4') + '.mp4', data: bytes });
+    else await deliver(exportName('mp4') + '.mp4', bytes, 'video/mp4');
     toast('Exported ' + state.frames.length + ' frames as ' +
           (pick.family === 'avc1' ? 'H.264' : 'VP9') +
           (withPlate ? ' with the puppet' : '') +
@@ -9005,17 +9291,25 @@ function even(n) { return Math.max(2, Math.round(n / 2) * 2); }
     the head of the file while the soundtrack comes from the trim, and the whole
     export is out by the trim amount. */
 async function drawPlateFrame(ctx, W, H, t) {
-  if (puppet.kind === 'image') {
-    ctx.drawImage(puppet.img, 0, 0, W, H);
-    return;
-  }
+  // The seek has to happen before the transform is set, and the transform has
+  // to come off afterwards whatever happened, so the mirror wraps the draw
+  // rather than the whole function.
+  const put = (el) => {
+    if (!mirror.plate) { ctx.drawImage(el, 0, 0, W, H); return; }
+    ctx.save();
+    ctx.translate(W, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(el, 0, 0, W, H);
+    ctx.restore();
+  };
+  if (puppet.kind === 'image') { put(puppet.img); return; }
   if (puppet.kind === 'video') {
     await seekPlate(puppetTimeAt(t));
-    if (plateVideo.videoWidth) ctx.drawImage(plateVideo, 0, 0, W, H);
+    if (plateVideo.videoWidth) put(plateVideo);
     return;
   }
   await seekExact(clipToSrc(activeClip(), t));
-  ctx.drawImage(player, 0, 0, W, H);
+  put(player);
 }
 
 async function exportOverlayVideo() {
@@ -9095,7 +9389,7 @@ async function exportOverlayVideo() {
     const bytes = MP4.build({
       codec: pick.family, width: W, height: H, timescale: TS, description, samples
     }, audio);
-    await deliver((state.name || 'mouth') + '-overlay.mp4', bytes, 'video/mp4');
+    await deliver(exportName('overlay') + '.mp4', bytes, 'video/mp4');
     toast('Overlay video exported · ' + W + '×' + H + ' at ' + fps + ' fps · ' +
           (audio ? (audio.source === 'copied' ? 'audio copied' : 'audio re-encoded') : 'no audio') +
           ' · ' + fmtBytes(bytes.length) + '.');
@@ -9139,13 +9433,18 @@ async function updateEstimates() {
   } else {
     $('estSprite').textContent = '1 PNG (' + Math.min(shapes, 5) + '×' + Math.ceil(shapes / 5) + ') · ≈ ' + fmtBytes(estBytes * shapes * 0.8);
   }
-  const gifSegs = gifDelays().length;
+  // One frame per frame of the animation now, not one per run — the count on
+  // the card has to say so, because it is the thing that decides the size.
+  const gifSegs = Math.max(1, Math.round(n / state.fps * gifRate().fps));
+  const runCount = runs().length;
+  const movingPlate = !(puppet.kind === 'image' && !overlay.keys.length);
   // A GIF of a whole picture is a different animal: every frame stores the
   // whole thing, and the long edge is capped whatever output size is chosen.
   const gf = plateOn('gifPlate') ? plateCellSize(Math.min(GIF_PLATE_MAX, size)) : null;
   $('estGif').textContent = gf
     ? gifSegs.toLocaleString() + ' GIF frames at ' + gf.w + '×' + gf.h + ' · with the puppet · ≈ ' +
-      fmtBytes(gifSegs * gf.w * gf.h * (plateHasAlpha() ? 0.10 : 0.34) + 1200)
+      fmtBytes((movingPlate ? gifSegs : runCount) * gf.w * gf.h *
+               (plateHasAlpha() ? 0.10 : 0.34) + gifSegs * 24 + 1200)
     : gifSegs.toLocaleString() + ' GIF frames at ' + size + '×' + size +
       ' · ≈ ' + fmtBytes(gifEstimate(size));
   // With the puppet in it the frames are the puppet's size and every one is
@@ -9157,11 +9456,16 @@ async function updateEstimates() {
   // is real detail everywhere and runs nearer half. One number for both would
   // be six times wrong in one direction or the other.
   const perPx = plateHasAlpha() ? 0.12 : 0.45;
+  // An APNG runs at the take's own rate, and a held shape costs a thirty-byte
+  // hold frame rather than a picture — so the weight goes with the number of
+  // DISTINCT pictures, which for a still puppet is the run count and for a
+  // moving one is every frame.
+  const apngReal = pf ? (movingPlate ? n : runCount) : runCount;
   $('estApng').textContent = pf
-    ? gifSegs.toLocaleString() + ' frames at ' + pf.w + '×' + pf.h + ' · with the puppet · ≈ ' +
-      fmtBytes(gifSegs * pf.w * pf.h * perPx + 200)
-    : gifSegs.toLocaleString() + ' frames at ' + size + '×' + size +
-      ' · ≈ ' + fmtBytes(apngEstimate(size, estBytes));
+    ? n.toLocaleString() + ' frames at ' + pf.w + '×' + pf.h + ' · with the puppet · ≈ ' +
+      fmtBytes(apngReal * pf.w * pf.h * perPx + n * 40 + 200)
+    : n.toLocaleString() + ' frames at ' + size + '×' + size +
+      ' · ≈ ' + fmtBytes(apngEstimate(size, estBytes) + n * 40);
   const sf = plateOn('seqPlate') ? plateFrameSize() : null;
   if (sf) {
     $('estSeq').textContent = n.toLocaleString() + ' PNG at ' + sf.w + '×' + sf.h +
@@ -10172,6 +10476,21 @@ function wire() {
   };
   stage.addEventListener('pointerup', endOverlay);
   stage.addEventListener('pointercancel', endOverlay);
+  $('flipLips').onclick = () => {
+    mirror.lips = !mirror.lips;
+    const c = activeClip(); if (c) c.mirror = { ...mirror };
+    syncMirrorUI();
+    buildChart(); drawStage(); updateEstimates();
+    toast(mirror.lips ? 'Lips mirrored — they now face left.'
+                      : 'Lips back the way they were drawn.', 1800);
+  };
+  $('plateFlip').onclick = () => {
+    mirror.plate = !mirror.plate;
+    const c = activeClip(); if (c) c.mirror = { ...mirror };
+    syncPuppetUI();
+    drawStage();
+    toast(mirror.plate ? 'Puppet mirrored.' : 'Puppet back the way it was.', 1800);
+  };
   $('overlayReset').onclick = () => {
     overlay.x = 0.5; overlay.y = 0.66; overlay.size = 0.30; overlay.rot = 0;
     overlay.keys = [];
