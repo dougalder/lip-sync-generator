@@ -157,7 +157,10 @@ def sweep(p):
     cannot find.
     """
     out = ""
-    for t in ("analysis", "mouth", "export"):
+    # The exposure sheet is a tab of its own now, and it carries the trim row,
+    # the frame editing buttons and the script — a sweep that skipped it
+    # reported the manual as wrong about eight controls that are perfectly real.
+    for t in ("sheet", "analysis", "mouth", "export"):
         p.click("#tabBtn-" + t)
         p.wait_for_timeout(280)
         out += p.evaluate("() => document.body.innerText")
@@ -188,8 +191,12 @@ with sync_playwright() as pw:
     p.wait_for_function("state.frames.length > 0", timeout=120000)
     p.wait_for_timeout(1200)
     text += sweep(p)                                  # a video, on its own
+    # The trim row lives in the Exposure sheet tab, and sweep() leaves the page
+    # on whichever tab it looked at last.
+    p.click("#tabBtn-sheet"); p.wait_for_timeout(250)
     p.click("#trimAuto"); p.wait_for_timeout(500)
     text += sweep(p)                                  # with split points down
+    p.click("#tabBtn-sheet"); p.wait_for_timeout(250)
     p.click("#trimCommit"); p.wait_for_timeout(6000)
     text += sweep(p)                                  # a queue
     # The Stop button only exists while a run is going.
@@ -230,6 +237,9 @@ with sync_playwright() as pw:
     check("End jumps to the tail", at_end > 0.5, str(at_end))
     check("Home jumps to the head", at_start < 0.1, str(at_start))
     # A letter key retimes the selection
+    # The sheet has to be the open tab before anything can be typed at it: a
+    # canvas on a hidden pane cannot take focus, and the key goes nowhere.
+    p.click("#tabBtn-sheet"); p.wait_for_timeout(250)
     p.evaluate("() => { selectFrame(3, true); document.getElementById('xsScroll').focus(); }")
     p.wait_for_timeout(200)
     p.keyboard.press("g")

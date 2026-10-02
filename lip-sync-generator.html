@@ -135,24 +135,29 @@ button,input,select,label{font:inherit; color:inherit}
 .chip.busy .dot{background:var(--accent); animation:pulse 1s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
 
-/* ---------- theme switch ---------- */
-.theme-switch{
-  display:inline-flex; align-items:center; gap:2px; flex:none;
-  padding:3px; border:1px solid var(--line); border-radius:999px;
-  background:var(--surface-2);
+/* ---------- privacy strip ----------
+   Under the header rather than in it: it is a statement about the whole app,
+   and the first thing anyone handed an audio file of a person's voice wants to
+   know. Worded to what the code actually does — the one request it can make is
+   reading a lips/ folder on the same server, and only if you have one. */
+.privacy{
+  display:flex; align-items:center; gap:9px;
+  padding:9px var(--gut); border-bottom:1px solid var(--line);
+  background:var(--surface-2); color:var(--ink-2);
+  font-size:11.5px; line-height:1.45;
 }
-.theme-switch button{
-  display:grid; place-items:center; width:30px; height:24px;
-  padding:0; border:0; border-radius:999px; background:transparent;
-  color:var(--ink-3); cursor:pointer;
-  transition:background .12s ease, color .12s ease;
+.privacy svg{flex:none; display:block; color:var(--good)}
+.privacy b{color:var(--ink); font-weight:600}
+
+/* ---------- theme toggle ---------- */
+.theme-toggle{
+  display:grid; place-items:center; flex:none; width:32px; height:30px;
+  padding:0; border:1px solid var(--line); border-radius:999px;
+  background:var(--surface-2); color:var(--ink-3); cursor:pointer;
+  transition:background .12s ease, color .12s ease, border-color .12s ease;
 }
-.theme-switch button:hover{color:var(--ink)}
-.theme-switch button[aria-pressed="true"]{
-  background:var(--raised); color:var(--ink);
-  box-shadow:0 1px 2px rgba(20,30,45,.16);
-}
-.theme-switch svg{display:block; pointer-events:none}
+.theme-toggle:hover{background:var(--raised); color:var(--ink); border-color:var(--ink-3)}
+.theme-toggle svg{display:block; pointer-events:none}
 body.busy .workspace, body.busy .deck{cursor:progress}
 
 /* ---------- layout ----------
@@ -163,42 +168,55 @@ body.busy .workspace, body.busy .deck{cursor:progress}
 
    Nothing stretches past --shell. An exposure sheet ruled across 2500px of
    monitor is a wall of parallel lines and nothing is easier to read for it. */
-:root{ --shell:1400px; --gut:22px }
-.deck, .tabs, .workspace{
+:root{ --shell:1400px; --gut:22px; --rail:364px }
+
+/* Two columns for the whole application: the preview and its motion controls
+   in a rail on the left, the tabs and whatever is open in them on the right.
+   Stacked, a desktop window spent its first screen on the preview and you had
+   to scroll to reach the exposure sheet — the two things you are comparing
+   were never on screen together. Side by side they both land above the fold,
+   and the sheet's default height is the rail's height for the same reason. */
+.shellgrid{
   max-width:var(--shell); margin-inline:auto;
+  display:grid; grid-template-columns:var(--rail) minmax(0,1fr);
+  gap:18px; padding:16px var(--gut) 26px; align-items:start;
 }
-/* Two columns and two rows: the preview runs down the left, and the right
-   column is the exposure sheet with the blur and keyframe controls tucked
-   directly under it, at the same width — they belong to the sheet's half of
-   the deck, not to the page. */
-.deck{
-  display:grid; grid-template-columns:364px minmax(0,1fr);
-  /* The preview spans all three rows. Without this the browser shares its
-     surplus height between them and opens a gap under the sheet; naming the
-     last row as the elastic one sends the slack to the bottom instead. */
-  grid-template-rows:auto auto 1fr;
-  gap:16px; padding:16px var(--gut) 0; align-items:start;
-}
-.deck > .stage-panel{grid-column:1; grid-row:1 / span 3}
-.deck > .sheet-panel{grid-column:2; grid-row:1}
-.deck > .motionbar{grid-column:2; grid-row:2}
-.deck > .scriptbar{grid-column:2; grid-row:3}
+.maincol{min-width:0}
+/* The rail. The preview first, then the blur and keyframe controls, which
+   belong against the picture rather than in a tab that can be shut. */
+.deck{display:flex; flex-direction:column; gap:16px; min-width:0}
 .deck > .panel{display:flex; flex-direction:column; min-width:0}
+/* Under about 1200px there is no room for a rail and a working area side by
+   side, so the rail goes back to being a band across the top. */
 @media (max-width:1180px){
-  .deck{grid-template-columns:minmax(0,1fr)}
-  .deck > .stage-panel, .deck > .sheet-panel,
-  .deck > .motionbar, .deck > .scriptbar{grid-column:1; grid-row:auto}
+  .shellgrid{grid-template-columns:minmax(0,1fr); gap:0; padding-bottom:0}
+  .maincol{padding-top:4px}
+  /* Across the top, the preview would otherwise stretch the full window and
+     stand a 340px mouth in the middle of an acre of checkerboard. The motion
+     controls underneath are left to take the width — they want it. */
+  .deck > .stage-panel{max-width:620px; margin-inline:auto; width:100%}
 }
 @media (max-width:820px){:root{--gut:14px}}
 
 /* Blur and keyframes are aimed at the preview — you want the picture in view
    while you drag a slider or set a key — so they stay in the deck rather than
    going into a tab that could be shut. */
+/* The sheet tab. The sheet is the working document, so it gets the whole
+   width; the script sits under it because the words are drawn under the sheet
+   and belong to it rather than to the page. */
+.sheetpane{display:flex; flex-direction:column; gap:16px}
+.sheetpane > .panel{min-width:0}
+/* Opens at the height of the preview panel beside it — see sizeSheetPane —
+   and grows past it when the sheet or the script needs the room. The fallback
+   matters: before the first measurement, and in anything without a working
+   custom property, 420px is about what the preview comes out at. */
+.sheetpane > .sheet-panel{min-height:var(--preview-h, 420px)}
+
 .motionbar{min-width:0}
 .motionbar > .panel{overflow:visible}
 /* Wide enough, and the two rows sit side by side rather than stacking into a
    tall band that pushes the tabs off the screen. */
-@media (min-width:1000px){
+@media (min-width:1000px) and (max-width:1180px){
   .motionbar .panel-body{display:grid; grid-template-columns:1fr 1fr}
   .motionbar .ov-row.flat + .ov-row.flat{border-top:0; border-left:1px solid var(--line-soft)}
   .motionbar .ov-row.flat{align-content:flex-start}
@@ -235,9 +253,12 @@ body.busy .workspace, body.busy .deck{cursor:progress}
    rather than a label, and an accent cap on the one you are in. In daylight a
    white-on-near-white tab reads as nothing at all, which is what this fixes. */
 .tabs{
-  display:flex; gap:5px; padding:20px var(--gut) 0; flex-wrap:wrap;
+  display:flex; gap:5px; padding:0; flex-wrap:wrap;
   border-bottom:2px solid var(--line); align-items:flex-end;
 }
+/* Stacked, the strip needs the gutter and some air above it that it does not
+   need when it is the top of its own column. */
+@media (max-width:1180px){.tabs{padding:16px var(--gut) 0}}
 .tab{
   appearance:none; border:1px solid var(--line); border-bottom:0;
   background:var(--surface-2); color:var(--ink-2); cursor:pointer;
@@ -252,7 +273,8 @@ body.busy .workspace, body.busy .deck{cursor:progress}
   /* the accent cap on top, and a lid over the rule below */
   box-shadow:inset 0 3px 0 var(--accent), 0 2px 0 var(--surface);
 }
-.workspace{padding:16px var(--gut) 26px}
+.workspace{padding:16px 0 0}
+@media (max-width:1180px){.workspace{padding:16px var(--gut) 26px}}
 .tabcols{
   display:grid; grid-template-columns:340px minmax(0,1fr);
   gap:16px; align-items:start;
@@ -533,7 +555,10 @@ select, input[type=text], input[type=number]{
   padding:4px 9px; color:var(--ink-2);
 }
 .stage-badge b{color:var(--ink); font-weight:500}
-.stage-flip{
+/* .btn.ghost sets a transparent background and outranks a single class, so
+   this has to carry both or the button floats over the checkerboard with no
+   fill — pale text on a pale check in dark mode, and all but unreadable. */
+.btn.ghost.stage-flip{
   position:absolute; top:12px; right:12px; z-index:2; width:auto;
   display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
   background:var(--surface);
@@ -716,15 +741,45 @@ select, input[type=text], input[type=number]{
 
 /* ---------- export ----------
    Six cards. Given the room they lay out three across and two down, so the
-   whole set of options is in view at once instead of a long scroll. */
+   whole set of options is in view at once instead of a long scroll.
+
+   The prose that used to sit on every card — what the format is, and the
+   paragraph of caveats under the button — now lives behind the small i, so a
+   card is its title, its own options and its button. What stayed on the card
+   is everything that changes: the size estimate, the batch-scope note, and the
+   warnings. A warning you have to open a panel to find is a warning nobody
+   reads, and the point of it is to stop you exporting the wrong thing. */
 .expgrid{display:grid; grid-template-columns:minmax(0,1fr); gap:10px}
 @media (min-width:760px){.expgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (min-width:1120px){.expgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 /* Push the estimate and its button to the bottom of every card so the row of
    buttons lines up across cards with different amounts of text. */
 .expgrid .exp .est{margin-top:auto}
-.exp{display:flex; flex-direction:column; gap:5px; padding:11px; border:1px solid var(--line); border-radius:9px; background:var(--surface-2)}
+.exp{position:relative; display:flex; flex-direction:column; gap:5px; padding:11px; border:1px solid var(--line); border-radius:9px; background:var(--surface-2)}
 .exp h3{font-size:12.5px; font-weight:600; letter-spacing:0}
+.exphead{display:flex; align-items:center; gap:8px}
+.exphead h3{flex:1 1 auto; min-width:0}
+.infobtn{
+  flex:none; width:18px; height:18px; padding:0; border-radius:50%;
+  border:1px solid var(--line); background:var(--raised); color:var(--ink-3);
+  font:600 11px/1 ui-serif,Georgia,serif; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center;
+}
+.infobtn:hover{border-color:var(--ink-3); color:var(--ink)}
+.infobtn[aria-expanded="true"]{background:var(--accent-soft); border-color:var(--accent-line); color:var(--ink)}
+/* Over the card, not beside it: three cards across means a panel hanging off
+   the side would fall outside the tab on the right-hand column. Anchored to
+   the top so the title it belongs to stays readable above it. */
+.expinfo{
+  position:absolute; z-index:30; left:7px; right:7px; top:30px;
+  display:flex; flex-direction:column; gap:7px;
+  padding:10px 11px; border:1px solid var(--line);
+  border-radius:9px; background:var(--raised);
+  box-shadow:0 10px 26px rgba(20,30,45,.20);
+  max-height:260px; overflow-y:auto;
+}
+.expinfo p{margin:0}
+.expinfo .mono{font-family:'DM Mono',ui-monospace,monospace}
 .exp p{font-size:11.5px; color:var(--ink-2); line-height:1.45}
 .exp .warn{color:var(--signal)}
 .exp .est{font-family:'DM Mono',ui-monospace,monospace; font-size:11px; color:var(--ink-3)}
@@ -842,30 +897,35 @@ try {
   <div class="topbar-right">
     <span class="chip" id="engineChip"><span class="dot"></span> <span id="engineTxt">Engine · Built-in DSP</span></span>
     <span class="chip" id="modeChip"><span class="dot"></span> <span id="modeTxt">Local file</span></span>
-    <div class="theme-switch" id="themeSwitch" role="group" aria-label="Appearance">
-      <button type="button" data-theme="light" aria-pressed="false" title="Light" aria-label="Light">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
-          <circle cx="8" cy="8" r="3.1"/>
-          <path d="M8 1.2v1.6M8 13.2v1.6M1.2 8h1.6M13.2 8h1.6M3.2 3.2l1.15 1.15M11.65 11.65l1.15 1.15M12.8 3.2l-1.15 1.15M4.35 11.65L3.2 12.8"/>
-        </svg>
-      </button>
-      <button type="button" data-theme="auto" aria-pressed="true" title="Match the system setting" aria-label="Automatic">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
-          <circle cx="8" cy="8" r="5.6"/>
-          <path d="M8 2.4a5.6 5.6 0 0 1 0 11.2Z" fill="currentColor" stroke="none"/>
-        </svg>
-      </button>
-      <button type="button" data-theme="dark" aria-pressed="false" title="Dark" aria-label="Dark">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round">
-          <path d="M13.2 9.8A5.7 5.7 0 0 1 6.2 2.8a5.7 5.7 0 1 0 7 7Z"/>
-        </svg>
-      </button>
-    </div>
+    <!-- One button, not three. The old strip had light / auto / dark, and auto
+         is a state nobody needs to see: the app still starts on the system
+         setting, and the first click is what turns it into a choice worth
+         remembering. The icon shows where you are; the tooltip says where the
+         click takes you. -->
+    <button type="button" class="theme-toggle" id="themeToggle" title="Switch to dark appearance" aria-label="Switch to dark appearance">
+      <svg class="t-sun" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+        <circle cx="8" cy="8" r="3.1"/>
+        <path d="M8 1.2v1.6M8 13.2v1.6M1.2 8h1.6M13.2 8h1.6M3.2 3.2l1.15 1.15M11.65 11.65l1.15 1.15M12.8 3.2l-1.15 1.15M4.35 11.65L3.2 12.8"/>
+      </svg>
+      <svg class="t-moon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" style="display:none">
+        <path d="M13.2 9.8A5.7 5.7 0 0 1 6.2 2.8a5.7 5.7 0 1 0 7 7Z"/>
+      </svg>
+    </button>
   </div>
 </header>
 
+<p class="privacy">
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+    <rect x="3" y="7" width="10" height="7" rx="1.6"/>
+    <path d="M5.6 7V5.2a2.4 2.4 0 0 1 4.8 0V7"/>
+  </svg>
+  <span><b>Private by design.</b> One local file, and all the work happens in this browser. Your audio, video and pictures are never uploaded — no account, no server, nothing kept. The only thing the page ever fetches is a <span class="mono">lips/</span> folder beside it, if you keep one.</span>
+</p>
+
 <!-- ============ DECK: playback + scrubbing, right below ============ -->
-<section class="deck">
+<!-- ===== the application proper: rail on the left, tabs on the right ===== -->
+<div class="shellgrid">
+<section class="deck" id="deck">
   <section class="panel stage-panel">
     <header>
       <h2>Preview</h2>
@@ -992,6 +1052,41 @@ try {
     </div>
   </section>
 
+  <section class="motionbar" id="motionBar" hidden>
+    <section class="panel" id="motionPanel">
+      <header><h2>Blur &amp; keyframes</h2></header>
+      <div class="panel-body" style="padding:0; gap:0">
+    <div class="ov-row flat" id="patchRow" hidden>
+      <label class="check"><input type="checkbox" id="patchOn"><span>Blur patch</span></label>
+      <label class="sl"><span>Blur</span><input type="range" id="patchBlur" min="0" max="100" value="35" aria-label="Blur strength"></label>
+      <label class="sl"><span>Cover</span><input type="range" id="patchCover" min="40" max="280" value="125" aria-label="Blur coverage"></label>
+      <p class="hint" style="flex:1 1 100%">Blurs the picture under the mouth, to cover the one printed on a doll or a minifigure. Video export only — it cannot go into the Final Cut project, because a transparent PNG has nothing under it to blur.</p>
+    </div>
+    <div class="ov-row flat" id="motionRow" hidden>
+      <button class="btn ghost mini" id="keyToggle" aria-pressed="false" title="Follow the character by setting keys as the shot moves">◆ Keyframes</button>
+      <button class="btn ghost mini" id="keyPrev" title="Previous key" disabled>‹</button>
+      <button class="btn ghost mini" id="keyNext" title="Next key" disabled>›</button>
+      <button class="btn ghost mini" id="keyAdd" disabled>Set key</button>
+      <button class="btn ghost mini" id="keyDel" disabled>Delete key</button>
+      <span class="tspacer"></span>
+      <span class="mono" id="keyCount">off</span>
+      <p class="hint" style="flex:1 1 100%">Scrub to a frame, drag the mouth where it belongs, and a key is set there. Keys show as diamonds on the waveform.</p>
+    </div>
+      </div>
+    </section>
+  </section>
+</section>
+
+<div class="maincol">
+<nav class="tabs" role="tablist" aria-label="Controls">
+  <button class="tab" id="tabBtn-sheet" role="tab" aria-controls="tab-sheet" aria-selected="true">Exposure sheet</button>
+  <button class="tab" id="tabBtn-analysis" role="tab" aria-controls="tab-analysis" aria-selected="false">Analysis</button>
+  <button class="tab" id="tabBtn-mouth" role="tab" aria-controls="tab-mouth" aria-selected="false">Mouth &amp; motion</button>
+  <button class="tab" id="tabBtn-export" role="tab" aria-controls="tab-export" aria-selected="false">Export</button>
+</nav>
+
+<main class="workspace">
+  <div class="tabpane sheetpane" id="tab-sheet" role="tabpanel" aria-labelledby="tabBtn-sheet">
   <section class="panel sheet-panel">
     <header>
       <h2>Exposure sheet</h2>
@@ -1041,33 +1136,6 @@ try {
       </div>
     </div>
   </section>
-
-  <!-- ===== Overlay placement: pinned under the sheet, where you can see
-       the preview it is changing ===== -->
-  <section class="motionbar" id="motionBar" hidden>
-    <section class="panel" id="motionPanel">
-      <header><h2>Blur &amp; keyframes</h2></header>
-      <div class="panel-body" style="padding:0; gap:0">
-    <div class="ov-row flat" id="patchRow" hidden>
-      <label class="check"><input type="checkbox" id="patchOn"><span>Blur patch</span></label>
-      <label class="sl"><span>Blur</span><input type="range" id="patchBlur" min="0" max="100" value="35" aria-label="Blur strength"></label>
-      <label class="sl"><span>Cover</span><input type="range" id="patchCover" min="40" max="280" value="125" aria-label="Blur coverage"></label>
-      <p class="hint" style="flex:1 1 100%">Blurs the picture under the mouth, to cover the one printed on a doll or a minifigure. Video export only — it cannot go into the Final Cut project, because a transparent PNG has nothing under it to blur.</p>
-    </div>
-    <div class="ov-row flat" id="motionRow" hidden>
-      <button class="btn ghost mini" id="keyToggle" aria-pressed="false" title="Follow the character by setting keys as the shot moves">◆ Keyframes</button>
-      <button class="btn ghost mini" id="keyPrev" title="Previous key" disabled>‹</button>
-      <button class="btn ghost mini" id="keyNext" title="Next key" disabled>›</button>
-      <button class="btn ghost mini" id="keyAdd" disabled>Set key</button>
-      <button class="btn ghost mini" id="keyDel" disabled>Delete key</button>
-      <span class="tspacer"></span>
-      <span class="mono" id="keyCount">off</span>
-      <p class="hint" style="flex:1 1 100%">Scrub to a frame, drag the mouth where it belongs, and a key is set there. Keys show as diamonds on the waveform.</p>
-    </div>
-      </div>
-    </section>
-  </section>
-
   <section class="panel scriptbar" id="scriptBar" hidden>
     <header>
       <h2>Script</h2>
@@ -1079,15 +1147,8 @@ try {
       <p class="hint" id="scriptStatus">The words are spread across the phrases the analyser found, by syllable count, and drawn under the sheet. It lines you up with the timeline — it is not a transcription.</p>
     </div>
   </section>
-</section>
+  </div>
 
-<nav class="tabs" role="tablist" aria-label="Controls">
-  <button class="tab" id="tabBtn-analysis" role="tab" aria-controls="tab-analysis" aria-selected="true">Analysis</button>
-  <button class="tab" id="tabBtn-mouth" role="tab" aria-controls="tab-mouth" aria-selected="false">Mouth &amp; motion</button>
-  <button class="tab" id="tabBtn-export" role="tab" aria-controls="tab-export" aria-selected="false">Export</button>
-</nav>
-
-<main class="workspace">
   <div class="tabpane" id="tab-analysis" role="tabpanel" aria-labelledby="tabBtn-analysis">
     <div class="tabcols wide">
     <section class="panel">
@@ -1146,7 +1207,10 @@ try {
   </div>
 
   <div class="tabpane" id="tab-mouth" role="tabpanel" aria-labelledby="tabBtn-mouth" hidden>
-    <div class="tabcols">
+    <!-- Stacked, not side by side: the style picker is a grid of thumbnails
+         and wants the width, and the chart underneath is read left to right a
+         row at a time. Beside each other, both were squeezed. -->
+    <div class="tabcols wide">
     <section class="panel">
       <header>
         <h2>Mouth style</h2>
@@ -1246,8 +1310,10 @@ try {
 
         <div class="expgrid">
         <div class="exp">
-          <h3>Chroma-key MP4</h3>
-          <p>The mouth over a solid key colour at your frame rate, with the voice track muxed in. Drop it on a timeline and key the background out.</p>
+          <div class="exphead">
+            <h3>Chroma-key MP4</h3>
+            <button type="button" class="infobtn" aria-expanded="false" aria-controls="infoMp4" aria-label="About the chroma-key MP4 export">i</button>
+          </div>
           <div class="keyrow">
             <span id="swatches" class="swatches"></span>
             <input type="color" id="keyColor" value="#00B140" aria-label="Key colour">
@@ -1257,12 +1323,17 @@ try {
           <span class="est mono" id="estMp4">—</span>
           <p class="hint warn" id="mp4Warn" hidden></p>
           <button class="btn" id="expMp4" disabled>Export chroma-key MP4</button>
-          <p class="hint">Video chroma is half-resolution, so the key edge is softer than the PNG alpha. For a clean matte, use the frame sequence. With the puppet behind it the frame becomes the whole picture at the puppet's own proportions, and a cut-out puppet's transparency fills with the key colour — so keying it out cuts it out again on the far side.</p>
+          <div class="expinfo" id="infoMp4" hidden>
+            <p>The mouth over a solid key colour at your frame rate, with the voice track muxed in. Drop it on a timeline and key the background out.</p>
+            <p>Video chroma is half-resolution, so the key edge is softer than the PNG alpha. For a clean matte, use the frame sequence. With the puppet behind it the frame becomes the whole picture at the puppet's own proportions, and a cut-out puppet's transparency fills with the key colour — so keying it out cuts it out again on the far side.</p>
+          </div>
         </div>
 
         <div class="exp">
-          <h3>Final Cut Pro project</h3>
-          <p>An <b>.fcpxml</b> project plus full-frame transparent PNGs, one clip per run of frames. File &gt; Import &gt; XML in Final Cut, then paste the clips over your footage — no transform needed, the placement is already baked in. Keyframes and the blur patch stay out of it; those belong to the overlay video.</p>
+          <div class="exphead">
+            <h3>Final Cut Pro project</h3>
+            <button type="button" class="infobtn" aria-expanded="false" aria-controls="infoFcp" aria-label="About the Final Cut Pro export">i</button>
+          </div>
           <div class="row">
             <select id="fcpSize" aria-label="Timeline size">
               <option value="video" id="fcpSizeVideo" hidden>Match the video</option>
@@ -1278,12 +1349,17 @@ try {
           <span class="est mono" id="estFcp">—</span>
           <p class="hint" id="fcpBatchNote" hidden><b>Batch Export</b> gives you one project holding every clip on one timeline in load order, each as its own compound clip — not a project apiece. For one clip's own project, switch to <b>Current Selection Export</b>.</p>
           <button class="btn" id="expFcp" disabled>Export Final Cut project</button>
-          <p class="hint">Wrapped, the run of mouth clips arrives as one item you can slide, trim and stack in one go; open it to get at the individual shapes. Untick to drop the bare clips straight onto the spine. Leave the folder empty and the project points at the PNGs beside it, so the unzipped folder just works. Fill it in with where the folder will end up and the paths become absolute. Either way, if Final Cut shows the clips as missing, <b>File &gt; Relink Files</b> reconnects them all at once. <b>Put the puppet behind it</b> ships the puppet itself in the zip and puts it on the storyline with the mouths connected above — a layer you can still move, not pixels baked together.</p>
+          <div class="expinfo" id="infoFcp" hidden>
+          <p>An <b>.fcpxml</b> project plus full-frame transparent PNGs, one clip per run of frames. File &gt; Import &gt; XML in Final Cut, then paste the clips over your footage — no transform needed, the placement is already baked in. Keyframes and the blur patch stay out of it; those belong to the overlay video.</p>
+          <p class="hint">Wrapped, the run of mouth clips arrives as one item you can slide, trim and stack in one go; open it to get at the individual shapes. Untick to drop the bare clips straight onto the spine. Leave the folder empty and the project points at the PNGs beside it, so the unzipped folder just works. Fill it in with where the folder will end up and the paths become absolute. Either way, if Final Cut shows the clips as missing, <b>File &gt; Relink Files</b> reconnects them all at once. <b>Put the puppet behind it</b> ships the puppet itself in the zip and puts it on the storyline with the mouths connected above — a layer you can still move, not pixels baked together. <b>Include the voice track</b> puts the audio in the project too, connected below the mouths at 00:00, so there is nothing left to drag in.</p>
+          </div>
         </div>
 
         <div class="exp" id="expOverlayCard" hidden>
-          <h3>Video with mouth overlay</h3>
-          <p>Burns the mouth into your source video where you placed it. Stepped frame by frame, so it never drifts — expect it to take longer than the clip runs.</p>
+          <div class="exphead">
+            <h3>Video with mouth overlay</h3>
+            <button type="button" class="infobtn" aria-expanded="false" aria-controls="infoOverlay" aria-label="About the overlay video export">i</button>
+          </div>
           <div class="row">
             <select id="ovFps" aria-label="Output frame rate">
               <option value="24">24 fps</option>
@@ -1301,57 +1377,85 @@ try {
           <p class="hint warn" id="videoWarn" hidden>This browser cannot decode the picture in this file, so there is nothing to burn the mouth onto. Re-wrap the clip as H.264 and it will work.</p>
           <p class="hint" id="ovBatchNote" hidden>This one is always the open clip, whatever the scope above says — it renders about as long as the clip runs, so it is the export that wants watching rather than queueing.</p>
           <button class="btn" id="expOverlay" disabled>Export overlay video</button>
-          <p class="hint">Best on a locked-off shot — the mouth stays where you put it, it does not track the face. A video cannot hold transparency, so a cut-out puppet comes out on black here; for a cut-out, use the animated PNG or the frame sequence with <b>Put the puppet behind it</b>.</p>
+          <div class="expinfo" id="infoOverlay" hidden>
+            <p>Burns the mouth into your source video where you placed it. Stepped frame by frame, so it never drifts — expect it to take longer than the clip runs.</p>
+            <p>Best on a locked-off shot — the mouth stays where you put it, it does not track the face. A video cannot hold transparency, so a cut-out puppet comes out on black here; for a cut-out, use the animated PNG or the frame sequence with <b>Put the puppet behind it</b>.</p>
+          </div>
         </div>
 
         <div class="exp">
-          <h3>Transparent GIF</h3>
-          <p>The mouth on its own, animated, with a see-through background. Drops onto a slide, a web page or a chat window without a matte.</p>
+          <div class="exphead">
+            <h3>Transparent GIF</h3>
+            <button type="button" class="infobtn" aria-expanded="false" aria-controls="infoGif" aria-label="About the transparent GIF export">i</button>
+          </div>
           <label class="check"><input type="checkbox" id="gifLoop"><span>Loop forever</span></label>
           <label class="check" hidden><input type="checkbox" id="gifPlate"><span>Put the puppet behind it</span></label>
           <label class="check"><input type="checkbox" class="withaud" id="audGif"><span>Include the voice track</span></label>
           <span class="est mono" id="estGif">—</span>
           <button class="btn" id="expGif" disabled>Export transparent GIF</button>
-          <p class="hint">GIF transparency is one colour, not an alpha channel, so the soft edge of the mouth becomes a hard one and the picture is cut to 255 colours. For a clean edge over video, use the animated PNG, the frame sequence or the Final Cut project. With <b>Put the puppet behind it</b> ticked every frame is the whole picture, so the long edge is held to 800px however big an output size is chosen — a GIF stores each frame whole and a full-size one is unusable.</p>
+          <div class="expinfo" id="infoGif" hidden>
+            <p>The mouth on its own, animated, with a see-through background. Drops onto a slide, a web page or a chat window without a matte.</p>
+            <p>GIF transparency is one colour, not an alpha channel, so the soft edge of the mouth becomes a hard one and the picture is cut to 255 colours. For a clean edge over video, use the animated PNG, the frame sequence or the Final Cut project. With <b>Put the puppet behind it</b> ticked every frame is the whole picture, so the long edge is held to 800px however big an output size is chosen — a GIF stores each frame whole and a full-size one is unusable.</p>
+          </div>
         </div>
 
         <div class="exp">
-          <h3>Animated PNG</h3>
-          <p>The same animation as the GIF in a single file, but with a real alpha channel and every colour. One <span class="mono">.png</span> that plays.</p>
+          <div class="exphead">
+            <h3>Animated PNG</h3>
+            <button type="button" class="infobtn" aria-expanded="false" aria-controls="infoApng" aria-label="About the animated PNG export">i</button>
+          </div>
           <label class="check"><input type="checkbox" id="apngLoop"><span>Loop forever</span></label>
           <label class="check" hidden><input type="checkbox" id="apngPlate"><span>Put the puppet behind it</span></label>
           <label class="check"><input type="checkbox" class="withaud" id="audApng"><span>Include the voice track</span></label>
           <span class="est mono" id="estApng">—</span>
           <button class="btn" id="expApng" disabled>Export animated PNG</button>
-          <p class="hint">Soft edges survive, so it sits over video without a matte and without the GIF's staircase. Bigger than a GIF — every frame carries its own pixels. Anything that does not animate APNG shows the first frame instead of failing.</p>
+          <div class="expinfo" id="infoApng" hidden>
+            <p>The same animation as the GIF in a single file, but with a real alpha channel and every colour. One <span class="mono">.png</span> that plays.</p>
+            <p>Soft edges survive, so it sits over video without a matte and without the GIF's staircase. Bigger than a GIF — every frame carries its own pixels. Anything that does not animate APNG shows the first frame instead of failing.</p>
+          </div>
         </div>
 
         <div class="exp">
-          <h3>Chart + exposure sheet</h3>
-          <p>One PNG per shape, plus frame-by-frame timing as JSON and CSV. The small, sane option for After Effects, Blender or Spine.</p>
+          <div class="exphead">
+            <h3>Chart + exposure sheet</h3>
+            <button type="button" class="infobtn" aria-expanded="false" aria-controls="infoChart" aria-label="About the chart and exposure sheet export">i</button>
+          </div>
           <label class="check"><input type="checkbox" class="withaud" id="audChart"><span>Include the voice track</span></label>
           <span class="est mono" id="estChart">—</span>
           <button class="btn" id="expChart" disabled>Export chart + timing</button>
+          <div class="expinfo" id="infoChart" hidden>
+            <p>One PNG per shape, plus frame-by-frame timing as JSON and CSV. The small, sane option for After Effects, Blender or Spine.</p>
+          </div>
         </div>
 
         <div class="exp">
-          <h3>Sprite sheet + atlas</h3>
-          <p>Every shape packed into one PNG with a coordinate map, for game engines and web animation.</p>
-          <p class="hint">With the puppet behind it the cells become whole pictures: nine of them for a still puppet that is not being moved, and one per frame for a video or a keyframed move, with an added <span class="mono">sequence</span> list in the atlas saying which cell each frame wants. The sheet is held to 4096px either way.</p>
+          <div class="exphead">
+            <h3>Sprite sheet + atlas</h3>
+            <button type="button" class="infobtn" aria-expanded="false" aria-controls="infoSprite" aria-label="About the sprite sheet export">i</button>
+          </div>
           <label class="check" hidden><input type="checkbox" id="spritePlate"><span>Put the puppet behind it</span></label>
           <label class="check"><input type="checkbox" class="withaud" id="audSprite"><span>Include the voice track</span></label>
           <span class="est mono" id="estSprite">—</span>
           <button class="btn" id="expSprite" disabled>Export sprite sheet</button>
+          <div class="expinfo" id="infoSprite" hidden>
+            <p>Every shape packed into one PNG with a coordinate map, for game engines and web animation.</p>
+            <p>With the puppet behind it the cells become whole pictures: nine of them for a still puppet that is not being moved, and one per frame for a video or a keyframed move, with an added <span class="mono">sequence</span> list in the atlas saying which cell each frame wants. The sheet is held to 4096px either way.</p>
+          </div>
         </div>
 
         <div class="exp">
-          <h3>Frame sequence</h3>
-          <p>One transparent PNG for every frame, numbered. Drops straight onto a timeline — and gets big fast.</p>
+          <div class="exphead">
+            <h3>Frame sequence</h3>
+            <button type="button" class="infobtn" aria-expanded="false" aria-controls="infoSeq" aria-label="About the frame sequence export">i</button>
+          </div>
           <label class="check"><input type="checkbox" class="withaud" id="audSeq"><span>Include the voice track</span></label>
           <label class="check" hidden><input type="checkbox" id="seqPlate"><span>Put the puppet behind it</span></label>
           <span class="est mono" id="estSeq">—</span>
           <button class="btn" id="expSeq" disabled>Export frame sequence</button>
-          <p class="hint">With <b>Put the puppet behind it</b> ticked every frame is the whole picture at the puppet's own size, transparency and all; untick it for the mouth on its own.</p>
+          <div class="expinfo" id="infoSeq" hidden>
+            <p>One transparent PNG for every frame, numbered. Drops straight onto a timeline — and gets big fast.</p>
+            <p>With <b>Put the puppet behind it</b> ticked every frame is the whole picture at the puppet's own size, transparency and all; untick it for the mouth on its own.</p>
+          </div>
         </div>
         </div>
 
@@ -1361,6 +1465,8 @@ try {
     </div>
   </div>
 </main>
+</div>
+</div>
 
 
 <!-- The one thing that keeps moving when the main thread does not. -->
@@ -5986,6 +6092,8 @@ function overlayToolsVisible(show) {
   $('patchRow').hidden = !show;
   $('motionRow').hidden = !show;
   $('motionBar').hidden = !show;
+  // The rail just got taller or shorter, and the sheet pane is sized from it.
+  if (typeof sizeSheetPane === 'function') sizeSheetPane();
 }
 
 /* ------------------------------------------------------------------ tabs
@@ -5993,8 +6101,8 @@ function overlayToolsVisible(show) {
    The deck above stays put; only this strip changes. Canvases inside a hidden
    pane have no layout, so anything drawn while it was away comes back the
    wrong size — the chart is rebuilt on the way in. */
-const TABS = ['analysis', 'mouth', 'export'];
-let activeTab = 'analysis';
+const TABS = ['sheet', 'analysis', 'mouth', 'export'];
+let activeTab = 'sheet';
 
 function showTab(name) {
   if (!TABS.includes(name)) return;
@@ -6007,6 +6115,12 @@ function showTab(name) {
     b.tabIndex = on ? 0 : -1;
   });
   if (name === 'mouth') { buildStyleChips(); buildLipChips(); buildChart(); }
+  // The sheet is two canvases, and a canvas in a hidden pane has no layout:
+  // its clientWidth is zero, so anything drawn while the tab was away comes
+  // back a sliver. Re-measure and repaint on the way in — the same reason the
+  // chart is rebuilt above, and the reason the sheet could not simply be moved
+  // into a tab and left alone.
+  if (name === 'sheet') { sizeSheetPane(); layoutSheet(); drawSheet(); drawOverview(); }
 }
 
 function wireTabs() {
@@ -6014,7 +6128,7 @@ function wireTabs() {
     $('tabBtn-' + t).addEventListener('click', () => showTab(t));
   });
   // Left/right arrows walk the strip, which is what a tablist is expected to do.
-  $('tabBtn-analysis').parentElement.addEventListener('keydown', e => {
+  $('tabBtn-sheet').parentElement.addEventListener('keydown', e => {
     const i = TABS.indexOf(activeTab);
     if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
       e.preventDefault();
@@ -6023,10 +6137,51 @@ function wireTabs() {
       $('tabBtn-' + n).focus();
     }
   });
-  // Always open on Analysis. The tab used to be remembered, which meant a
-  // fresh visit landed on Export — the end of the job, with nothing loaded to
-  // export. The work starts at the left.
-  showTab('analysis');
+  // Always open on the exposure sheet. The tab used to be remembered, which
+  // meant a fresh visit landed on Export — the end of the job, with nothing
+  // loaded to export. The work starts at the left, and the sheet IS the work.
+  showTab('sheet');
+}
+
+/* ------------------------------------------------------- export info panels
+
+   One handler for all eight cards, delegated, because the cards are markup and
+   nothing about this needs to know which card it is. One panel open at a time:
+   two panels over a three-across grid overlap each other, and the second click
+   is nearly always "no, the other one". */
+function closeExpInfo(except) {
+  document.querySelectorAll('.expinfo').forEach(p => {
+    if (p === except) return;
+    p.hidden = true;
+    const b = document.querySelector('[aria-controls="' + p.id + '"]');
+    if (b) b.setAttribute('aria-expanded', 'false');
+  });
+}
+
+function wireExpInfo() {
+  document.addEventListener('click', e => {
+    const btn = e.target.closest ? e.target.closest('.infobtn') : null;
+    if (btn) {
+      const pane = $(btn.getAttribute('aria-controls'));
+      if (!pane) return;
+      const open = pane.hidden;
+      closeExpInfo(open ? pane : null);
+      pane.hidden = !open;
+      btn.setAttribute('aria-expanded', String(open));
+      return;
+    }
+    // A click anywhere else closes it — including on the card's own controls,
+    // which is the point: the panel is covering them.
+    if (!(e.target.closest && e.target.closest('.expinfo'))) closeExpInfo(null);
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const open = document.querySelector('.expinfo:not([hidden])');
+    if (!open) return;
+    const btn = document.querySelector('[aria-controls="' + open.id + '"]');
+    closeExpInfo(null);
+    if (btn) btn.focus();
+  });
 }
 
 function updateOverlayReadout() {
@@ -6123,6 +6278,27 @@ function alignScript(text) {
 
 /* ----------------------------------------------------- 6. the exposure sheet */
 
+/* --- the sheet opens at the height of the preview beside it -----------------
+
+   Asked for, and right: the sheet tab replaced a panel that used to sit next to
+   the preview, so opening at some other height makes the page jump on every tab
+   change. It is a MINIMUM rather than a fixed height — a long take, or the
+   script panel underneath, still pushes past it.
+
+   It has to be measured rather than written in CSS, because the preview is in
+   the deck and the sheet is in the workspace: two separate containers with no
+   CSS relationship to inherit. The number goes on the root as a custom property
+   so the stylesheet still owns what to do with it. */
+function sizeSheetPane() {
+  const deck = document.querySelector('.deck .stage-panel');
+  const pane = document.getElementById('tab-sheet');
+  if (!deck || !pane) return;
+  const h = Math.round(deck.getBoundingClientRect().height);
+  // Zero while the deck itself is hidden or mid-layout; keeping the last good
+  // value beats collapsing the pane to nothing for a frame.
+  if (h > 80) document.documentElement.style.setProperty('--preview-h', h + 'px');
+}
+
 const CW = 17;                       // px per frame in the detail strip
 function layoutSheet() {
   const sp = $('xsSpacer');
@@ -6173,6 +6349,10 @@ function css(name) {
    at draw time, so they hold the old colours until told to repaint, and the
    checker pattern is memoised from --surface-2/--surface-3 and has to go. */
 const THEME_KEY = 'mouthchart.theme';
+// 'auto' only until the first click. Nothing in the interface says "auto" any
+// more — the toggle has two positions — but the state is still needed, because
+// a first visit should take the system setting and follow it if the system
+// changes under us, and the click is what ends that.
 let themeChoice = 'auto';
 
 function repaintTheme() {
@@ -6181,13 +6361,34 @@ function repaintTheme() {
   drawOverview();
 }
 
+function systemPrefersDark() {
+  try { return window.matchMedia('(prefers-color-scheme: dark)').matches; }
+  catch (e) { return false; }
+}
+
+function effectiveTheme() {
+  return themeChoice === 'auto' ? (systemPrefersDark() ? 'dark' : 'light') : themeChoice;
+}
+
+function syncThemeToggle() {
+  const b = $('themeToggle');
+  if (!b) return;
+  const dark = effectiveTheme() === 'dark';
+  const sun = b.querySelector('.t-sun'), moon = b.querySelector('.t-moon');
+  // style.display rather than the hidden attribute: these are SVG elements,
+  // and display is the one thing every engine honours on them.
+  if (sun) sun.style.display = dark ? 'none' : 'block';
+  if (moon) moon.style.display = dark ? 'block' : 'none';
+  const label = 'Switch to ' + (dark ? 'light' : 'dark') + ' appearance';
+  b.setAttribute('title', label);
+  b.setAttribute('aria-label', label);
+}
+
 function applyTheme(choice, repaint) {
   themeChoice = (choice === 'light' || choice === 'dark') ? choice : 'auto';
   if (themeChoice === 'auto') document.documentElement.removeAttribute('data-theme');
   else document.documentElement.setAttribute('data-theme', themeChoice);
-  const sw = $('themeSwitch');
-  if (sw) [...sw.querySelectorAll('button[data-theme]')].forEach(b =>
-    b.setAttribute('aria-pressed', String(b.dataset.theme === themeChoice)));
+  syncThemeToggle();
   if (repaint) repaintTheme();
 }
 
@@ -6199,14 +6400,13 @@ function initTheme() {
   } catch (e) {}
   applyTheme(saved, false);
 
-  $('themeSwitch').addEventListener('click', e => {
-    const b = e.target.closest('button[data-theme]');
-    if (!b) return;
-    applyTheme(b.dataset.theme, true);
-    try {
-      if (themeChoice === 'auto') localStorage.removeItem(THEME_KEY);
-      else localStorage.setItem(THEME_KEY, themeChoice);
-    } catch (err) {}
+  const btn = $('themeToggle');
+  if (btn) btn.addEventListener('click', () => {
+    // From wherever we actually are, not from the stored choice — on a first
+    // visit under a dark system the stored choice is 'auto', and clicking has
+    // to go to light, not to dark again.
+    applyTheme(effectiveTheme() === 'dark' ? 'light' : 'dark', true);
+    try { localStorage.setItem(THEME_KEY, themeChoice); } catch (err) {}
   });
 }
 
@@ -7382,6 +7582,51 @@ function fcpPuppetInfo() {
            rel: 'puppet/' + safeName(f.name || (kind === 'image' ? 'puppet.png' : 'puppet.mov')) };
 }
 
+/* --- the voice track, on the timeline rather than beside it -------------------
+
+   Ticking "Include the voice track" used to put the audio file in the zip and
+   stop there: the project imported with mouths and silence, and the one thing
+   left to do by hand was the thing the box appeared to promise. Now the file is
+   also an asset in the document and a connected clip at lane -1, so the project
+   opens with picture and sound already together at 00:00.
+
+   Lane -1 rather than the spine: audio connected BELOW the storyline is how
+   Final Cut expresses "this sound belongs with that picture", and it means
+   moving the mouths moves the voice with them.
+
+   Times are in the audio's own sample rate, not the sequence's frame rate.
+   Rounding the voice track to whole frames would either cut up to a frame off
+   the end or claim more media than the file has, and Final Cut is content with
+   sub-frame audio — that is how every audio-led edit in FCPXML is written. */
+function fcpAudioInfo(voice) {
+  if (!voice || !state.buffer) return null;
+  const rate = Math.round(state.buffer.sampleRate) || 48000;
+  const samples = Math.max(1, Math.round(state.buffer.duration * rate));
+  return {
+    rel: voice.name,
+    rate,
+    samples,
+    channels: Math.min(2, state.buffer.numberOfChannels) || 1,
+    dur: fcpSeconds(samples, rate)
+  };
+}
+
+/** The one line that puts a voice track under a clip. Offset is 0 because a
+    connected clip's offset is measured from its parent's start, and the parent
+    is whatever that clip's picture is. */
+function voiceLine(au) {
+  return '<audio ref="' + au.id + '" lane="-1" offset="0s" name="voice" start="0s" duration="' +
+         au.dur + '" role="dialogue"/>';
+}
+
+/** A %time% from a sample count, reduced the way fcpTime reduces frames. */
+function fcpSeconds(n, rate) {
+  if (!n) return '0s';
+  const g = gcd(n, rate);
+  const a = n / g, b = rate / g;
+  return b === 1 ? a + 's' : a + '/' + b + 's';
+}
+
 function fcpxmlDoc(opts) {
   const { w, h, folder } = opts;
   const fps = state.fps;
@@ -7444,6 +7689,18 @@ function fcpxmlDoc(opts) {
     L.push('    </asset>');
   }
 
+  const aud = opts.audio;
+  const audId = 'r' + (states.length + 6);
+  if (aud) {
+    L.push('    <asset id="' + audId + '" name="' + xmlEsc('voice') +
+           '" start="0s" duration="' + aud.dur + '" hasVideo="0" hasAudio="1"' +
+           ' audioSources="1" audioChannels="' + aud.channels +
+           '" audioRate="' + aud.rate + '">');
+    L.push('      <media-rep kind="original-media" src="' +
+           xmlEsc(fcpMediaSrc(folder, aud.rel)) + '"/>');
+    L.push('    </asset>');
+  }
+
   L.push('  </resources>');
   L.push('  <library>');
   L.push('    <event name="' + xmlEsc(proj) + '">');
@@ -7460,6 +7717,10 @@ function fcpxmlDoc(opts) {
     ? ['<ref-clip ref="' + compId + '"' + lane + ' offset="0s" name="' +
        xmlEsc(compName) + '" start="0s" duration="' + fcpTime(total, fps) + '"/>']
     : mouths.map(v => v.replace('<video ', '<video' + lane + ' '));
+  // The voice, connected below whatever is first on the spine. Written once
+  // here and used by both branches, because the only thing that changes is what
+  // it hangs off.
+  const voiceClip = aud ? voiceLine({ ...aud, id: audId }) : null;
   if (pup) {
     const open = pup.kind === 'image'
       ? '<video ref="' + pupId + '" offset="0s" name="puppet" start="0s" duration="' +
@@ -7473,6 +7734,7 @@ function fcpxmlDoc(opts) {
     // It has to come before the connected clips: the DTD puts the intrinsic
     // parameters ahead of the anchored items.
     if (mirror.plate) L.push('              <adjust-transform scale="-1 1"/>');
+    if (voiceClip) L.push('              ' + voiceClip);
     above.forEach(v => L.push('              ' + v));
     L.push('            ' + (pup.kind === 'image' ? '</video>' : '</asset-clip>'));
     // A puppet shorter than the take leaves the spine short, and Final Cut
@@ -7484,6 +7746,16 @@ function fcpxmlDoc(opts) {
       L.push('            <gap offset="' + fcpTime(pup.dur, fps) + '" name="Gap" start="0s" duration="' +
              fcpTime(total - pup.dur, fps) + '"/>');
     }
+  } else if (voiceClip) {
+    // No puppet: the voice hangs off the first thing on the spine, which is the
+    // compound clip when the box is ticked and the first mouth when it is not.
+    // A connected clip may run past its parent — that is what lets a one-frame
+    // mouth carry a whole voice track.
+    const first = above[0].replace(/\/>$/, '>');
+    L.push('            ' + first);
+    L.push('              ' + voiceClip);
+    L.push('            ' + (first.startsWith('<ref-clip') ? '</ref-clip>' : '</video>'));
+    above.slice(1).forEach(v => L.push('            ' + v));
   } else {
     above.forEach(v => L.push('            ' + v));
   }
@@ -7554,6 +7826,9 @@ function fcpxmlMulti(entries, w, h) {
     if (pu.kind !== 'image') pu.fmt = 'r' + (next++);
     return pu;
   });
+  // One voice asset per clip that has one, for the same reason as the puppets:
+  // two clips are two files, and the ids have to be handed out in one place.
+  const auds = entries.map(e => e.audio ? { ...e.audio, id: 'r' + (next++) } : null);
   pups.forEach((pu, i) => {
     if (!pu) return;
     if (pu.fmt) {
@@ -7566,6 +7841,16 @@ function fcpxmlMulti(entries, w, h) {
            '" videoSources="1" audioSources="0">');
     L.push('      <media-rep kind="original-media" src="' +
            xmlEsc(fcpMediaSrc('', pu.rel)) + '"/>');
+    L.push('    </asset>');
+  });
+  auds.forEach((au, i) => {
+    if (!au) return;
+    L.push('    <asset id="' + au.id + '" name="' + xmlEsc(entries[i].name + ' voice') +
+           '" start="0s" duration="' + au.dur + '" hasVideo="0" hasAudio="1"' +
+           ' audioSources="1" audioChannels="' + au.channels +
+           '" audioRate="' + au.rate + '">');
+    L.push('      <media-rep kind="original-media" src="' +
+           xmlEsc(fcpMediaSrc('', au.rel)) + '"/>');
     L.push('    </asset>');
   });
   // Named after the numbered folder, so the compounds sort into running order
@@ -7587,6 +7872,7 @@ function fcpxmlMulti(entries, w, h) {
   let base = 0;
   entries.forEach((e, i) => {
     const pu = pups[i];
+    const au = auds[i];
     const lane = pu ? ' lane="1"' : '';
     // Inside a puppet clip, zero is that clip's start; on the bare spine it is
     // the start of the whole timeline. That is the only difference between the
@@ -7611,12 +7897,19 @@ function fcpxmlMulti(entries, w, h) {
           fcpTime(pu.dur, fps) + '" format="' + pu.fmt + '" srcEnable="video">';
       L.push('            ' + open);
       if (pu.flip) L.push('              <adjust-transform scale="-1 1"/>');
+      if (au) L.push('              ' + voiceLine(au));
       above.forEach(v => L.push('              ' + v));
       L.push('            ' + (pu.kind === 'image' ? '</video>' : '</asset-clip>'));
       if (pu.dur < e.frames) {
         L.push('            <gap offset="' + fcpTime(base + pu.dur, fps) +
                '" name="Gap" start="0s" duration="' + fcpTime(e.frames - pu.dur, fps) + '"/>');
       }
+    } else if (au) {
+      const first = above[0].replace(/\/>$/, '>');
+      L.push('            ' + first);
+      L.push('              ' + voiceLine(au));
+      L.push('            ' + (first.startsWith('<ref-clip') ? '</ref-clip>' : '</video>'));
+      above.slice(1).forEach(v => L.push('            ' + v));
     } else {
       above.forEach(v => L.push('            ' + v));
     }
@@ -7666,7 +7959,7 @@ function fcpMultiReadme(entries, w, h) {
   ].join('\n');
 }
 
-function fcpReadme(w, h, folder, pup) {
+function fcpReadme(w, h, folder, pup, aud) {
   const rel = !folder;
   const n = VIS.length;
   const u = usedVisemes();
@@ -7678,6 +7971,8 @@ function fcpReadme(w, h, folder, pup) {
     '  <name>.fcpxml   the project: one clip per run of frames',
     '  mouths/         ' + shapes + ', ' + w + ' x ' + h + ', one per mouth shape',
     ...(pup ? ['  puppet/         the picture the mouths go on, on the spine beneath them'] : []),
+    ...(aud ? ['  ' + (aud.rel + '                    ').slice(0, 16) +
+               'the voice track, already on the timeline'] : []),
     '',
     'To use it',
     '  1. Unzip this folder somewhere you will keep it. Keep the .fcpxml and the',
@@ -7691,6 +7986,13 @@ function fcpReadme(w, h, folder, pup) {
       '     timeline, and paste it above your own footage.',
     ]),
     '',
+    ...(aud ? [
+      'The voice track',
+      '  It is in the project already, connected below the mouths at 00:00, so',
+      '  there is nothing to drag in. Keep it in this folder with the rest —',
+      '  the project points at it by name, the same way it points at the PNGs.',
+      '',
+    ] : []),
     ...(pup ? [
       'The puppet',
       '  It sits on the spine with its audio switched off at the source, so there',
@@ -7786,9 +8088,13 @@ async function exportFcpxml(sink) {
       }
     }
     const enc = new TextEncoder();
-    files.push({ name: base + '.fcpxml', data: enc.encode(fcpxmlDoc({ w, h, folder, puppet: pup })) });
-    files.push({ name: 'README.txt', data: enc.encode(fcpReadme(w, h, folder, pup)) });
+    // The voice has to be known BEFORE the document is written, because ticking
+    // the box now puts it on the timeline rather than merely in the zip.
     const voice = await audioSidecar('audFcp');
+    const aud = fcpAudioInfo(voice);
+    files.push({ name: base + '.fcpxml',
+                 data: enc.encode(fcpxmlDoc({ w, h, folder, puppet: pup, audio: aud })) });
+    files.push({ name: 'README.txt', data: enc.encode(fcpReadme(w, h, folder, pup, aud)) });
     if (voice) files.push(voice);
     setBusy(true, .95);
     await emit(sink, base + '.zip', 'final-cut', files);
@@ -8974,13 +9280,20 @@ function collectForCombined(combined, clip, sink, index) {
   // different puppet per speaker arrives with both.
   const pupFile = sink.find(f => /(^|\/)puppet\//.test(f.name));
   const pup = pupFile && fcpPuppetInfo();
+  // And the voice, the same way. On the combined timeline each clip's own
+  // track sits at that clip's offset, which is what makes a split conversation
+  // arrive with every line already under its own mouths.
+  const audFile = sink.find(f => /\.(wav|mp3|m4a|aac|ogg|flac)$/i.test(f.name));
+  const aud = audFile && fcpAudioInfo({ name: audFile.name.split('/').pop() });
   combined.entries.push({
     name: clip.name, dir, pngs,
     frames: state.frames.length,
     segs: fcpSegments(w, h),
     states: fcpStates(w, h),
     puppet: pup ? { ...pup, rel: dir + '/' + pupFile.name.split('/').pop(),
-                    data: pupFile.data, flip: mirror.plate } : null
+                    data: pupFile.data, flip: mirror.plate } : null,
+    audio: aud ? { ...aud, rel: dir + '/' + audFile.name.split('/').pop(),
+                   data: audFile.data } : null
   });
 }
 
@@ -8990,6 +9303,7 @@ function combinedFiles(combined) {
   combined.entries.forEach(e => {
     e.pngs.forEach(f => files.push(f));
     if (e.puppet) files.push({ name: e.puppet.rel, data: e.puppet.data });
+    if (e.audio) files.push({ name: e.audio.rel, data: e.audio.data });
   });
   const enc = new TextEncoder();
   files.push({ name: 'all-clips.fcpxml', data: enc.encode(fcpxmlMulti(combined.entries, w, h)) });
@@ -10905,11 +11219,19 @@ function wire() {
   let rt;
   window.addEventListener('resize', () => {
     clearTimeout(rt);
-    rt = setTimeout(() => { layoutSheet(); drawSheet(); drawOverview(); }, 120);
+    rt = setTimeout(() => { sizeSheetPane(); layoutSheet(); drawSheet(); drawOverview(); }, 120);
   });
+  // The preview changes height on its own too — a video loads, a puppet with
+  // different proportions arrives, the invite row appears — and none of those
+  // is a window resize. Watching the panel catches all of them at once.
+  if (typeof ResizeObserver !== 'undefined') {
+    const sp = document.querySelector('.deck .stage-panel');
+    if (sp) new ResizeObserver(() => sizeSheetPane()).observe(sp);
+  }
   const mq = window.matchMedia('(prefers-color-scheme: dark)');
   (mq.addEventListener ? mq.addEventListener.bind(mq, 'change') : mq.addListener.bind(mq))(() => {
-    if (themeChoice === 'auto') repaintTheme();
+    // Still following the system: the toggle's icon has to move with it too.
+    if (themeChoice === 'auto') { syncThemeToggle(); repaintTheme(); }
   });
 }
 
@@ -10949,6 +11271,7 @@ function detectDelivery() {
 function boot() {
   initTheme();
   wireTabs();
+  wireExpInfo();
   buildStyleChips();
   buildChart();
   buildLegend();

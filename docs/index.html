@@ -385,9 +385,10 @@ finds. <b>How</b> it finds it depends on the server:</p>
 <code>python -m http.server</code> all do by default — it reads the listing, and
 the files inside can be called anything. <code>mouth-D.png</code>,
 <code>04_D_wide.png</code> and <code>D.png</code> all land on <code>D</code>.</li>
-<li><b>If it does not</b> — and <b>GitHub Pages does not</b>; it returns "not
-found" for a folder with no <code>index.html</code> in it — the page needs two
-things:
+<li><b>If it does not</b> — <b>GitHub Pages</b> does not; it returns "not
+found" for a folder with no <code>index.html</code> in it, and <b>Amazon S3</b>
+does not either, at any of its endpoints, whether or not the bucket is public —
+the page needs two things:
 <ol>
 <li>A <code>lips/sets.json</code> naming the folders:
 <pre><code>["robot", "sock", "granny"]</code></pre></li>
@@ -401,15 +402,25 @@ listing to read, those are the only names the page can ask for.</li>
 when a listing is unavailable — so if you want one folder layout that works on
 every host, use the nine plain names and ship the manifest.</p>
 
+<blockquote>
+<p><b>The folder is there and nothing shows up</b></p>
+<p>Open one of the pictures directly in the browser —
+<code>.../lips/robot/D.png</code>. If it displays, the files are public and the
+names are right, and what is missing is the manifest. If it does not, it is
+permissions or the path, and no manifest will help. That one check separates
+the two causes, and it is the first thing to do on S3, where a bucket can be
+public and still refuse an object.</p>
+</blockquote>
+
 <hr>
 
 <h2 id="window">The window</h2>
 
-<p>Three strips, top to bottom: the title bar, the working deck (preview on the
-left, exposure sheet on the right), and the tabbed controls.</p>
+<p>The title bar across the top, a line about privacy under it, and then two
+columns: the preview in a rail on the left, and the tabs filling the rest.</p>
 
 <figure>
-  <img src="images/01-first-run.png" alt="The title bar, with the engine chip, the source chip and the appearance switch marked">
+  <img src="images/01-first-run.png" alt="The title bar, with the engine chip, the source chip and the appearance toggle marked">
   <figcaption>The title bar.</figcaption>
 </figure>
 
@@ -418,17 +429,44 @@ left, exposure sheet on the right), and the tabbed controls.</p>
   <li><b>Source</b> — where the file came from and how exports will be handed
       back. <span class="mono">Local file · ZIP exports</span> is the normal
       case.</li>
-  <li><b>Appearance</b> — light, match the system, or dark. It sticks between
+  <li><b>Appearance</b> — one button, light or dark. It opens on whatever your
+      system is set to; click it once and your choice sticks between
       visits.</li>
 </ol>
 
 <figure>
-  <img src="images/03-tabs.png" alt="The three tabs: Analysis, Mouth and motion, Export">
-  <figcaption>The three tabs. Arrow keys move between them when one has focus.</figcaption>
+  <img src="images/01b-privacy.png" alt="The privacy line under the title bar">
+  <figcaption>The privacy line.</figcaption>
 </figure>
 
-<p>Everything above the tabs stays on screen whichever tab you are in, so you can
-scrub the clip while you adjust a setting.</p>
+<p>The line under the title bar is not a slogan. Everything happens in the
+browser, nothing is uploaded, and the only thing the page ever fetches is a
+<span class="mono">lips/</span> folder sitting beside it — see
+<a href="#privacy">Privacy</a>.</p>
+
+<figure>
+  <img src="images/01c-window.png" alt="The whole window: the preview rail on the left, the tabs on the right">
+  <figcaption>The window, with the exposure sheet open.</figcaption>
+</figure>
+
+<p>The preview stays in the left-hand rail whichever tab you are in, so you can
+scrub the clip while you work on it. On a desktop window the preview and the
+whole exposure sheet are in view together, which is the point of the
+arrangement: you are reading the mouth against the timing. Below about 1200px
+of width — a narrow window, a tablet — the rail goes back to being a band
+across the top and the tabs sit under it.</p>
+
+<figure>
+  <img src="images/03-tabs.png" alt="The four tabs: Exposure sheet, Analysis, Mouth and motion, Export">
+  <figcaption>The four tabs. Arrow keys move between them when one has focus.</figcaption>
+</figure>
+
+<p><b>Exposure sheet</b> is the first and opens by default, because it is the
+working document: the frame-by-frame timing you came to correct.
+<b>Analysis</b> holds the settings that produced it, <b>Mouth &amp; motion</b>
+the shapes it is drawn with, and <b>Export</b> what comes out at the end. The
+sheet panel opens at the same height as the preview beside it and grows past it
+when a long clip needs the room.</p>
 
 <hr>
 
@@ -1023,6 +1061,12 @@ says the name” — not a transcription, and not something the analysis uses.</
 <p>Every format is a card, and every card carries its own options and its own
 button. Read the card, set what it offers, press the button at the bottom of it.</p>
 
+<p>A card shows only what changes: its options, its size estimate, and any
+warning that applies right now. What the format is and what it is good for
+lives behind the small <b>i</b> in the corner, so that eight cards fit on a
+screen instead of two. Click the <b>i</b> to read it, click anywhere else or
+press <kbd>Esc</kbd> to put it away; only one opens at a time.</p>
+
 <figure>
   <img src="images/13-export-card.png" alt="The Final Cut Pro card with each of its controls marked">
   <figcaption>One card in detail — the Final Cut Pro project.</figcaption>
@@ -1043,7 +1087,18 @@ button. Read the card, set what it offers, press the button at the bottom of it.
       pictures. Off by default. Every card has its own.</li>
   <li><b>Estimate</b> — roughly what you are about to get, before you commit.</li>
   <li><b>The button</b> — does the export. It always says what it is about to do.</li>
+  <li><b>Info</b> — the notes about this format: what it is, and what to watch
+      for.</li>
 </ol>
+
+<figure>
+  <img src="images/13c-export-info.png" alt="The same card with its notes panel open">
+  <figcaption>The notes, open.</figcaption>
+</figure>
+
+<p>Warnings never go in here — “this browser cannot decode the picture”, and the
+one about what a batch run will do, stay on the face of the card where you
+cannot miss them.</p>
 
 <figure>
   <img src="images/13b-output-size.png" alt="The output size selector at the top of the export tab">
@@ -1536,6 +1591,15 @@ read from where they already are.</p>
 
 <p>You can put the whole thing on a USB stick and use it on a machine with no
 network at all.</p>
+
+<p>The line under the title bar says all of this in one sentence, where someone
+being handed the tool for the first time will see it. The one thing that is not
+quite “no request at all”: served from a web server, the page asks that same
+server for the <code>lips/</code> folder beside it, if you keep one. That is the
+only fetch in the file, it goes nowhere but the host the page came from, and the
+check that keeps this honest — <code>offlinetest.py</code> in the repository —
+runs the page over HTTP and again from <code>file://</code> with the network
+refused, and fails if anything else is requested.</p>
 
 </main>
 </div>

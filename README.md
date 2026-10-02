@@ -42,10 +42,14 @@ the clip in the page itself without any other software.
 ## Quick start
 
 1. Open `lip-sync-generator.html` in Chrome, Edge, Safari or Firefox.
-2. Drop a voice recording onto the **Preview** panel.
-3. Wait a second — the exposure sheet fills in.
+2. Drop a voice recording onto the **Preview** panel, on the left.
+3. Wait a second — the **Exposure sheet** tab, which is already open, fills in.
 4. Press <kbd>Space</kbd> to watch it.
 5. Go to **Export** and take whichever format you need.
+
+The window is two columns: the preview in a rail on the left, and the four tabs
+— **Exposure sheet**, **Analysis**, **Mouth & motion**, **Export** — filling the
+rest, so the picture and the timing are in view together on a desktop screen.
 
 > **Shortest useful path:** drop a WAV, press play, export the
 > **Chart + exposure sheet**. Nine transparent PNGs and a JSON/CSV timing list,
@@ -71,9 +75,9 @@ place, and one difference between them that matters:
 - **Serve it yourself** — MAMP on a Mac, XAMPP on Windows, or
   `python3 -m http.server 8000` in the folder. This is the one that gives you a
   preloaded `lips/` folder of your own mouth art.
-- **Put it on the web** — GitHub Pages. Note that GitHub Pages does not list
-  directories, so a `lips/` folder there needs a `sets.json` and the nine files
-  named `X.png` … `H.png`.
+- **Put it on the web** — GitHub Pages, Amazon S3, any static host. Note that
+  neither GitHub Pages nor S3 lists directories, so a `lips/` folder there needs
+  a `sets.json` and the nine files named `X.png` … `H.png`.
 
 [Ways to run it](docs/manual.md#ways-to-run-it) in the manual has the detail,
 including what a wrapper does to the `lips/` folder and why.
@@ -120,7 +124,11 @@ The single-clip path has no limit and is always the fallback.
 Nothing is uploaded. There is no server, no account, no analytics, and **no
 network request of any kind** — not for your media, not for fonts, not for
 anything. Everything the page needs travels inside it. You can put it on a USB
-stick and use it on a machine with no network at all.
+stick and use it on a machine with no network at all. The line under the title
+bar says so where someone opening it for the first time will see it.
+
+The one exception, and it is the page asking its own host: served from a web
+server, it looks for a `lips/` folder beside itself, if you keep one.
 
 `offlinetest.py` holds that claim to account: it watches every request the page
 makes, and it loads the file a second time from a `file://` URL with the network
@@ -162,10 +170,19 @@ docs/
   images/                   annotated screenshots, and the demo GIFs
 fonts/                      the two typefaces, embedded at build time
 lips/                       optional: your own mouth sets, one folder each
+fixtures/
+  make_fixtures.py          rebuilds the media the harnesses drive the app with
 manualshots.py              regenerates the screenshots
 manualtest.py               checks the manual against the app
 offlinetest.py              proves the file makes no network request
+test_ui.py                  checks the shell: tab order, panel sizes, popovers
 ```
+
+`speech.wav`, `trim-marks.wav` and `codec-vp9.mp4` sit in the project root and
+are build inputs, not documentation, so they are not committed —
+`fixtures/make_fixtures.py` rebuilds all three from nothing. The video is VP9
+and Opus on purpose: the Chromium that Playwright drives carries no proprietary
+codecs, so an H.264 fixture plays on your machine and hangs every harness.
 
 The four demo GIFs at the top — `scene-1.gif`, `scene-2.gif`, `scene-3.gif` and
 `lip-sync-generator-demo-short.gif` — are the exception to everything below.

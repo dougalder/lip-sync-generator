@@ -167,8 +167,13 @@ with sync_playwright() as pw:
     shot(page, "01-first-run", "header.topbar", [
         ("#engineChip", "b"),
         ("#modeChip", "b"),
-        ("#themeSwitch", "bl"),
+        ("#themeToggle", "bl"),
     ])
+    plain(page, "01b-privacy", ".privacy")
+    # The whole window at once: the preview rail on the left, the tabs filling
+    # the rest. Nothing is numbered — it is here to show the shape of the page,
+    # and the parts get their own pictures further down.
+    plain(page, "01c-window", ".shellgrid")
     shot(page, "02-drop", ".stage-panel", [
         ("#drop", "tr"),
         ("#stageWrap", "r"),
@@ -190,6 +195,9 @@ with sync_playwright() as pw:
     ])
 
     print("a clip loaded")
+    # #fps lives in the Analysis tab, and the sheet is what opens now, so the
+    # control has to be on screen before it can be set.
+    tab(page, "analysis")
     page.select_option("#fps", "12")
     load(page, "speech.wav")
     page.evaluate("seekTo(1.2)")
@@ -205,6 +213,9 @@ with sync_playwright() as pw:
         ("#loopBtn", "b"),
         ("#frameCount", "t"),
     ])
+    # The sheet is a tab now, not a panel in the deck, so it has to be opened
+    # before it can be photographed — a canvas on a hidden pane has no box.
+    tab(page, "sheet")
     shot(page, "06-sheet", ".sheet-panel", [
         ("#overview", "l"),
         ("#xsScroll", "l"),
@@ -216,6 +227,7 @@ with sync_playwright() as pw:
     ])
 
     print("trim and split")
+    tab(page, "sheet")
     page.click("#trimAuto")
     page.wait_for_timeout(500)
     page.evaluate("seekTo(1.6)")
@@ -238,6 +250,9 @@ with sync_playwright() as pw:
     page.goto(URL)
     page.wait_for_timeout(1200)
     page.evaluate("() => document.documentElement.setAttribute('data-theme','light')")
+    # #fps lives in the Analysis tab, and the sheet is what opens now, so the
+    # control has to be on screen before it can be set.
+    tab(page, "analysis")
     page.select_option("#fps", "12")
     load(page, "codec-vp9.mp4", "12")
     page.wait_for_timeout(600)
@@ -262,6 +277,7 @@ with sync_playwright() as pw:
     shot(page, "09-custom-lips", "#tab-mouth .panel:first-of-type", [
         ("#lipsets", "l"),
         ("#lipsPick", "r"),
+        ("#lipsRemap", "r"),
     ])
     page.click("#styleBtn-builtin")
     page.wait_for_timeout(300)
@@ -282,6 +298,7 @@ with sync_playwright() as pw:
         ("#keyDel", "b"),
         ("#keyCount", "b"),
     ])
+    tab(page, "sheet")
     plain(page, "12-script", "#scriptBar")
 
     print("export, single clip")
@@ -294,15 +311,27 @@ with sync_playwright() as pw:
         ("#audFcp", "l"),
         ("#estFcp", "r"),
         ("#expFcp", "l"),
+        ('[aria-controls="infoFcp"]', "tr"),
     ])
     shot(page, "13b-output-size", "#tab-export .field", [("#outSize", "r")])
+    # The same card with its notes showing, which is the only way to see what
+    # the i does.
+    page.click('[aria-controls="infoFcp"]')
+    page.wait_for_timeout(250)
+    plain(page, "13c-export-info", ".expgrid .exp:nth-child(2)")
+    page.keyboard.press("Escape")
+    page.wait_for_timeout(200)
 
     print("a queue")
     page.goto(URL)
     page.wait_for_timeout(1200)
     page.evaluate("() => document.documentElement.setAttribute('data-theme','light')")
+    # #fps lives in the Analysis tab, and the sheet is what opens now, so the
+    # control has to be on screen before it can be set.
+    tab(page, "analysis")
     page.select_option("#fps", "12")
     load(page, "trim-marks.wav")
+    tab(page, "sheet")
     page.click("#trimAuto")
     page.wait_for_timeout(400)
     page.click("#trimCommit")

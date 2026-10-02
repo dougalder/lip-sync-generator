@@ -53,12 +53,15 @@ with sync_playwright() as pw:
     p.on("request", lambda r: seen.append(r.url))
     p.goto(URL)
     p.wait_for_timeout(2500)
-    # Give it a real clip, so anything lazy has run.
+    # Give it a real clip, so anything lazy has run. The frame rate is in the
+    # Analysis tab, and the sheet is the tab that opens.
+    p.click("#tabBtn-analysis")
+    p.wait_for_timeout(250)
     p.select_option("#fps", "12")
     p.set_input_files("#fileInput", str(HERE / "speech.wav"))
     p.wait_for_function("state.frames.length > 0", timeout=120000)
     p.wait_for_timeout(1200)
-    for t in ("analysis", "mouth", "export"):
+    for t in ("sheet", "analysis", "mouth", "export"):
         p.click("#tabBtn-" + t)
         p.wait_for_timeout(300)
 
@@ -111,6 +114,8 @@ with sync_playwright() as pw:
     got2 = p2.evaluate("() => document.fonts.check('600 16px Archivo')")
     check("with its own fonts, offline", got2)
     # And it still works, not just renders.
+    p2.click("#tabBtn-analysis")
+    p2.wait_for_timeout(250)
     p2.select_option("#fps", "12")
     p2.set_input_files("#fileInput", str(HERE / "speech.wav"))
     p2.wait_for_function("state.frames.length > 0", timeout=120000)
