@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>:root{color-scheme:light dark} html,body{margin:0} img{max-width:100%}</style>
 <title>Lip Sync Generator</title>
+<!-- The tab icon, drawn from the same two paths as the mark in the header
+     and carried as data URIs: the file asks the network for nothing, and
+     that has to stay true of the favicon as much as of the fonts. Rebuild
+     with fixtures/make_favicon.py. -->
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADC0lEQVR4AexUXUhUQRg9c6Xox+66JoGrpgZGZpAWmJGBUmkqSU+lFCX9Cj0UBWmUm22WVi/1YEQIQSCuUtmvrkZlYIQ9mOAf0UNCqQiBthat5e4030Xjuv+u6/rismfvzJnvnO/MnWElqD9FdRpZX2OQS2oaBQY0eiP3B8hLQHgaL6G0PkTd8n8AzQVjhrzQ2svAShhjOwXC1YUzGZOXgPCEXrZZumW9MWvSTwkg62szIaFJFPmt6WQD+6fYoI4BDfJECElTXK0Ft92zL5z9Oa+SS+tCJb4g6GAgdm6/IQamY1brHgmMp9gvBmrOGVIkxjFnAUTvNPEGWHSgduzQh7FoyYEMMDEfYNpvIFGnxb6kWBSlJaA4fZ0CGhOXGK6d9gF6FSA5ajkqspLQcyYXLcczULk7GeeoOYUQoDFxLYUZ6Dq9S6kljTdp3AbIXRuJ9pM5aD6yHYUpq6GTF3v0jNQsUWpJQ9qcNRFuNS4DXM/egPt7t2BVaLBi0Df8E7qyBwi5WOsWMeWP0Df8S9GQtjo/FeSlEE5+nAY4lRqPY5vippTHaIPReHgbNq8Mm8KrJyli7eXRHYjRLlXTihd5TiEnJk4DTKw5PNaLS0YhOsU5PytIhxrd4n6YRMC4sGUOOneE0wA3W3txt+2zS12UOOetsSugRoSb+3HjbQ/I05mh0wBUeLahHfuNreg3/6apTyDtgdp3uPK606XeZQBSPO/tx8ZbL3De1IGuoRGivALVkoa0T3u+udW4DUBKy7gVle8/IfV2E+iGZ1a9wonHH1D+pgsVLd0KaEwcrUVdfajUkoa05OEOHgOoxSOWv2j7+h3VH7/gGjWnEAI0Jo7WRsfG1RKP42kF8OjmQ8F8AIlzPuTDm/OLhHpLYKzDL26+mIjeEgOfswDUWxqTcEeE9/5fRhT76TtCvSVLaX6fDfyQn0y9trEBBdRbIsWoIb+eA9kcfIDmswlx8QZhQ+aoIe8J9VEC0MBsyGs0S4sSOIdBFJkEBomfKUhPXgImscHL5j9B8T/K8pqJJ/wDAAD//1lQS0IAAAAGSURBVAMAceZB0kkxzTkAAAAASUVORK5CYII=">
+<link rel="icon" type="image/png" sizes="64x64" href="data:image/png;base64,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">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
 <!--
   Lip Sync Generator — audio to viseme timing to transparent frames, in one file.
 
@@ -586,6 +593,16 @@ select, input[type=text], input[type=number]{
 /* A puppet replaces the clip's own footage as the thing you see. */
 .stage-wrap.p-img #stageVideo, .stage-wrap.p-vid #stageVideo{display:none}
 /* The PUPPET line, under the file row it belongs to. */
+/* The drawn-face chips. Each one is a tiny portrait rather than a word,
+   because four names in a row read as a form and four faces read as a choice. */
+.facepick{display:inline-flex; gap:5px; align-items:center}
+.facepick button{
+  width:30px; height:34px; padding:0; border:1px solid var(--line); border-radius:7px;
+  background:var(--surface); cursor:pointer; overflow:hidden; display:grid; place-items:center;
+}
+.facepick button:hover{border-color:var(--ink-3)}
+.facepick button[aria-pressed="true"]{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent)}
+.facepick canvas{display:block; width:100%; height:100%}
 .plate-row{
   display:flex; align-items:center; gap:9px; flex-wrap:wrap;
   padding:8px 0 0; margin-top:8px; border-top:1px solid var(--line-soft);
@@ -929,6 +946,12 @@ try {
   <section class="panel stage-panel">
     <header>
       <h2>Preview</h2>
+      <span class="tspacer"></span>
+      <!-- Always here, not only on an empty page: the point of it is as much to
+           get BACK to something that works after an experiment went sideways as
+           it is to show a first-time visitor what the thing does. -->
+      <button class="btn ghost mini" id="demoBtn" style="width:auto"
+              title="A short recorded line and a drawn face, so there is something to look at">Demo</button>
       <label class="check" style="font-size:11.5px"><input type="checkbox" id="checkerToggle" checked><span>Checkerboard</span></label>
     </header>
     <!-- The file goes in here. It lives inside the preview because that is
@@ -971,6 +994,11 @@ try {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"/><path d="M9 7 4 12l5 5z"/><path d="M15 7l5 5-5 5z"/></svg>
               Flip
             </button>
+            <!-- The same four chips again. The invite row they also live in is
+                 gone the moment there IS a puppet, and swapping one drawn face
+                 for another is exactly the thing you want to do then. -->
+            <span class="facepick"></span>
+            <button class="btn ghost mini" id="plateCrop" style="width:auto" hidden>Trim edges</button>
             <button class="btn ghost mini" id="plateSwap" style="width:auto">Replace…</button>
             <button class="btn ghost mini" id="plateDrop" style="width:auto">Remove</button>
           </div>
@@ -1013,6 +1041,10 @@ try {
       </svg>
       <span class="hint">Nothing behind the mouth yet — add a photo or a video to put it on</span>
       <span class="tspacer"></span>
+      <!-- Four drawn faces, filled in from FACES so the markup cannot fall out
+           of step with the drawings. A face places the mouth and picks its own
+           lip style as well as supplying the picture. -->
+      <span class="facepick"></span>
       <button class="btn ghost mini" id="puppetPick" style="width:auto">Add a puppet…</button>
       <input type="file" id="puppetInput" accept="image/*,video/*" hidden>
     </div>
@@ -2271,8 +2303,16 @@ const VP = {
   X: { w: .36, h: .035, round: .05, teeth: 0,   tongue: 0   },
   A: { w: .40, h: .016, round: 0,   teeth: 0,   tongue: 0   },
   B: { w: .42, h: .100, round: .05, teeth: .95, tongue: .15 },
-  C: { w: .45, h: .240, round: .18, teeth: .70, tongue: .30 },
-  D: { w: .43, h: .420, round: .26, teeth: .60, tongue: .55 },
+  // C and D are 15% shorter than they were drawn, and the reason is practical
+  // rather than phonetic. These two set the tallest frame in the set, so they
+  // set the scale of the whole export: a Lego minifigure or a Barbie head has
+  // perhaps a fifth of its face to spare for a mouth, and a D drawn at full
+  // Preston Blair proportion forced the entire sheet to be scaled down to fit
+  // it — which left every other shape too small to read. Shortening the two
+  // extremes lets the sheet sit larger on the face. Width, roundness, teeth
+  // and tongue are untouched; it is only the opening.
+  C: { w: .45, h: .204, round: .18, teeth: .70, tongue: .30 },
+  D: { w: .43, h: .357, round: .26, teeth: .60, tongue: .55 },
   E: { w: .31, h: .280, round: .72, teeth: .25, tongue: .15 },
   F: { w: .24, h: .225, round: 1,   teeth: 0,   tongue: 0   },
   G: { w: .41, h: .075, round: .03, teeth: 1,   tongue: 0, bite: 1 },
@@ -3002,7 +3042,7 @@ function profileLobe(bx, by, tipX, tipY, sign, body0, roll, edge) {
 /** The corners of the wedge, shared by the cavity and by the roof of the mouth
     that the teeth hang from — they have to agree to the last control point or
     the teeth show as a pale stripe floating in the dark. */
-function profileWedge(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, roll) {
+function profileWedge(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, roll, frontPad) {
   const fu = lipFreeX(tipU, bodyU, roll), fl = lipFreeX(tipL, bodyL, roll);
   // A pursed mouth does not open along its whole length: the lips gather into
   // a cone and the hole is a small round one right at the front. So the apex of
@@ -3015,7 +3055,7 @@ function profileWedge(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, roll) {
   const LU = Math.max(1, fu - ax), LL = Math.max(1, fl - ax);
   return {
     fu, fl, ax, ay, LU, LL,
-    front: Math.max(fu, fl) + (bodyU + bodyL) * 0.16,
+    front: Math.max(fu, fl) + (bodyU + bodyL) * (frontPad == null ? 0.06 : frontPad),
     // the same two edges again, walked from the front back to the corner, for
     // the lips to close on exactly
     roofBack: { fx: fu, c1x: ax + LU * 0.62, c1y: uy + (ay - uy) * 0.04,
@@ -3073,14 +3113,30 @@ function profileRim(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, roll) {
   // runs back to the corner — and letting the apex travel on the rim as well
   // scooped the top edge out and left a long tail behind it: a fang, not a
   // mouth.
+  // The forward numbers used to be 0.78 and 0.30, which grew the lips a whole
+  // body-thickness PAST the front of the opening. Seen side on that is a slab
+  // of lip colour across the leading edge, and it is the thing that made these
+  // read as a coloured wedge rather than as a mouth: at the front of a real
+  // profile the first thing you see is TEETH, with the lips as thin tips above
+  // and below them. So the rim now barely clears the cavity at the front, and
+  // keeps its thickness where a lip actually has it — above and below.
   return profileCavity(bx - (bodyU + bodyL) * 0.26, by,
-                       tipU + bodyU * 0.78, uy - bodyU,
-                       tipL + bodyL * 0.30, ly + bodyL,
-                       bodyU, bodyL, roll * 0.20);
+                       tipU + bodyU * 0.10, uy - bodyU,
+                       tipL + bodyL * 0.04, ly + bodyL,
+                       bodyU, bodyL, roll * 0.20, 0.07);
 }
 
-function profileCavity(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, roll) {
-  const w = profileWedge(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, roll);
+/** `frontPad` is how far the leading edge bows out past the lips' free edges,
+    in body-thicknesses. It used to be a fixed 0.16 for both the cavity and the
+    rim grown from it, and because the rim spans a taller gap than the cavity
+    does, the same bow drawn across a taller span swells into a thick arc —
+    which is the lip-coloured slab that sat across the front of every open
+    shape. Small numbers here, and a little larger for the rim than the cavity,
+    give what the drawn references have: a nearly upright leading edge, teeth
+    reaching it, and the lips as thin tips above and below. */
+function profileCavity(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, roll, frontPad) {
+  const w = profileWedge(bx, by, tipU, uy, tipL, ly, bodyU, bodyL, roll,
+                         frontPad == null ? 0.06 : frontPad);
   const p = new Path2D();
   // Still anchored at the corner — the lips run back to it whatever the purse,
   // and a cavity that started at the apex left a sliver of daylight between
@@ -3196,7 +3252,11 @@ function geom(v, W, H, C) {
     // it was the single thing making these read as something other than lips.
     // A pucker gathers its corners in as well as pushing its lips out, so it
     // gets shorter and deeper at once.
-    const back = W * (0.090 + 0.062 * (1 - r)) * mw * grow;
+    // Longer than it was. A profile mouth is wider than it is tall — every
+    // drawn reference is a tapered arrowhead — and at 0.090 the corner sat so
+    // close to the front that an open shape came out taller than it was long,
+    // which is a wedge standing on its point rather than a mouth on a face.
+    const back = W * (0.112 + 0.072 * (1 - r)) * mw * grow;
     const fwd  = W * (0.050 + 0.120 * r) * mw;
     const cx = W / 2 - (fwd - back) * 0.5;        // balance the drawing in the tile
     const hw = (back + fwd) / 2;
@@ -3276,7 +3336,12 @@ function innards(ctx, g, W, C) {
   }
   if (p.teeth > 0.02 && up > W * 0.008) {
     const th = Math.min(up * 1.05, W * 0.062) * mul;
-    ctx.globalAlpha = clamp(p.teeth, 0, 1);
+    // `teethFloor` lifts the whole range for a style that wants white teeth
+    // rather than suggested ones. The chart's own values are a judgement about
+    // realism — a C shows less tooth than a B — and a bold cartoon wants them
+    // read as white in every open shape, which at 0.6 alpha over black is grey.
+    const fl = C.teethFloor || 0;
+    ctx.globalAlpha = clamp(fl + (1 - fl) * p.teeth, 0, 1);
     toothBand(ctx, cx - hwL - 2, cx + hwR + 2, cy - up - 2, th + 2, C.teeth, C.scallop, true);
     if (dn > W * 0.10) {
       const bh = Math.min(dn * 0.42, W * 0.036) * mul;
@@ -3366,10 +3431,21 @@ function profileParts(W, g, C) {
   // the flat one — drew its shut shapes as a hairline in profile, near enough
   // invisible against a puppet.
   const base = W * Math.max(C.thickness || 0, C.ow || 0, 0.030);
-  // Thick, for the same reason the opening is thin. These are the mass of the
-  // drawing now, not a rim round a hole.
-  const bodyU = base * (1.26 + 0.48 * r);
-  const bodyL = base * (1.48 + 0.55 * r);       // the lower lip is the fuller one
+  // Lips thin as they stretch. A shut mouth keeps its full body — side on that
+  // lump IS the drawing, and a hairline there is invisible against a puppet —
+  // but an open one has the same flesh pulled around a much bigger hole, so it
+  // has to get thinner. One constant could not serve both, and setting it for
+  // the shut shapes is what left C, D and H as slabs of lip with a slot in
+  // them. Measured off the opening rather than off the viseme, so a style that
+  // scales its heights keeps the relationship.
+  const stretch = 1 - 0.46 * clamp((ou + od) / (W * 0.26), 0, 1);
+  // Thinner than they were. "These are the mass of the drawing now" was the
+  // note that went with the old 1.26 / 1.48, and it was the wrong instinct —
+  // the mass of a mouth seen from the side is teeth and dark, and the lips are
+  // the band around them. Fat lips also hid the shapes: B, C and D differ by
+  // how far the jaw has dropped, and that is invisible under a thick rim.
+  const bodyU = base * (0.84 + 0.34 * r) * stretch;
+  const bodyL = base * (1.00 + 0.40 * r) * stretch;   // the lower lip is fuller
   const bx = cx - back;
   const by = cy + (g.drop || 0);                // the corner, dropped with the jaw
   const uy = cy - ou, ly = cy + od;             // the two free edges, at the front
@@ -3391,26 +3467,57 @@ function profileParts(W, g, C) {
     the side you are looking in through the gap, and what is far enough back to
     be over the tongue's root is hidden by the cheek. */
 function profileInnards(ctx, W, g, C, P) {
-  const { by, uy, ly, bx, tipU, ou, od, cav, wedge } = P;
+  const { by, uy, ly, bx, ou, od, cav, wedge } = P;
   const p = g.p;
-  const L = tipU - bx;
-  const span = ly - by;                          // how far the floor has dropped
+  const gap = Math.max(1, ly - uy);
   ctx.save();
   // Built as a Path2D and passed to clip() explicitly. ctx.clip() with no
   // argument uses the CURRENT path, and after a fill() that is a trap: the
   // teeth escaped the mouth and drew a grey slab across the lip.
   ctx.clip(cav);
+
+  /* The tongue, FIRST, and built off the floor of the mouth exactly as the
+     lower tooth row is.
+
+     It used to be a shape of its own: a curve from behind the corner, forward
+     and up to a point, and back again. Two of its three anchors sat outside
+     the cavity, so the clip threw most of it away and what survived was the
+     tip — a pale spike rising out of the bottom lip on every shape with a
+     tongue in it (B, C, D, E and H), crossing the lower teeth on its way. The
+     lesson is the one the rest of this file already knew and this missed: in
+     profile everything inside the mouth is a band along the roof or along the
+     floor, deepening from nothing at the corner to its full depth at the
+     front. Drawn that way the tongue is the floor of the mouth, which is what
+     it is, and the teeth drawn over it afterwards sit in front of it, which is
+     where they are. */
+  if (p.tongue > 0.02 && od > W * 0.02 && gap > W * 0.02) {
+    const tm = C.tongueMul || 1;
+    // A low tongue is a shallow floor; a high one (the L shape) fills most of
+    // the opening and reaches up behind the upper teeth.
+    const th = Math.min(gap * (0.26 + 0.40 * clamp(p.tongue, 0, 1)), W * 0.085) * tm;
+    ctx.fillStyle = C.tongue || '#DE6E7E';
+    ctx.fill(profileTeeth(bx, by, ly, wedge, th, 1));
+  }
+
   if (p.teeth > 0.02 && ou + od > W * 0.010) {
     // Most of the opening, not a stripe along the top of it. Each row takes
     // its share of the gap at the front — upper the larger, as it does on a
     // face — leaving a dark slot between them.
-    const gap = Math.max(1, ly - uy);
     const tm = C.teethMul || 1;
     // Between them they take most of the slot, leaving the dark as a line
     // through the middle that opens into a pocket at the back.
-    const thU = Math.min(gap * 0.42, W * 0.086) * tm;
-    const thL = Math.min(gap * 0.28, W * 0.058) * tm;
-    ctx.globalAlpha = clamp(p.teeth, 0, 1);
+    const thU = Math.min(gap * 0.52, W * 0.105) * tm;
+    // The lower row is much the smaller of the two, and smaller again than it
+    // was: the floor of the mouth drops far further than the roof rises, so a
+    // band of the same depth laid along it covers twice the area and the
+    // drawing turns into a white bowl. It also has to leave room for the
+    // tongue behind it, which is drawn first and only shows above it.
+    const thL = Math.min(gap * 0.16, W * 0.040) * tm;
+    // Nearly opaque, unlike the front view. Front-on the teeth are a band laid
+    // over a dark aperture and a light touch reads as enamel; from the side
+    // they are the mass of the drawing, and at the chart's own alpha they came
+    // out as grey through black — the one thing the references never are.
+    ctx.globalAlpha = clamp(0.56 + 0.44 * p.teeth, 0, 1);
     ctx.fillStyle = C.teeth || '#FFFAF0';
     // Both rows run from the corner to the front, deepening as they go — see
     // profileTeeth. Cutting them off at the FRONT half instead, which is where
@@ -3422,22 +3529,6 @@ function profileInnards(ctx, W, g, C, P) {
     ctx.fill(profileTeeth(bx, by, uy, wedge, thU, -1));
     if (gap > W * 0.05) ctx.fill(profileTeeth(bx, by, ly, wedge, thL, 1));
     ctx.globalAlpha = 1;
-  }
-  if (p.tongue > 0.02 && od > W * 0.03) {
-    ctx.fillStyle = C.tongue || '#DE6E7E';
-    // A high tongue (the L shape) reaches its tip up to the ridge behind the
-    // upper teeth; a low one lies in the floor. From the side this is the one
-    // place in the chart where a tongue is genuinely legible, so it is drawn
-    // rather than suggested — but it lives in the pocket at the BACK, behind
-    // the lower teeth, which is where it would be seen from.
-    const lift = clamp(p.tongue, 0, 1) * (C.tongueMul || 1);
-    ctx.beginPath();
-    ctx.moveTo(bx, by + span * 0.50);
-    ctx.quadraticCurveTo(bx + L * 0.42, ly + span * 0.02,
-                         bx + L * 0.78, ly - span * (0.22 + lift * 0.58));
-    ctx.quadraticCurveTo(bx + L * 0.44, ly + span * 0.26, bx, ly + span * 0.55);
-    ctx.closePath();
-    ctx.fill();
   }
   ctx.restore();
 }
@@ -3602,6 +3693,61 @@ function inked(ctx, W, H, v, C) {
   if (!C.ink) return;
   ctx.strokeStyle = C.ink; ctx.lineWidth = lw; ctx.lineJoin = 'round';
   ctx.stroke(g.path);
+}
+
+/* --- a line that looks drawn by hand ----------------------------------------
+
+   Three passes of the same path, each nudged and turned a hair, thin and part
+   transparent. Where the passes agree the line is dark; where they disagree it
+   frays. That is what a pen does on paper, and it is why this is three strokes
+   rather than one wobbly one: a single jittered outline reads as a mistake,
+   while three overlaid read as hand.
+
+   The jitter has to be DETERMINISTIC. Random per frame and the mouth boils —
+   every frame of the export is a differently wrong drawing and the result is
+   unwatchable. So the seed is the viseme, and shape D is the same shape D
+   every time it comes round.
+--------------------------------------------------------------------------- */
+function sketchStroke(ctx, path, W, C, seed, passes) {
+  let st = (seed * 2654435761) >>> 0;
+  const rnd = () => ((st = (st * 1664525 + 1013904223) >>> 0) / 4294967296) * 2 - 1;
+  const j = W * (C.jitter == null ? 0.009 : C.jitter);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  for (let i = 0; i < (passes || 3); i++) {
+    ctx.save();
+    ctx.translate(W / 2, W * 0.56);
+    ctx.rotate(rnd() * 0.022);
+    ctx.scale(1 + rnd() * 0.018, 1 + rnd() * 0.022);
+    ctx.translate(-W / 2 + rnd() * j, -W * 0.56 + rnd() * j);
+    ctx.lineWidth = W * (C.ow || 0.009) * (0.86 + i * 0.16);
+    ctx.globalAlpha = i === 0 ? 1 : 0.42;
+    ctx.stroke(path);
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function sketched(ctx, W, H, v, C) {
+  const g = geom(v, W, H, C);
+  const seed = VIS.indexOf(v) + 1;
+  // The body is an ordinary lipped mouth with its outline suppressed; the pen
+  // is drawn over it afterwards. Built this way rather than from scratch so
+  // that the squiggle gets the three views, the bite shape and the innards for
+  // nothing, and cannot drift away from the rest of the set.
+  const body = Object.assign({}, C, { outline: null });
+  lipped(ctx, W, H, v, body);
+  ctx.strokeStyle = C.ink;
+  if (g.view === 'profile') {
+    sketchStroke(ctx, profileParts(W, g, C).rim, W, C, seed);
+    return;
+  }
+  if (VP[v].bite) { sketchStroke(ctx, g.path, W, C, seed); return; }
+  const t = W * C.thickness;
+  // The outer lip edge gets the full three passes; the aperture gets two, so
+  // the inside of the mouth stays readable instead of silting up with ink.
+  sketchStroke(ctx, g.build(t * 0.5, t * 0.95, t * 1.15), W, C, seed);
+  if (g.up + g.dn > W * 0.030) sketchStroke(ctx, g.path, W, C, seed + 17, 2);
 }
 
 /** A deterministic stipple — the same every frame, or it would shimmer. */
@@ -3931,6 +4077,76 @@ const STYLE_DEFS = {
 
   /* Flat vector with no lips at all: the mouth is the dark shape, and two
      small creases stand in for the lips that were never drawn. */
+  smiley: {
+    label: 'Smiley',
+    // The big friendly cartoon mouth: a heavy black line, a solid black inside,
+    // a broad band of white across the top and a red tongue filling the floor.
+    // Not a variation on Cartoon — the difference is where the mass goes. In
+    // Cartoon the dark is the mouth and the teeth are a detail; here the teeth
+    // and the tongue take most of the opening and the dark is the gap between
+    // them, which is what makes it read as a grin rather than as a hole.
+    draw: (c, W, H, v, V) => inked(c, W, H, v, { view: V,
+      ink: '#000000', ow: 0.040, cavity: '#000000',
+      teeth: '#FFFFFF', teethFloor: 0.88, tongue: '#E8252A',
+      widthMul: 1.08, teethMul: 1.95, tongueMul: 1.55, scallop: false
+    })
+  },
+  squiggle: {
+    label: 'Squiggly',
+    // Pen on paper: thin, a little off-register, the ink never quite closing on
+    // itself. For drawings that are themselves wobbly, where a clean vector
+    // mouth sits on the face like a sticker.
+    draw: (c, W, H, v, V) => sketched(c, W, H, v, { view: V,
+      ink: '#2E2A26', ow: 0.0095, jitter: 0.017, thickness: 0.046,
+      lip: '#E59488', lipDark: '#C9736B', cavity: '#3B2628',
+      teeth: '#FFFDF6', teethFloor: 0.74, tongue: '#D4848A',
+      teethMul: 1.05, tongueMul: 0.9
+    })
+  },
+  /* --- the four that go with the drawn faces -------------------------------
+
+     Not four more looks for the shelf so much as four answers to "what should
+     this face's mouth be": the line weight matches the faces' own, the colour
+     is picked against each one's skin, and the proportions follow the head —
+     the child's narrower and rounder, the older one's thinner and flatter. A
+     drawn face comes with its own one already chosen, and they are in the
+     shelf as well because a puppet of your own may want the same treatment. */
+  faceman: {
+    label: 'Man',
+    draw: (c, W, H, v, V) => lipped(c, W, H, v, { view: V,
+      lip: '#CE8A7C', lipDark: '#AF6B5B', gloss: 0.10, thickness: 0.040,
+      widthMul: 1.08, heightMul: 0.96,
+      cavity: '#3A2220', teeth: '#FFFBF2', teethFloor: 0.5, tongue: '#CF7A80',
+      outline: '#2B2724', ow: 0.0095
+    })
+  },
+  facewoman: {
+    label: 'Woman',
+    draw: (c, W, H, v, V) => lipped(c, W, H, v, { view: V,
+      lip: '#D25B6B', lipDark: '#A73C50', gloss: 0.45, thickness: 0.050,
+      widthMul: 0.98,
+      cavity: '#331A1E', teeth: '#FFFCF4', teethFloor: 0.5, tongue: '#D9757F',
+      outline: '#2B2724', ow: 0.0095
+    })
+  },
+  facechild: {
+    label: 'Child',
+    draw: (c, W, H, v, V) => lipped(c, W, H, v, { view: V,
+      lip: '#E08980', lipDark: '#C46660', gloss: 0.22, thickness: 0.044,
+      widthMul: 0.90, heightMul: 0.95, teethMul: 1.2,
+      cavity: '#3B2322', teeth: '#FFFFFF', teethFloor: 0.6, tongue: '#DF8A90',
+      outline: '#2B2724', ow: 0.0105
+    })
+  },
+  faceolder: {
+    label: 'Older',
+    draw: (c, W, H, v, V) => lipped(c, W, H, v, { view: V,
+      lip: '#C59A90', lipDark: '#A67B72', gloss: 0.05, thickness: 0.034,
+      widthMul: 1.02, heightMul: 0.90,
+      cavity: '#352422', teeth: '#EFE6D4', teethFloor: 0.45, tongue: '#C58288',
+      outline: '#2B2724', ow: 0.0095
+    })
+  },
   paper: {
     label: 'Paper cut',
     draw: (c, W, H, v, V) => inked(c, W, H, v, { view: V,
@@ -4856,6 +5072,9 @@ function clipStatus(c) {
 function renderQueue() {
   const wrap = $('queue');
   if (!wrap) return;
+  // The one place every change to what is loaded passes through, so the demo
+  // button's two states are decided here rather than at each call site.
+  syncDemoBtn();
   const many = queue.clips.length > 1;
   $('queueWrap').hidden = !many;
   $('loaded').classList.toggle('on', queue.clips.length === 1);
@@ -5324,6 +5543,439 @@ function currentFrameIndex() {
   return selRange()[0];
 }
 
+/* ---- the demo -----------------------------------------------------------------
+
+   Five seconds of speech and a drawn face, so that opening the file for the
+   first time shows the thing working rather than an empty stage and four tabs
+   of settings for something that is not there. It is also the way back: load
+   your own clip, make a mess of the timing, and the button puts a known-good
+   state on the screen to compare against.
+
+   The voice is synthesized rather than recorded — eSpeak NG, a free formant
+   synthesiser — for two reasons. A recording of a person is a person's voice
+   to host and to ship, and this file goes in a public repository; and a
+   synthesiser gives clean, evenly spaced phonemes, which is exactly what makes
+   the exposure sheet legible as an example. It sounds like a robot. It is
+   meant to: the point of the demo is the mouth, not the acting.
+
+   Carried as base64 rather than fetched, like everything else in this file.
+--------------------------------------------------------------------------- */
+const DEMO_NAME = 'demo-voice.mp3';
+const DEMO_FACE = 'woman';
+const DEMO_MP3 = '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qqqqqkxBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/zYsRvAAADSAAAAACqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpMQU1FMy4xMDCqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/82LEbwAAA0gAAAAAqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuMTAwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NixG8AAANIAAAAAKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuMTAwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/zYMRwAAADSAAAAACqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkxBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/zYsRvAAADSAAAAACqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpMQU1FMy4xMDCqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/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';
+
+function demoFile() {
+  const bin = atob(DEMO_MP3);
+  const u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  return new File([u8], DEMO_NAME, { type: 'audio/mpeg' });
+}
+
+/** True while what is loaded IS the demo and nothing else — which is what
+    decides whether the button says "Demo" or "Restore demo". */
+function demoIsLoaded() {
+  return queue.clips.length === 1 && queue.clips[0].file &&
+         queue.clips[0].file.name === DEMO_NAME;
+}
+
+function syncDemoBtn() {
+  const b = $('demoBtn');
+  if (!b) return;
+  const own = queue.clips.length > 0 && !demoIsLoaded();
+  b.textContent = own ? 'Restore demo' : 'Demo';
+  b.title = own
+    ? 'Clear what is loaded and put the demo clip and face back'
+    : 'A short recorded line and a drawn face, so there is something to look at';
+}
+
+let demoBusy = false;
+async function loadDemo() {
+  if (demoBusy) return;
+  demoBusy = true;
+  const b = $('demoBtn');
+  if (b) b.disabled = true;
+  try {
+    // Everything out first. Restoring the demo on top of a queue would leave
+    // the user's clips in it, which is not what the word restore means.
+    if (queue.clips.length) clearQueue();
+    await addFiles([demoFile()]);
+    await useFace(DEMO_FACE, true);
+    toast('Demo loaded — press space to play it.', 3400);
+  } finally {
+    demoBusy = false;
+    if (b) b.disabled = false;
+    syncDemoBtn();
+  }
+}
+
+/* ---- four drawn faces to try the lips on -------------------------------------
+
+   A puppet is normally something you bring: a photograph of a minifigure, a
+   drawing, a frame of video. That leaves a first-time visitor with a mouth
+   floating on a checkerboard and no idea what the thing is for, and it leaves
+   anyone testing a style with nothing to test it against.
+
+   So there are four here — a man, a woman, a child and an older person — drawn
+   in the page rather than carried as pictures. They are deliberately plain:
+   flat colour, one weight of line, no mouth. The mouth is the app's job, and a
+   face that already had one would be answering the question it is asking.
+
+   Each one knows where its mouth belongs, so choosing a face places the lips
+   as well as the picture. Drawn at 900x1200 — big enough that an export at
+   2048 is not resampling upward, small enough that four of them are not a
+   memory problem.
+--------------------------------------------------------------------------- */
+const FACE_W = 900, FACE_H = 1200;
+
+const FACES = {
+  man: {
+    label: 'Man',
+    style: 'faceman',
+    skin: '#F0C9A4', shade: '#DDAE85', hair: '#4A342A', hairDark: '#39271F',
+    shirt: '#5C7FA8',
+    // where the mouth goes, in the frame's own fractions
+    place: { x: 0.500, y: 0.545, size: 0.215 }
+  },
+  woman: {
+    label: 'Woman',
+    style: 'facewoman',
+    skin: '#F3CFAE', shade: '#E0B18E', hair: '#8A4B2A', hairDark: '#6E3920',
+    shirt: '#B4697A',
+    place: { x: 0.500, y: 0.548, size: 0.195 }
+  },
+  child: {
+    label: 'Child',
+    style: 'facechild',
+    skin: '#F6D3B4', shade: '#E8B894', hair: '#C9893F', hairDark: '#A96D2C',
+    shirt: '#59A98B',
+    place: { x: 0.500, y: 0.566, size: 0.190 }
+  },
+  older: {
+    label: 'Older',
+    style: 'faceolder',
+    skin: '#EBCBB2', shade: '#D6AE93', hair: '#CFCBC4', hairDark: '#AFAAA2',
+    shirt: '#7D7E86',
+    place: { x: 0.500, y: 0.552, size: 0.200 }
+  }
+};
+
+const FACE_INK = '#2B2724';
+
+/** A drawn face as a File, so it travels the same road as a photograph: the
+    same decode, the same placement, the same record on the clip, the same copy
+    shipped to Final Cut. Nothing downstream needs to know it was drawn. */
+function faceFile(kind) {
+  const c = document.createElement('canvas');
+  c.width = FACE_W; c.height = FACE_H;
+  const x = c.getContext('2d');
+  // Transparent, not white. A face on white would print a white rectangle over
+  // whatever it was composited onto, and the transparent exports are half the
+  // reason anyone is here.
+  drawFace(x, FACE_W, FACE_H, kind);
+  return new Promise(res => c.toBlob(
+    b => res(new File([b], 'face-' + kind + '.png', { type: 'image/png' })), 'image/png'));
+}
+
+/** Choose a drawn face: the picture, where its mouth goes, and the lip style
+    drawn for it. All three, because any one of them alone leaves the user
+    doing the other two by hand for a face the app drew itself. */
+async function useFace(kind, quiet) {
+  const F = FACES[kind];
+  if (!F) return false;
+  const file = await faceFile(kind);
+  // noCrop: it is drawn to its own frame, and the margin round it is the
+  // composition rather than waste.
+  const ok = await setPuppet(file, true, { noCrop: true });
+  if (!ok) return false;
+  Object.assign(overlay, { x: F.place.x, y: F.place.y, size: F.place.size, rot: 0 });
+  overlay.keys = [];
+  overlay.keyed = false;
+  const id = styleViewId(F.style, 'front');
+  if (STYLES[id]) {
+    state.style = id;
+    custom.on = false; custom.map = {}; custom.sources = [];
+    if (typeof lips !== 'undefined') { lips.activeId = null; }
+    const c = activeClip();
+    if (c) { c.style = id; c.lipSetId = null; }
+  }
+  PLATE_BOXES.forEach(({ id: bid, on }) => { const b = $(bid); if (b) b.checked = on; });
+  buildStyleChips(); buildLipChips(); buildChart();
+  renderQueue();
+  syncPuppetUI();
+  sizeStage();
+  drawStage();
+  updateEstimates();
+  updateOverlayReadout();
+  syncFacePick();
+  if (!quiet) toast('Using the drawn ' + F.label.toLowerCase() + '.', 2400);
+  return true;
+}
+
+/** Which face, if any, is on the stage — by the file name it was given, which
+    is the only thing that survives being banked on a clip and read back. */
+function activeFaceKind() {
+  const n = puppet.name || '';
+  const m = /^face-([a-z]+)\.png$/.exec(n);
+  return m && FACES[m[1]] ? m[1] : null;
+}
+
+function syncFacePick() {
+  const on = activeFaceKind();
+  document.querySelectorAll('.facepick button[data-face]').forEach(
+    b => b.setAttribute('aria-pressed', String(b.dataset.face === on)));
+}
+
+/** The four chips, drawn once. Each is the face itself at chip size rather
+    than a word: four names in a row read as a form, four faces read as a
+    choice, and the drawing is the thing being chosen. */
+function buildFacePick() {
+  document.querySelectorAll('.facepick').forEach(wrap => fillFacePick(wrap));
+}
+
+function fillFacePick(wrap) {
+  if (!wrap || wrap.childElementCount) return;
+  Object.keys(FACES).forEach(kind => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.face = kind;
+    b.title = 'Put the drawn ' + FACES[kind].label.toLowerCase() + ' behind the mouth';
+    b.setAttribute('aria-label', b.title);
+    b.setAttribute('aria-pressed', 'false');
+    const c = document.createElement('canvas');
+    const S = 3;                                    // retina-ish for a 30px chip
+    c.width = 30 * S; c.height = 34 * S;
+    const x = c.getContext('2d');
+    // Just the head: the shoulders are most of the drawing at this size and
+    // none of the recognition.
+    x.scale(c.width / (FACE_W * 0.78), c.width / (FACE_W * 0.78));
+    x.translate(-FACE_W * 0.11, -FACE_H * 0.055);
+    drawFace(x, FACE_W, FACE_H, kind);
+    b.appendChild(c);
+    b.onclick = () => useFace(kind);
+    wrap.appendChild(b);
+  });
+}
+
+
+/** The head, the hair, the eyes and the shoulders — everything but the mouth.
+    One construction with four sets of numbers, so the four read as a family
+    and a change to the drawing reaches all of them. */
+function drawFace(ctx, W, H, kind) {
+  const F = FACES[kind] || FACES.man;
+  const lw = W * 0.0105;
+  const cx = W * 0.5;
+  // Proportions by age: a child's head is bigger against its body and its
+  // features sit lower on it, an older face is longer. This is most of what
+  // tells the four apart before any hair is drawn.
+  const prop = {
+    man:   { hy: 0.400, hrx: 0.300, hry: 0.270, eye: 0.385, ew: 0.112, er: 0.0295, sh: 0.760, shw: 0.400 },
+    woman: { hy: 0.398, hrx: 0.282, hry: 0.268, eye: 0.382, ew: 0.106, er: 0.0300, sh: 0.762, shw: 0.360 },
+    child: { hy: 0.412, hrx: 0.306, hry: 0.272, eye: 0.405, ew: 0.112, er: 0.0330, sh: 0.790, shw: 0.330 },
+    older: { hy: 0.396, hrx: 0.288, hry: 0.280, eye: 0.378, ew: 0.110, er: 0.0280, sh: 0.756, shw: 0.385 }
+  }[kind] || {};
+  const hy = H * prop.hy, hrx = W * prop.hrx, hry = H * prop.hry;
+
+  ctx.lineJoin = ctx.lineCap = 'round';
+  ctx.strokeStyle = FACE_INK;
+  ctx.lineWidth = lw;
+
+  // --- shoulders, behind the head ------------------------------------------
+  const sy = H * prop.sh;
+  ctx.beginPath();
+  ctx.moveTo(cx - W * prop.shw, H + lw);
+  ctx.quadraticCurveTo(cx - W * prop.shw * 0.92, sy, cx, sy - H * 0.012);
+  ctx.quadraticCurveTo(cx + W * prop.shw * 0.92, sy, cx + W * prop.shw, H + lw);
+  ctx.closePath();
+  ctx.fillStyle = F.shirt; ctx.fill(); ctx.stroke();
+
+  // --- neck -----------------------------------------------------------------
+  ctx.beginPath();
+  const nw = W * 0.082;
+  ctx.moveTo(cx - nw, hy + hry * 0.62);
+  ctx.lineTo(cx - nw, sy + H * 0.012);
+  ctx.lineTo(cx + nw, sy + H * 0.012);
+  ctx.lineTo(cx + nw, hy + hry * 0.62);
+  ctx.closePath();
+  ctx.fillStyle = F.shade; ctx.fill(); ctx.stroke();
+
+  // --- ears -----------------------------------------------------------------
+  for (const s of [-1, 1]) {
+    ctx.beginPath();
+    ctx.ellipse(cx + s * hrx * 0.98, hy + hry * 0.08, W * 0.034, H * 0.042, 0, 0, Math.PI * 2);
+    ctx.fillStyle = F.skin; ctx.fill(); ctx.stroke();
+  }
+
+  // --- head -----------------------------------------------------------------
+  ctx.beginPath();
+  ctx.ellipse(cx, hy, hrx, hry, 0, 0, Math.PI * 2);
+  ctx.fillStyle = F.skin; ctx.fill(); ctx.stroke();
+
+  // --- hair -----------------------------------------------------------------
+  ctx.save();
+  ctx.fillStyle = F.hair;
+  ctx.strokeStyle = FACE_INK;
+  if (kind === 'woman') {
+    // Long, falling past the jaw on both sides, drawn behind nothing — the
+    // face is on top of it, which is why it is filled as one shape.
+    ctx.beginPath();
+    ctx.moveTo(cx - hrx * 1.12, hy + hry * 1.02);
+    // A cubic, not a quadratic. One control point above the crown pulls the
+    // two sides into a peak and the result is a witch's hat; two, set wide,
+    // give the round head of hair that was wanted.
+    ctx.bezierCurveTo(cx - hrx * 1.26, hy - hry * 0.96, cx - hrx * 0.62, hy - hry * 1.30,
+                      cx, hy - hry * 1.30);
+    ctx.bezierCurveTo(cx + hrx * 0.62, hy - hry * 1.30, cx + hrx * 1.26, hy - hry * 0.96,
+                      cx + hrx * 1.12, hy + hry * 1.02);
+    ctx.quadraticCurveTo(cx + hrx * 0.96, hy + hry * 0.44, cx + hrx * 0.98, hy - hry * 0.10);
+    ctx.quadraticCurveTo(cx + hrx * 0.30, hy - hry * 0.62, cx - hrx * 0.34, hy - hry * 0.52);
+    ctx.quadraticCurveTo(cx - hrx * 0.98, hy - hry * 0.26, cx - hrx * 0.98, hy + hry * 0.44);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+  } else if (kind === 'child') {
+    // A round cap with a tuft, which is the shorthand for "young" that every
+    // drawn set in the references uses.
+    ctx.beginPath();
+    ctx.moveTo(cx - hrx * 1.01, hy - hry * 0.04);
+    ctx.bezierCurveTo(cx - hrx * 1.10, hy - hry * 0.92, cx - hrx * 0.60, hy - hry * 1.22,
+                      cx, hy - hry * 1.22);
+    ctx.bezierCurveTo(cx + hrx * 0.60, hy - hry * 1.22, cx + hrx * 1.10, hy - hry * 0.92,
+                      cx + hrx * 1.01, hy - hry * 0.04);
+    ctx.quadraticCurveTo(cx + hrx * 0.62, hy - hry * 0.50, cx + hrx * 0.10, hy - hry * 0.46);
+    ctx.quadraticCurveTo(cx - hrx * 0.58, hy - hry * 0.42, cx - hrx * 1.01, hy - hry * 0.04);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    // A sprig that curls back on itself. Drawn as a single sharp spike it came
+    // out as a horn, which is a different character altogether.
+    ctx.beginPath();
+    ctx.moveTo(cx + hrx * 0.04, hy - hry * 1.06);
+    ctx.bezierCurveTo(cx + hrx * 0.20, hy - hry * 1.42, cx + hrx * 0.52, hy - hry * 1.36,
+                      cx + hrx * 0.50, hy - hry * 1.14);
+    ctx.bezierCurveTo(cx + hrx * 0.44, hy - hry * 1.28, cx + hrx * 0.22, hy - hry * 1.22,
+                      cx + hrx * 0.30, hy - hry * 1.02);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+  } else if (kind === 'older') {
+    // Receded at the temples and thin on top — drawn as two shapes with the
+    // forehead showing between them, because a single cap just reads as a
+    // lighter hair colour.
+    ctx.beginPath();
+    ctx.moveTo(cx - hrx * 1.02, hy + hry * 0.14);
+    ctx.quadraticCurveTo(cx - hrx * 1.06, hy - hry * 0.86, cx - hrx * 0.30, hy - hry * 0.94);
+    ctx.quadraticCurveTo(cx - hrx * 0.74, hy - hry * 0.56, cx - hrx * 0.86, hy + hry * 0.12);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx + hrx * 1.02, hy + hry * 0.14);
+    ctx.quadraticCurveTo(cx + hrx * 1.06, hy - hry * 0.86, cx + hrx * 0.30, hy - hry * 0.94);
+    ctx.quadraticCurveTo(cx + hrx * 0.74, hy - hry * 0.56, cx + hrx * 0.86, hy + hry * 0.12);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+  } else {
+    // A side part, swept across. The man is the only one with a parting, which
+    // is the cheapest way to make him not simply "the default head".
+    ctx.beginPath();
+    ctx.moveTo(cx - hrx * 1.02, hy - hry * 0.10);
+    ctx.quadraticCurveTo(cx - hrx * 1.04, hy - hry * 1.14, cx + hrx * 0.10, hy - hry * 1.08);
+    ctx.quadraticCurveTo(cx + hrx * 1.02, hy - hry * 1.00, cx + hrx * 1.00, hy - hry * 0.04);
+    ctx.quadraticCurveTo(cx + hrx * 0.78, hy - hry * 0.52, cx + hrx * 0.18, hy - hry * 0.58);
+    ctx.quadraticCurveTo(cx - hrx * 0.46, hy - hry * 0.64, cx - hrx * 0.70, hy - hry * 0.18);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+  }
+  ctx.restore();
+
+  // --- eyes -----------------------------------------------------------------
+  const ey = H * prop.eye, ex = W * prop.ew, er = W * prop.er;
+  ctx.fillStyle = FACE_INK;
+  for (const s of [-1, 1]) {
+    ctx.beginPath();
+    ctx.ellipse(cx + s * ex, ey, er, er * (kind === 'child' ? 1.15 : 1.05), 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Brows. Angled down toward the nose on the older face, which is the one
+  // feature that says age faster than any amount of line work.
+  ctx.strokeStyle = kind === 'older' ? F.hairDark : F.hairDark;
+  ctx.lineWidth = lw * (kind === 'older' ? 1.5 : 1.25);
+  for (const s of [-1, 1]) {
+    const by = ey - H * (kind === 'child' ? 0.050 : 0.058);
+    ctx.beginPath();
+    ctx.moveTo(cx + s * (ex - er * 1.5), by + H * (kind === 'older' ? 0.012 : 0.006));
+    ctx.quadraticCurveTo(cx + s * ex, by - H * 0.014, cx + s * (ex + er * 1.6),
+                         by + H * (kind === 'older' ? -0.004 : 0.004));
+    ctx.stroke();
+  }
+
+  // --- nose -----------------------------------------------------------------
+  ctx.strokeStyle = F.shade;
+  ctx.lineWidth = lw * 1.3;
+  ctx.beginPath();
+  const ny = H * (kind === 'child' ? 0.480 : 0.472);
+  ctx.moveTo(cx - W * 0.005, ny - H * (kind === 'child' ? 0.028 : 0.042));
+  ctx.quadraticCurveTo(cx + W * 0.030, ny, cx - W * 0.016, ny + H * 0.004);
+  ctx.stroke();
+
+  // --- age and character marks ---------------------------------------------
+  ctx.strokeStyle = F.shade;
+  ctx.lineWidth = lw * 0.95;
+  if (kind === 'older') {
+    // Two lines from the nose to the corners of where the mouth will be, and a
+    // pair across the forehead. Nothing more: more than this and a cartoon
+    // stops being old and starts being ill.
+    for (const s of [-1, 1]) {
+      ctx.beginPath();
+      ctx.moveTo(cx + s * W * 0.050, H * 0.486);
+      ctx.quadraticCurveTo(cx + s * W * 0.112, H * 0.530, cx + s * W * 0.108, H * 0.590);
+      ctx.stroke();
+    }
+    for (let i = 0; i < 2; i++) {
+      const y = hy - hry * (0.40 - i * 0.13);
+      ctx.beginPath();
+      ctx.moveTo(cx - hrx * 0.42, y);
+      ctx.quadraticCurveTo(cx, y - H * 0.012, cx + hrx * 0.42, y);
+      ctx.stroke();
+    }
+    // Glasses, which is the other half of the shorthand.
+    ctx.strokeStyle = FACE_INK;
+    ctx.lineWidth = lw * 1.1;
+    for (const s of [-1, 1]) {
+      ctx.beginPath();
+      ctx.ellipse(cx + s * ex, ey, er * 2.3, er * 2.0, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.moveTo(cx - ex + er * 2.3, ey);
+    ctx.lineTo(cx + ex - er * 2.3, ey);
+    ctx.stroke();
+    for (const s of [-1, 1]) {
+      ctx.beginPath();
+      ctx.moveTo(cx + s * (ex + er * 2.3), ey - er * 0.3);
+      ctx.lineTo(cx + s * hrx * 0.99, ey - er * 0.6);
+      ctx.stroke();
+    }
+  } else if (kind === 'child') {
+    // Freckles, one dot at a time, in a fixed pattern — a random scatter would
+    // be different every time the face was drawn.
+    ctx.fillStyle = F.shade;
+    const spots = [[-0.17, 0.498], [-0.135, 0.512], [-0.205, 0.516],
+                   [0.17, 0.498], [0.135, 0.512], [0.205, 0.516]];
+    for (const [fx, fy] of spots) {
+      ctx.beginPath();
+      ctx.ellipse(cx + W * fx, H * fy, W * 0.008, W * 0.008, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else {
+    // A cheek shadow, so the man and the woman are not simply flat ovals.
+    ctx.fillStyle = F.shade;
+    ctx.globalAlpha = 0.55;
+    for (const s of [-1, 1]) {
+      ctx.beginPath();
+      ctx.ellipse(cx + s * hrx * 0.60, H * 0.500, W * 0.052, H * 0.030, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+}
+
 /* ---- the puppet: the picture the mouth goes on -------------------------------
 
    Until now the only way to get a picture under the mouth was to load a VIDEO
@@ -5441,6 +6093,133 @@ function sampleAlpha(src, w, h) {
   return false;
 }
 
+/* ---- trimming the dead edge off a puppet --------------------------------------
+
+   Pictures of puppets arrive with a lot of nothing round them. A phone photo of
+   a minifigure on a desk, a PNG exported from a drawing app at canvas size, a
+   scan — all of them put the subject in the middle of an acre of white or
+   transparency. That costs twice: the mouth has to be shrunk to a few per cent
+   of the frame to sit on a face that occupies a fifth of it, and every export
+   that carries the puppet carries the empty margin at full resolution.
+
+   So the border is measured and cut on the way in, and 20px of it is put back
+   so nothing sits hard against the edge.
+
+   Two ways of deciding what "empty" is, and which one applies is not a guess:
+   a picture WITH transparency is trimmed on alpha, and one without is trimmed
+   against the colour its own four corners agree on. If the corners disagree —
+   a photograph with a real background, a gradient, anything with content out
+   to the edge — nothing is cropped at all, which is the right answer for those
+   and is also why this can run automatically without surprising anyone.
+--------------------------------------------------------------------------- */
+const CROP_MARGIN = 20;        // px of the ORIGINAL image, put back on each side
+
+/** The content box, or null if there is nothing sensible to trim.
+
+    Measured on a scaled-down copy and then scaled back up, because a 4000px
+    photograph is 64 MB of ImageData and the bounding box does not need that
+    kind of precision — it is padded by 20px afterwards anyway. */
+function contentBox(img, w, h) {
+  if (!w || !h) return null;
+  const s = Math.min(1, 900 / Math.max(w, h));
+  const cw = Math.max(1, Math.round(w * s)), ch = Math.max(1, Math.round(h * s));
+  const c = document.createElement('canvas');
+  c.width = cw; c.height = ch;
+  const x = c.getContext('2d', { willReadFrequently: true });
+  x.clearRect(0, 0, cw, ch);
+  let d;
+  try { x.drawImage(img, 0, 0, cw, ch); d = x.getImageData(0, 0, cw, ch).data; }
+  catch (e) { return null; }   // a tainted canvas: say nothing, change nothing
+
+  const at = (px, py) => (py * cw + px) * 4;
+  let alpha = false;
+  for (let i = 3; i < d.length; i += 4) if (d[i] < 240) { alpha = true; break; }
+
+  let test;
+  if (alpha) {
+    test = i => d[i + 3] > 24;
+  } else {
+    // The four corners have to agree before any of them counts as background.
+    const cs = [at(0, 0), at(cw - 1, 0), at(0, ch - 1), at(cw - 1, ch - 1)];
+    const far = (a, b) => Math.abs(d[a] - d[b]) + Math.abs(d[a + 1] - d[b + 1]) +
+                          Math.abs(d[a + 2] - d[b + 2]);
+    for (let k = 1; k < 4; k++) if (far(cs[0], cs[k]) > 30) return null;
+    const br = d[cs[0]], bg = d[cs[0] + 1], bb = d[cs[0] + 2];
+    // Generous, because a white background in a photograph is never one white:
+    // it has a vignette, a shadow, and JPEG mottling in it.
+    const tol = 34;
+    test = i => Math.abs(d[i] - br) + Math.abs(d[i + 1] - bg) + Math.abs(d[i + 2] - bb) > tol;
+    // And remember it, so the padding put back matches the picture rather than
+    // punching a transparent hole in an opaque one.
+    contentBox.bg = 'rgb(' + br + ',' + bg + ',' + bb + ')';
+  }
+  if (alpha) contentBox.bg = null;
+
+  let x0 = cw, y0 = ch, x1 = -1, y1 = -1;
+  for (let py = 0; py < ch; py++) {
+    for (let px = 0; px < cw; px++) {
+      if (!test(at(px, py))) continue;
+      if (px < x0) x0 = px;
+      if (px > x1) x1 = px;
+      if (py < y0) y0 = py;
+      if (py > y1) y1 = py;
+    }
+  }
+  if (x1 < x0 || y1 < y0) return null;                  // the picture is empty
+  const k = 1 / s;
+  return {
+    x: Math.max(0, Math.floor(x0 * k) - 1),
+    y: Math.max(0, Math.floor(y0 * k) - 1),
+    w: Math.min(w, Math.ceil((x1 + 1) * k) + 1) - Math.max(0, Math.floor(x0 * k) - 1),
+    h: Math.min(h, Math.ceil((y1 + 1) * k) + 1) - Math.max(0, Math.floor(y0 * k) - 1),
+    bg: contentBox.bg
+  };
+}
+
+/** Crop `file` to its content plus a 20px margin. Resolves to a new File, or
+    to null when there is nothing worth cutting — which is most photographs. */
+async function cropToContent(file, force) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = () => rej(new Error('no'));
+      i.src = url;
+    });
+    const W = img.naturalWidth, H = img.naturalHeight;
+    const b = contentBox(img, W, H);
+    if (!b) return null;
+    // Under a fortieth of the picture on every side is not worth a new file,
+    // a changed name and an undo button.
+    const cut = (W * H) - (b.w * b.h);
+    if (!force && cut < W * H * 0.02) return null;
+    if (force && cut < 4) return null;
+    const m = CROP_MARGIN;
+    const cw = b.w + m * 2, ch = b.h + m * 2;
+    const c = document.createElement('canvas');
+    c.width = cw; c.height = ch;
+    const x = c.getContext('2d');
+    // An opaque picture keeps an opaque margin in its own background colour; a
+    // cut-out keeps its transparency, which every export downstream relies on.
+    if (b.bg) { x.fillStyle = b.bg; x.fillRect(0, 0, cw, ch); }
+    x.drawImage(img, b.x, b.y, b.w, b.h, m, m, b.w, b.h);
+    const blob = await new Promise(res => c.toBlob(res, 'image/png'));
+    if (!blob) return null;
+    const name = file.name.replace(/\.[^.]+$/, '') + '-cropped.png';
+    return { file: new File([blob], name, { type: 'image/png' }),
+             from: { w: W, h: H }, to: { w: cw, h: ch },
+             // Where the kept region sat in the original, so a placement made
+             // before the trim can be moved with the picture rather than
+             // sliding off the face.
+             box: { x: b.x, y: b.y, m: m } };
+  } catch (e) {
+    return null;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 function seekPlate(t) {
   return new Promise(res => {
     if (!plateVideo.src || !(plateVideo.duration > 0)) return res();
@@ -5503,11 +6282,21 @@ function forgetPuppet() {
 
 /** A photo or a video chosen as the backdrop. Read inside the page like
     everything else here: nothing is uploaded, and it goes when the clip does. */
-async function setPuppet(file, quiet) {
+async function setPuppet(file, quiet, opts) {
   if (!file) return false;
   const isImg = /^image\//.test(file.type) || /\.(png|jpe?g|webp|gif|avif|bmp)$/i.test(file.name);
   const isVid = /^video\//.test(file.type) || /\.(mp4|mov|webm|m4v)$/i.test(file.name);
   if (!isImg && !isVid) { toast('A puppet has to be a photo or a video.', 3800); return false; }
+  // Trim the empty border before anything else looks at the picture, so the
+  // cropped version is the one that gets decoded, placed, measured, banked on
+  // the clip and shipped to Final Cut. Doing it later would leave the stage and
+  // the export disagreeing about what the puppet is. `noCrop` is for restoring
+  // a clip's own puppet, which was cropped when it first arrived.
+  let original = null, trimmed = null;
+  if (isImg && !(opts && opts.noCrop)) {
+    trimmed = await cropToContent(file, !!(opts && opts.force));
+    if (trimmed) { original = file; file = trimmed.file; }
+  }
   dropPuppet(true);
   const url = URL.createObjectURL(file);
   try {
@@ -5556,6 +6345,9 @@ async function setPuppet(file, quiet) {
   }
   puppet.url = url;
   puppet.name = file.name;
+  puppet.uncropped = (opts && opts.uncropped) || original;
+  puppet.cropped = !!puppet.uncropped;
+  puppet.cropBox = (opts && opts.cropBox) || (trimmed && trimmed.box) || null;
   const el = $('stagePlate');
   if (el && puppet.kind === 'image') el.src = url;
 
@@ -5569,7 +6361,8 @@ async function setPuppet(file, quiet) {
     overlay.size = clamp(short * 0.17 / puppet.w, 0.05, 0.30);
     overlay.y = 0.47;
   }
-  if (c) c.puppet = { file, kind: puppet.kind };
+  if (c) c.puppet = { file, kind: puppet.kind, uncropped: puppet.uncropped,
+                     cropBox: puppet.cropBox };
   sizeStage();
   setExportsEnabled(state.frames.length > 0);
   updateEstimates();
@@ -5583,7 +6376,9 @@ async function setPuppet(file, quiet) {
     PLATE_BOXES.forEach(({ id, on }) => { const b = $(id); if (b) b.checked = on; });
     toast((puppet.kind === 'image' ? 'Puppet added' : 'Puppet added · ' +
           fmtTime(puppet.duration)) +
-          (puppet.alpha ? ' · transparency kept where the format allows' : ''), 2600);
+          (puppet.alpha ? ' · transparency kept where the format allows' : '') +
+          (trimmed ? ' · trimmed to ' + trimmed.to.w + '×' + trimmed.to.h +
+                     ' from ' + trimmed.from.w + '×' + trimmed.from.h : ''), 3200);
   }
   return true;
 }
@@ -5599,7 +6394,9 @@ async function restorePuppet(c) {
   dropPuppet(true);
   if (file) {
     const keep = pose();
-    const ok = await setPuppet(file, true);
+    const ok = await setPuppet(file, true,
+                               { noCrop: true, uncropped: c.puppet.uncropped,
+                                 cropBox: c.puppet.cropBox });
     // Clicking through the queue faster than a picture decodes would otherwise
     // land one clip's puppet on another's stage.
     if (mine !== restoreToken) return;
@@ -5638,7 +6435,18 @@ function syncPuppetUI() {
       $('plateName').textContent = puppet.name;
       $('plateMeta').textContent = puppet.w + '×' + puppet.h + ' · ' +
         (puppet.kind === 'image' ? 'still' : fmtTime(puppet.duration)) +
-        (puppet.alpha ? ' · transparent' : '');
+        (puppet.alpha ? ' · transparent' : '') +
+        (puppet.cropped ? ' · trimmed' : '');
+      // Only a still can be trimmed: the measurement is of one frame and a
+      // video's subject moves out of it.
+      const crop = $('plateCrop');
+      if (crop) {
+        crop.hidden = puppet.kind !== 'image';
+        crop.textContent = puppet.cropped ? 'Undo trim' : 'Trim edges';
+        crop.title = puppet.cropped
+          ? 'Put the original picture back, margins and all'
+          : 'Cut the empty border off, leaving a 20px margin';
+      }
     }
   }
   const wrap = $('stageWrap');
@@ -5649,6 +6457,7 @@ function syncPuppetUI() {
     wrap.classList.toggle('flip-plate', mirror.plate && hasPlate());
   }
   syncMirrorUI();
+  syncFacePick();
   const note = $('puppetShortNote');
   if (note) {
     const short = puppet.kind === 'video' && puppet.duration > 0 &&
@@ -10638,6 +11447,55 @@ function wire() {
   $('puppetPick').onclick = offer;
   $('plateSwap').onclick = offer;
   $('plateDrop').onclick = () => { forgetPuppet(); toast('Puppet removed.', 1800); };
+  // Trim and untrim. The untrimmed original is kept on the clip, so this is a
+  // real toggle rather than a one-way door — and it reloads through setPuppet
+  // so the placement, the clip's record and the Final Cut copy all move
+  // together with the picture.
+  $('plateCrop').onclick = async () => {
+    if (puppet.kind !== 'image') return;
+    const keep = pose();
+    /* The mouth is placed in fractions of the frame, and trimming changes the
+       frame — so the same fractions put it somewhere else on the face. Both
+       directions are worked out from the kept region: where the content sat in
+       the original, plus the 20px margin put back. Without this, trimming
+       slides the mouth off the chin and undoing it slides it back, which looks
+       like the button is broken rather than like arithmetic. */
+    const remap = (box, from, to, sign) => {
+      const o = { x: box.x - box.m, y: box.y - box.m };
+      if (sign > 0) {   // original -> trimmed
+        return { x: (keep.x * from.w - o.x) / to.w, y: (keep.y * from.h - o.y) / to.h,
+                 size: keep.size * from.w / to.w, rot: keep.rot };
+      }
+      return { x: (keep.x * from.w + o.x) / to.w, y: (keep.y * from.h + o.y) / to.h,
+               size: keep.size * from.w / to.w, rot: keep.rot };
+    };
+    if (puppet.cropped) {
+      const back = puppet.uncropped, box = puppet.cropBox;
+      if (!back) return;
+      const was = { w: puppet.w, h: puppet.h };
+      const ok = await setPuppet(back, true, { noCrop: true });
+      if (ok) {
+        if (box) Object.assign(overlay, remap(box, was, { w: puppet.w, h: puppet.h }, -1));
+        else Object.assign(overlay, keep);
+        drawStage();
+        toast('Original picture restored.', 2200);
+      }
+      return;
+    }
+    const c = activeClip();
+    const f = (c && c.puppet && c.puppet.file) || null;
+    if (!f) return;
+    const r = await cropToContent(f, true);
+    if (!r) { toast('Nothing to trim — the picture runs to its own edges.', 3200); return; }
+    const ok = await setPuppet(r.file, true,
+                               { noCrop: true, uncropped: f, cropBox: r.box });
+    if (ok) {
+      Object.assign(overlay, remap(r.box, r.from, r.to, 1));
+      drawStage();
+      toast('Trimmed to ' + r.to.w + '×' + r.to.h + ' from ' +
+            r.from.w + '×' + r.from.h + '.', 3000);
+    }
+  };
   pick.onchange = () => {
     const f = pick.files && pick.files[0];
     pick.value = '';
@@ -11272,6 +12130,9 @@ function boot() {
   initTheme();
   wireTabs();
   wireExpInfo();
+  buildFacePick();
+  $('demoBtn').onclick = loadDemo;
+  syncDemoBtn();
   buildStyleChips();
   buildChart();
   buildLegend();

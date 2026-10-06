@@ -144,6 +144,7 @@ LABELS = [
     "Align to the audio",
     "Include the voice track", "Loop forever", "Compound Clip",
     "Batch Export", "Current Selection Export", "Stop",
+    "Demo", "Restore demo", "Undo trim", "Smiley", "Squiggly",
     "Chart + exposure sheet", "Final Cut Pro project", "Transparent GIF",
     "Sprite sheet + atlas", "Frame sequence", "Chroma-key MP4",
     "Video with mouth overlay",
@@ -191,6 +192,12 @@ with sync_playwright() as pw:
     p.wait_for_function("state.frames.length > 0", timeout=120000)
     p.wait_for_timeout(1200)
     text += sweep(p)                                  # a video, on its own
+    # A still puppet with a wide empty border, which is the one state that shows
+    # the trim controls: a video cannot be trimmed and a photograph that fills
+    # its own frame has nothing to cut.
+    p.set_input_files("#puppetInput", str(HERE / "fixtures" / "puppet-padded.png"))
+    p.wait_for_timeout(1800)
+    text += sweep(p)
     # The trim row lives in the Exposure sheet tab, and sweep() leaves the page
     # on whichever tab it looked at last.
     p.click("#tabBtn-sheet"); p.wait_for_timeout(250)

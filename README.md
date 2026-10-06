@@ -42,7 +42,8 @@ the clip in the page itself without any other software.
 ## Quick start
 
 1. Open `lip-sync-generator.html` in Chrome, Edge, Safari or Firefox.
-2. Drop a voice recording onto the **Preview** panel, on the left.
+2. Press **Demo** at the top of the Preview panel to see it working on a drawn
+   face, or drop a voice recording onto the panel to start on your own.
 3. Wait a second — the **Exposure sheet** tab, which is already open, fills in.
 4. Press <kbd>Space</kbd> to watch it.
 5. Go to **Export** and take whichever format you need.
@@ -92,10 +93,18 @@ including what a wrapper does to the `lips/` folder and why.
   per line, throw away the bits you don't want, bring them back if you change
   your mind
 - **A queue** — up to 24 clips, each keeping its own edits, placement and mouth
-- **Fifteen drawn mouth styles**, each in three head angles — front,
-  three-quarter and profile — plus your own pictures
+- **Twenty-one drawn mouth styles**, each in three head angles — front,
+  three-quarter and profile — plus your own pictures. Among them **Smiley** for
+  brick characters, **Squiggly** for hand-drawn ones, and four cut to fit the
+  drawn faces
+- **Four drawn faces to try them on** — a man, a woman, a child and an older
+  person, drawn in the page. One click gives you the picture, the placement and
+  the lip style drawn for that face
+- **A demo** — five seconds of speech and a face, one button, and the same
+  button brings it back after you have loaded your own
 - **A puppet to put it on** — a photograph or a video, chosen separately from the
-  voice track, one per clip. A short one plays out and back so the loop has no
+  voice track, one per clip. The empty border is measured and trimmed on import,
+  with 20px put back and an undo. A short one plays out and back so the loop has no
   seam; a cut-out one keeps its transparency through the PNG exports
 - **Place the mouth on the picture**, with keyframes to follow a moving shot and
   a blur patch to cover a printed mouth
@@ -172,15 +181,16 @@ fonts/                      the two typefaces, embedded at build time
 lips/                       optional: your own mouth sets, one folder each
 fixtures/
   make_fixtures.py          rebuilds the media the harnesses drive the app with
+  make_favicon.py           redraws the tab icon from the app's own mark
 manualshots.py              regenerates the screenshots
 manualtest.py               checks the manual against the app
 offlinetest.py              proves the file makes no network request
 test_ui.py                  checks the shell: tab order, panel sizes, popovers
 ```
 
-`speech.wav`, `trim-marks.wav` and `codec-vp9.mp4` sit in the project root and
+`speech.wav`, `trim-marks.wav`, `codec-vp9.mp4` and `fixtures/puppet-padded.png`
 are build inputs, not documentation, so they are not committed —
-`fixtures/make_fixtures.py` rebuilds all three from nothing. The video is VP9
+`fixtures/make_fixtures.py` rebuilds them from nothing. The video is VP9
 and Opus on purpose: the Chromium that Playwright drives carries no proprietary
 codecs, so an H.264 fixture plays on your machine and hangs every harness.
 

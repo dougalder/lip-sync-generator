@@ -120,3 +120,17 @@ png.rmdir()
 mp4 = ROOT / "codec-vp9.mp4"
 print(f"  {mp4.name}  {mp4.stat().st_size:,} bytes  {SECS}s @ {FPS}fps  VP9 + Opus")
 print("")
+
+
+# --- puppet-padded.png ------------------------------------------------------
+# A drawn head in the middle of a wide white border, for the trim-on-import
+# path: the harnesses need a picture that HAS something to cut off, and a
+# photograph with a real background is, correctly, left alone.
+im = Image.new("RGB", (1200, 900), (255, 255, 255))
+g = ImageDraw.Draw(im)
+g.ellipse([450, 250, 750, 650], fill=(232, 200, 170), outline=(60, 50, 45), width=6)
+g.ellipse([520, 360, 560, 400], fill=(40, 40, 48))
+g.ellipse([640, 360, 680, 400], fill=(40, 40, 48))
+pp = ROOT / "fixtures" / "puppet-padded.png"
+im.save(pp)
+print(f"  {pp.name}  {pp.stat().st_size:,} bytes  1200x900, content 305x405")

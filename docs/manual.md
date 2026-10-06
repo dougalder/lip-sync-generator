@@ -66,7 +66,9 @@ Typical jobs it is built for:
 
 1. Open `lip-sync-generator.html` in Chrome, Edge, Safari or Firefox.
    Double-clicking the file works; so does serving it.
-2. Drop a voice recording onto the **Preview** panel.
+2. Press **Demo** at the top of the Preview panel to see the whole thing
+   working on a drawn face, or drop a voice recording onto the panel to start on
+   your own.
 3. Wait a second or two — the exposure sheet fills in.
 4. Press <kbd>Space</kbd> to watch it.
 5. Go to the **Export** tab and take whichever format you need.
@@ -76,6 +78,25 @@ Typical jobs it is built for:
 > Drop a WAV, press play, export the **Chart + exposure sheet**. You get nine
 > transparent PNGs and a JSON/CSV timing list, which is enough to drive almost
 > any animation tool.
+
+### The demo
+
+**Demo**, at the top of the Preview panel, loads five seconds of speech and a
+drawn face and analyses them. It is there so that opening the file for the first
+time shows the thing working rather than an empty stage and four tabs of
+settings for something that is not there.
+
+It is also the way back. Once you have loaded your own clip the button reads
+**Restore demo**, and pressing it clears what is loaded and puts the demo back —
+useful when an experiment has gone sideways and you want a known-good state to
+compare against. It clears the queue first, because restoring the demo on top of
+your own clips is not what the word restore means.
+
+The voice is synthesized rather than recorded, by
+[eSpeak NG](https://github.com/espeak-ng/espeak-ng). It sounds like a robot, and
+it is meant to: a synthesiser gives clean, evenly spaced phonemes, which is what
+makes the exposure sheet legible as an example. It travels inside the file like
+everything else — nothing is fetched to play it.
 
 ---
 
@@ -249,6 +270,9 @@ as the preview beside it and grows past it when a long clip needs the room.
 2. **Stage** — where the mouth is drawn, over a checkerboard so you can see the
    transparency. With a video loaded, the mouth sits over the picture.
 3. **Transport** — play, stop and scrub. Greyed out until a clip is in.
+4. **Demo** — loads a short recorded line and a drawn face, so there is
+   something to look at before you have anything of your own. See
+   [The demo](#the-demo).
 
 A **video** file is treated the same way: the soundtrack is analysed and the
 picture becomes the backdrop, so you can place the mouth exactly where the face
@@ -337,6 +361,14 @@ shape, with the waveform above it.
 The Preston Blair set, which is also what Rhubarb writes. Every export ships all
 nine PNGs even if the take only used five, so you can correct a frame later
 without exporting again.
+
+**C** and **D** are drawn 15% shorter than the classic proportion, and the
+reason is practical rather than phonetic. Those two set the tallest frame in the
+set, so they set the scale of the whole export: a Lego minifigure or a Barbie
+head has perhaps a fifth of its face to spare for a mouth, and a D at full
+height forced the entire sheet to be scaled down to fit it, which left every
+other shape too small to read. Width, roundness, teeth and tongue are
+untouched — it is only the opening.
 
 | Key | Shape | Sounds |
 |-----|-------|--------|
@@ -431,7 +463,7 @@ keyframes, the blur patch and the script.
 
 ![The Mouth and motion tab](images/08-mouth.png)
 
-1. **Built-in lips** — fifteen drawn styles, from a plain line to a rendered
+1. **Built-in lips** — twenty-one drawn styles, from a plain line to a rendered
    mouth, each in three head angles: **Front**, **Three-quarter** and
    **Profile**.
 2. **Custom lips** — sets of pictures, either shipped with the app or added for
@@ -440,6 +472,30 @@ keyframes, the blur patch and the script.
    clip only.
 4. **Chart** — all nine shapes in the current style. Click a cell to preview it
    on the stage.
+
+#### The ones worth knowing about
+
+Most of the twenty-one are variations on realism and colour and you can pick
+one by looking. Six are not:
+
+- **Smiley** — the big friendly cartoon mouth: a heavy black line, a solid black
+  inside, a broad band of white across the top and a red tongue filling the
+  floor. The difference from **Cartoon** is where the mass goes. In Cartoon the
+  dark is the mouth and the teeth are a detail; in Smiley the teeth and the
+  tongue take most of the opening, which is what makes it read as a grin rather
+  than as a hole. This is the one for minifigures and brick characters.
+- **Squiggly** — pen on paper. The outline is drawn three times, each pass
+  nudged and turned a hair, so the line frays the way a real one does. For
+  drawings that are themselves wobbly, where a clean vector mouth sits on the
+  face like a sticker. The fraying is fixed per shape, not random per frame —
+  shape D is the same shape D every time it comes round, or the mouth would
+  boil.
+- **Man**, **Woman**, **Child** and **Older** — the four that go with the drawn
+  faces. The line weight matches the faces' own, the colour is picked against
+  each one's skin, and the proportions follow the head: the child's narrower and
+  rounder, the older one's thinner and flatter. Choosing a drawn face picks its
+  own one of these; they are in the shelf as well because a puppet of your own
+  may want the same treatment.
 
 #### Head angles
 
@@ -573,6 +629,51 @@ plus **Replace…** and **Remove**.
 A photograph is the easy case and the good one. It is a locked-off shot by
 definition — nothing drifts, nothing needs tracking — so a picture of the doll
 and a voice note is all it takes.
+
+### Four drawn faces
+
+![The four drawn faces, each with a mouth on it](images/21-faces.png)
+
+Beside **Add a puppet…** there are four small portraits: a man, a woman, a child
+and an older person, drawn in the page rather than carried as pictures. Click
+one and it becomes the puppet.
+
+A face brings three things, not one: the picture, the place its mouth goes, and
+the lip style drawn for it — **Man**, **Woman**, **Child** or **Older** from the
+style shelf. Any one of them alone would leave you doing the other two by hand
+for a face the app drew itself.
+
+They are transparent, so they export like any other cut-out puppet, and they are
+drawn at 900×1200, which is large enough that a 2048px export is not resampling
+upward. The same four chips appear on the **PUPPET** line once there is a puppet,
+so one face can be swapped for another without going back to the start.
+
+They are deliberately plain, and they have no mouths. A face that already had
+one would be answering the question it is asking.
+
+### Trimming the empty border
+
+Pictures of puppets arrive with a lot of nothing round them — a phone photo of a
+minifigure on a desk, a PNG exported at canvas size, a scan. That costs twice:
+the mouth has to be shrunk to a few per cent of the frame to sit on a face that
+occupies a fifth of it, and every export that carries the puppet carries the
+empty margin at full resolution.
+
+So the border is measured and cut on the way in, and 20px of it is put back so
+nothing sits hard against the edge. The **PUPPET** line says `trimmed` when this
+has happened and offers **Undo trim**; on a picture that was left alone the same
+button reads **Trim edges** and will do it on demand.
+
+What counts as empty is not a guess. A picture **with transparency** is trimmed
+on its alpha. One **without** is trimmed against the colour its own four corners
+agree on — and if the corners disagree, which is the case for any photograph
+with a real background, nothing is cropped at all. That is why this can run
+automatically without surprising anyone.
+
+Trimming changes the frame, so the mouth's placement is moved with the picture
+rather than being left to slide off the chin; undoing it moves the placement
+back. Videos are not trimmed: the measurement is of one frame and a video's
+subject moves out of it.
 
 Once there is a puppet, everything the video path already offered turns on:
 placement on the stage, the blur patch, the keyframes, **Video with mouth
@@ -1027,7 +1128,7 @@ until then there is no picture to place anything on.
 
 ### Puppets that are not facing you
 
-The fifteen styles each come in three head angles — **Front**, **Three-quarter**
+The twenty-one styles each come in three head angles — **Front**, **Three-quarter**
 and **Profile** — so a puppet can be turned away or side on and still get a mouth
 that belongs to it. They are the sub-tabs under **Built-in lips**; see
 [Head angles](#head-angles).

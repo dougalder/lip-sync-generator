@@ -138,6 +138,36 @@ def plain(page, name, container):
     print(f"  {name}.png  {im.width}x{im.height}")
 
 
+def face_sheet(page):
+    """Each drawn face with a mouth on it, at the placement it asks for."""
+    url = page.evaluate("""() => {
+      const ks = Object.keys(FACES), S = 0.42, pad = 16, lab = 30;
+      const c = document.createElement('canvas');
+      c.width = (FACE_W * S + pad) * ks.length + pad;
+      c.height = FACE_H * S + pad * 2 + lab;
+      const x = c.getContext('2d');
+      x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, c.width, c.height);
+      x.fillStyle = '#222'; x.font = '600 20px sans-serif'; x.textAlign = 'center';
+      ks.forEach((k, i) => {
+        const ox = pad + i * (FACE_W * S + pad);
+        x.save(); x.translate(ox, pad); x.scale(S, S);
+        drawFace(x, FACE_W, FACE_H, k);
+        const pl = FACES[k].place, w = pl.size * FACE_W;
+        x.save();
+        x.translate(pl.x * FACE_W - w / 2, pl.y * FACE_H - w * 0.56);
+        paintMouthArt(x, w, w, 'D', styleViewId(FACES[k].style, 'front'));
+        x.restore(); x.restore();
+        x.fillText(FACES[k].label, ox + FACE_W * S / 2, pad + FACE_H * S + 22);
+      });
+      return c.toDataURL('image/png');
+    }""")
+    import base64
+    im = cap(Image.open(io.BytesIO(base64.b64decode(url.split(",", 1)[1]))).convert("RGB"))
+    OUT.mkdir(parents=True, exist_ok=True)
+    im.save(OUT / "21-faces.png", optimize=True)
+    print(f"  21-faces.png  {im.width}x{im.height}")
+
+
 def load(page, asset, fps="12"):
     page.set_input_files("#fileInput", str(HERE / asset))
     page.wait_for_function("state.frames.length > 0", timeout=120000)
@@ -178,8 +208,15 @@ with sync_playwright() as pw:
         ("#drop", "tr"),
         ("#stageWrap", "r"),
         (".transport", "l"),
+        ("#demoBtn", "bl"),
     ])
     plain(page, "03-tabs", "nav.tabs")
+
+    # The four drawn faces, painted straight from the code that draws them
+    # rather than screenshotted off the stage one at a time — same source, and
+    # it cannot go stale while the drawings change.
+    print("the drawn faces")
+    face_sheet(page)
 
     print("analysis")
     tab(page, "analysis")
