@@ -1,1 +1,7 @@
+# The built app: one 7 MB file with a WebAssembly payload inside it. Generated,
+# so GitHub collapses the diff instead of trying to render it.
 lip-sync-generator.html linguist-generated=true
+
+# The Python here is test harnesses, not the project. Without this the language
+# bar reads "Python 99.6%" for an app that contains no Python at all.
+*.py -linguist-detectable
