@@ -325,6 +325,13 @@ with sync_playwright() as pw:
         ("#overlayAngle", "t"),
         ("#overlayReset", "t"),
     ])
+    # The placement strip with the puppet selected — the one picture that has to
+    # show a state the app is not in by default.
+    page.evaluate("setEditLayer('puppet')")
+    page.wait_for_timeout(250)
+    plain(page, "22-layerpick", "#overlayTools")
+    page.evaluate("setEditLayer('mouth')")
+    page.wait_for_timeout(250)
     shot(page, "11-motion", "#motionPanel", [
         ("#patchOn", "l"),
         ("#patchBlur", "t"),

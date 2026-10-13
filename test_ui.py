@@ -58,6 +58,16 @@ def run(dark):
               "the exposure sheet is the open tab on arrival")
         check(not pg.is_visible("#tab-export"), "the export pane starts closed")
 
+        # --- the version, shown and consistent -------------------------------
+        shown = (pg.text_content('#appVersion') or '').strip()
+        code = pg.evaluate('APP_VERSION')
+        check(shown == 'v' + code,
+              "the version under the title is the one in the code (%r vs %r)" % (shown, code))
+        check(len(code.split('.')) == 3 and all(x.isdigit() for x in code.split('.')),
+              "and it is a three-part number (%r)" % (code,))
+        check(code in pg.evaluate('diagnostics()'),
+              "the diagnostics carry it too, for a bug report")
+
         # --- the privacy line -----------------------------------------------
         txt = pg.text_content(".privacy") or ""
         check("never uploaded" in txt and "browser" in txt,

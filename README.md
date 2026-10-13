@@ -78,7 +78,8 @@ place, and one difference between them that matters:
   preloaded `lips/` folder of your own mouth art.
 - **Put it on the web** — GitHub Pages, Amazon S3, any static host. Note that
   neither GitHub Pages nor S3 lists directories, so a `lips/` folder there needs
-  a `sets.json` and the nine files named `X.png` … `H.png`.
+  a `sets.json` and the nine files named `X.png` … `H.png` —
+  [the full reference](docs/manual.md#setsjson-in-full) has a worked example.
 
 [Ways to run it](docs/manual.md#ways-to-run-it) in the manual has the detail,
 including what a wrapper does to the `lips/` folder and why.
@@ -104,7 +105,10 @@ including what a wrapper does to the `lips/` folder and why.
   button brings it back after you have loaded your own
 - **A puppet to put it on** — a photograph or a video, chosen separately from the
   voice track, one per clip. The empty border is measured and trimmed on import,
-  with 20px put back and an undo. A short one plays out and back so the loop has no
+  with 20px put back and an undo. Move, resize or tilt the picture itself, and
+  the mouth travels with it
+- **A puppet shelf** — the drawn faces and everything you have loaded this visit
+  in one row. Switching keeps each one's placement; nothing is thrown away A short one plays out and back so the loop has no
   seam; a cut-out one keeps its transparency through the PNG exports
 - **Place the mouth on the picture**, with keyframes to follow a moving shot and
   a blur patch to cover a printed mouth
@@ -117,6 +121,12 @@ including what a wrapper does to the `lips/` folder and why.
 
 See the [manual](docs/manual.md) for how each of these works, with annotated
 screenshots.
+
+## Version
+
+The version shows under the title in the app, in **Diagnostics**, and in the
+README of every export. It lives in one place in the source — `APP_VERSION` at
+the top of the script — and everything else reads it from there.
 
 ## Limits
 

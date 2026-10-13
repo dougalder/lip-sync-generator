@@ -210,6 +210,83 @@ Adding `sets.json` does no harm anywhere else — it is only read when a listing
 is unavailable — so if you want one folder layout that works on every host, use
 the nine plain names and ship the manifest.
 
+#### `sets.json` in full
+
+**Where it goes.** Beside the HTML file, inside `lips/` — never inside a set.
+Two levels, and only two:
+
+```
+your-site/
+  lip-sync-generator.html
+  lips/
+    sets.json
+    Bright-Woman/
+      X.png  A.png  B.png  C.png  D.png  E.png  F.png  G.png  H.png
+    Scraggly lips/
+      X.png  A.png  B.png  C.png  D.png  E.png  F.png  G.png  H.png
+```
+
+**What it is.** A JSON array of the folder names under `lips/`, exactly as they
+are spelled on disk — the same string that appears in the URL. That is all it
+is: the page cannot see the folder, so this is the list of places to look.
+
+```json
+[
+  "Bright-Woman",
+  "Cartoony-Male-Lips",
+  "Scraggly lips",
+  "Woman-Coral"
+]
+```
+
+**The rules, and why each one is there.**
+
+| | |
+|---|---|
+| Folder names are case-sensitive and must match exactly | They become URLs, and a web server is not a Mac disk: `Woman-Coral` and `woman-coral` are two different addresses. |
+| Spaces are fine | `"Scraggly lips"` and `"Fat and Simple II"` both work — the browser encodes them. Do not write `%20` yourself. |
+| The nine pictures must be named `X A B C D E F G H` with a `.png` extension | With no directory listing the page has nothing to go on but the names, so these are the only nine it can ask for. A set that works locally and comes up empty when hosted is almost always this. |
+| A missing shape is not an error | A folder with seven of the nine loads as a set showing `7/9`, and the two it has no picture for are filled with a best guess. |
+| The folder name is the set's name | It is what appears on the shelf, so name the folder what you want to read. |
+| `{ "sets": [...] }` is accepted | As is an array of `{ "name": "…" }` objects. Neither buys anything today — only the name is read — but a file written either way will not be rejected. |
+
+**One file for the whole shelf.** A worked example — seventeen sets, mixed
+naming, spaces and all. This exact file is what the project's own test harness
+serves, and all seventeen load from it:
+
+```json
+[
+  "Bright-Woman",
+  "Cartoony-Male-Lips",
+  "Cartoony-Off-Centre",
+  "Cartoony-Peachy-Mouth",
+  "Cartoony-Peachy-Variant",
+  "Cartoony-Simple-Lo",
+  "Cartoony-Simplistic",
+  "Faces",
+  "Fat and Simple II",
+  "Fat-and-Simple",
+  "Mouthy-Boy",
+  "Scraggly lips",
+  "Teen-Boy-Asian",
+  "Teen-Caucasian",
+  "Woman-Coral",
+  "Woman-Full-Red-Lips",
+  "Woman-Medium"
+]
+```
+
+**Checking it.** Open `…/lips/sets.json` in the browser: you should see the list.
+Then open one of the pictures directly — `…/lips/Woman-Coral/D.png`. If both
+answer and the shelf is still empty, the names in the manifest do not match the
+folders. If the picture does not answer, it is permissions or the path, and no
+manifest will help.
+
+> On a host with no listing you will see a 404 in the browser console for
+> `lips/` and one for each set folder. They are the page trying the directory
+> first, which is the better answer where it is available, and falling back to
+> the manifest. They are expected and harmless.
+
 > **The folder is there and nothing shows up**
 >
 > Open one of the pictures directly in the browser —
@@ -233,6 +310,12 @@ columns: the preview in a rail on the left, and the tabs filling the rest.
    `Local file · ZIP exports` is the normal case.
 3. **Appearance** — one button, light or dark. It opens on whatever your system
    is set to; click it once and your choice sticks between visits.
+
+Under the title is the version — `v1.0.0` and so on. It is worth quoting in a
+bug report, and it is the quickest way to tell whether the copy you saved to the
+desktop is the one you have been reading about: the number in the window, the
+number in **Diagnostics**, and the number in the README of every export are all
+the same one, taken from the code rather than typed anywhere.
 
 ![The privacy line](images/01b-privacy.png)
 
@@ -263,13 +346,19 @@ as the preview beside it and grows past it when a long clip needs the room.
 
 ## Loading a clip
 
+The rail reads top to bottom in the order you use it: the picture, the buttons
+that drive it, the strip that places the mouth on it, and then the file and
+puppet rows.
+
 ![The empty Preview panel](images/02-drop.png)
 
 1. **Drop area** — drag a file here, or click to browse. WAV, MP3, M4A, OGG,
    FLAC, AAC, MP4, MOV, WebM. Drop several at once to start a queue.
 2. **Stage** — where the mouth is drawn, over a checkerboard so you can see the
-   transparency. With a video loaded, the mouth sits over the picture.
-3. **Transport** — play, stop and scrub. Greyed out until a clip is in.
+   transparency. With a video or a puppet loaded, the mouth sits over the
+   picture.
+3. **Transport** — play, stop and scrub, directly under the picture and sized
+   to be hit without looking away from it. Greyed out until a clip is in.
 4. **Demo** — loads a short recorded line and a drawn face, so there is
    something to look at before you have anything of your own. See
    [The demo](#the-demo).
@@ -650,6 +739,65 @@ so one face can be swapped for another without going back to the start.
 
 They are deliberately plain, and they have no mouths. A face that already had
 one would be answering the question it is asking.
+
+### The puppet shelf
+
+The four drawn faces and **everything you have loaded this visit** share one row
+of chips. Choosing one switches to it. Nothing is thrown away by switching:
+load a second drawing and the first stays on the shelf, one click away.
+
+Each chip keeps its own two placements — where the picture sits in the frame,
+and where the mouth sits on the picture — so going back to a puppet finds it as
+you left it. That is what makes trying the same line on three characters a
+matter of three clicks rather than three re-imports.
+
+The shelf is in memory and lasts the visit. Nothing is written to disk, and
+reloading the page clears it.
+
+### Moving the puppet itself
+
+![The placement strip](images/22-layerpick.png)
+
+The strip under the transport has a **Mouth / Puppet** switch. It decides which
+of the two the handles on the stage are driving — one set of handles, not two,
+because four corners and two knobs over one face is a guess every time you
+reach for one.
+
+On **Puppet**, the whole picture gets the box: drag it to move, pull the corner
+to resize, use the knob to tilt. The readouts and **Reset** beside the switch
+follow whichever layer you are on.
+
+A puppet starts at 100%, filling its frame, which is exactly what it always did.
+Scale it down and the margin left behind is **transparent** — which is often the
+point: a drawing cropped tight to the figure has no air around it, and a mouth
+near the chin ends up hard against the edge of every export. Scale it up to push
+in on a face photographed from across the room.
+
+**The mouth travels with it.** Move, resize or tilt the picture and the mouth
+goes along, keyframes and all. Place the mouth, decide the head is too big, pull
+the corner — the mouth is still on the mouth.
+
+Three things worth knowing:
+
+- The frame does not change size. It stays the puppet's own shape, which is what
+  every export is built at, so moving the puppet never changes the dimensions of
+  what comes out.
+- **Flip** and the placement are the same mechanism now, so a mirrored puppet
+  that has also been turned behaves the way you would expect rather than the way
+  two separate features would.
+- Keyframes belong to the mouth. The puppet is the set, and a set that drifts
+  under a character is a different feature.
+
+#### What Final Cut gets
+
+A **still** that has been moved is rendered into the project exactly as you
+placed it — the file in the zip is a full-frame PNG named `…-placed.png`, with
+the transparency kept. It is still one layer you can move in Final Cut; it
+simply arrives where you put it.
+
+A **video** puppet cannot be rendered in a page without re-encoding it, so Final
+Cut gets the clip as it is. The card says so when that applies, and you place it
+there to match.
 
 ### Trimming the empty border
 

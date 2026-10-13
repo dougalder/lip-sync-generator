@@ -426,6 +426,102 @@ listing to read, those are the only names the page can ask for.</li>
 when a listing is unavailable — so if you want one folder layout that works on
 every host, use the nine plain names and ship the manifest.</p>
 
+<h4 id="setsjson"><code>sets.json</code> in full</h4>
+
+<p><b>Where it goes.</b> Beside the HTML file, inside <code>lips/</code> — never
+inside a set. Two levels, and only two:</p>
+
+<pre><code>your-site/
+  lip-sync-generator.html
+  lips/
+    sets.json
+    Bright-Woman/
+      X.png  A.png  B.png  C.png  D.png  E.png  F.png  G.png  H.png
+    Scraggly lips/
+      X.png  A.png  B.png  C.png  D.png  E.png  F.png  G.png  H.png</code></pre>
+
+<p><b>What it is.</b> A JSON array of the folder names under <code>lips/</code>,
+exactly as they are spelled on disk — the same string that appears in the URL.
+That is all it is: the page cannot see the folder, so this is the list of places
+to look.</p>
+
+<pre><code>[
+  "Bright-Woman",
+  "Cartoony-Male-Lips",
+  "Scraggly lips",
+  "Woman-Coral"
+]</code></pre>
+
+<p><b>The rules, and why each one is there.</b></p>
+
+<div class="tablewrap">
+<table>
+  <tbody>
+    <tr><td>Folder names are case-sensitive and must match exactly</td>
+        <td>They become URLs, and a web server is not a Mac disk:
+            <code>Woman-Coral</code> and <code>woman-coral</code> are two
+            different addresses.</td></tr>
+    <tr><td>Spaces are fine</td>
+        <td><code>"Scraggly lips"</code> and <code>"Fat and Simple II"</code>
+            both work — the browser encodes them. Do not write
+            <code>%20</code> yourself.</td></tr>
+    <tr><td>The nine pictures must be named <code>X A B C D E F G H</code> with a
+            <code>.png</code> extension</td>
+        <td>With no directory listing the page has nothing to go on but the
+            names, so these are the only nine it can ask for. A set that works
+            locally and comes up empty when hosted is almost always this.</td></tr>
+    <tr><td>A missing shape is not an error</td>
+        <td>A folder with seven of the nine loads as a set showing
+            <code>7/9</code>, and the two it has no picture for are filled with
+            a best guess.</td></tr>
+    <tr><td>The folder name is the set's name</td>
+        <td>It is what appears on the shelf, so name the folder what you want to
+            read.</td></tr>
+    <tr><td><code>{ "sets": [...] }</code> is accepted</td>
+        <td>As is an array of <code>{ "name": "…" }</code> objects. Neither buys
+            anything today — only the name is read — but a file written either
+            way will not be rejected.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><b>One file for the whole shelf.</b> A worked example — seventeen sets, mixed
+naming, spaces and all. This exact file is what the project's own test harness
+serves, and all seventeen load from it:</p>
+
+<pre><code>[
+  "Bright-Woman",
+  "Cartoony-Male-Lips",
+  "Cartoony-Off-Centre",
+  "Cartoony-Peachy-Mouth",
+  "Cartoony-Peachy-Variant",
+  "Cartoony-Simple-Lo",
+  "Cartoony-Simplistic",
+  "Faces",
+  "Fat and Simple II",
+  "Fat-and-Simple",
+  "Mouthy-Boy",
+  "Scraggly lips",
+  "Teen-Boy-Asian",
+  "Teen-Caucasian",
+  "Woman-Coral",
+  "Woman-Full-Red-Lips",
+  "Woman-Medium"
+]</code></pre>
+
+<p><b>Checking it.</b> Open <code>…/lips/sets.json</code> in the browser: you
+should see the list. Then open one of the pictures directly —
+<code>…/lips/Woman-Coral/D.png</code>. If both answer and the shelf is still
+empty, the names in the manifest do not match the folders. If the picture does
+not answer, it is permissions or the path, and no manifest will help.</p>
+
+<blockquote>
+<p>On a host with no listing you will see a 404 in the browser console for
+<code>lips/</code> and one for each set folder. They are the page trying the
+directory first, which is the better answer where it is available, and falling
+back to the manifest. They are expected and harmless.</p>
+</blockquote>
+
 <blockquote>
 <p><b>The folder is there and nothing shows up</b></p>
 <p>Open one of the pictures directly in the browser —
@@ -457,6 +553,13 @@ columns: the preview in a rail on the left, and the tabs filling the rest.</p>
       system is set to; click it once and your choice sticks between
       visits.</li>
 </ol>
+
+<p>Under the title is the version — <span class="mono">v1.0.0</span> and so on.
+It is worth quoting in a bug report, and it is the quickest way to tell whether
+the copy you saved to the desktop is the one you have been reading about: the
+number in the window, the number in <b>Diagnostics</b>, and the number in the
+README of every export are all the same one, taken from the code rather than
+typed anywhere.</p>
 
 <figure>
   <img src="images/01b-privacy.png" alt="The privacy line under the title bar">
@@ -496,6 +599,10 @@ when a long clip needs the room.</p>
 
 <h2 id="loading">Loading a clip</h2>
 
+<p>The rail reads top to bottom in the order you use it: the picture, the
+buttons that drive it, the strip that places the mouth on it, and then the file
+and puppet rows.</p>
+
 <figure>
   <img src="images/02-drop.png" alt="The empty Preview panel, with the drop area, the stage and the transport marked">
   <figcaption>The Preview panel before anything is loaded.</figcaption>
@@ -506,7 +613,9 @@ when a long clip needs the room.</p>
       OGG, FLAC, AAC, MP4, MOV, WebM. Drop several at once to start a queue.</li>
   <li><b>Stage</b> — where the mouth is drawn, over a checkerboard so you can see
       the transparency. With a video loaded, the mouth sits over the picture.</li>
-  <li><b>Transport</b> — play, stop and scrub. Greyed out until a clip is in.</li>
+  <li><b>Transport</b> — play, stop and scrub, directly under the picture and
+      sized to be hit without looking away from it. Greyed out until a clip is
+      in.</li>
   <li><b>Demo</b> — loads a short recorded line and a drawn face, so there is
       something to look at before you have anything of your own. See
       <a href="#demo">The demo</a>.</li>
@@ -963,6 +1072,71 @@ the start.</p>
 
 <p>They are deliberately plain, and they have no mouths. A face that already had
 one would be answering the question it is asking.</p>
+
+<h3 id="shelf">The puppet shelf</h3>
+
+<p>The four drawn faces and <b>everything you have loaded this visit</b> share
+one row of chips. Choosing one switches to it. Nothing is thrown away by
+switching: load a second drawing and the first stays on the shelf, one click
+away.</p>
+
+<p>Each chip keeps its own two placements — where the picture sits in the frame,
+and where the mouth sits on the picture — so going back to a puppet finds it as
+you left it. That is what makes trying the same line on three characters a
+matter of three clicks rather than three re-imports.</p>
+
+<p>The shelf is in memory and lasts the visit. Nothing is written to disk, and
+reloading the page clears it.</p>
+
+<h3 id="puppetplace">Moving the puppet itself</h3>
+
+<figure>
+  <img src="images/22-layerpick.png" alt="The placement strip, with the Mouth and Puppet switch">
+  <figcaption>The placement strip, switched to the puppet.</figcaption>
+</figure>
+
+<p>The strip under the transport has a <b>Mouth / Puppet</b> switch. It decides
+which of the two the handles on the stage are driving — one set of handles, not
+two, because four corners and two knobs over one face is a guess every time you
+reach for one.</p>
+
+<p>On <b>Puppet</b>, the whole picture gets the box: drag it to move, pull the
+corner to resize, use the knob to tilt. The readouts and <b>Reset</b> beside the
+switch follow whichever layer you are on.</p>
+
+<p>A puppet starts at 100%, filling its frame, which is exactly what it always
+did. Scale it down and the margin left behind is <b>transparent</b> — which is
+often the point: a drawing cropped tight to the figure has no air around it, and
+a mouth near the chin ends up hard against the edge of every export. Scale it up
+to push in on a face photographed from across the room.</p>
+
+<p><b>The mouth travels with it.</b> Move, resize or tilt the picture and the
+mouth goes along, keyframes and all. Place the mouth, decide the head is too
+big, pull the corner — the mouth is still on the mouth.</p>
+
+<p>Three things worth knowing:</p>
+
+<ul>
+  <li>The frame does not change size. It stays the puppet's own shape, which is
+      what every export is built at, so moving the puppet never changes the
+      dimensions of what comes out.</li>
+  <li><b>Flip</b> and the placement are the same mechanism now, so a mirrored
+      puppet that has also been turned behaves the way you would expect rather
+      than the way two separate features would.</li>
+  <li>Keyframes belong to the mouth. The puppet is the set, and a set that
+      drifts under a character is a different feature.</li>
+</ul>
+
+<h4 id="puppetfcp">What Final Cut gets</h4>
+
+<p>A <b>still</b> that has been moved is rendered into the project exactly as you
+placed it — the file in the zip is a full-frame PNG named
+<span class="mono">…-placed.png</span>, with the transparency kept. It is still
+one layer you can move in Final Cut; it simply arrives where you put it.</p>
+
+<p>A <b>video</b> puppet cannot be rendered in a page without re-encoding it, so
+Final Cut gets the clip as it is. The card says so when that applies, and you
+place it there to match.</p>
 
 <h3 id="trim">Trimming the empty border</h3>
 

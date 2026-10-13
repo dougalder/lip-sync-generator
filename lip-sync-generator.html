@@ -128,6 +128,7 @@ button,input,select,label{font:inherit; color:inherit}
 .brand{display:flex; align-items:center; gap:12px}
 .brand h1{font-size:19px; line-height:1.1}
 .brand .tag{font-size:12px; color:var(--ink-2); letter-spacing:.01em}
+.brand .ver{font-size:10.5px; color:var(--ink-3); letter-spacing:.06em; margin-top:2px}
 .mark{width:34px; height:34px; flex:none; border-radius:8px; background:var(--accent-soft); display:grid; place-items:center; border:1px solid var(--accent-line)}
 .mark svg{display:block}
 .topbar-right{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
@@ -543,6 +544,14 @@ select, input[type=text], input[type=number]{
 .stage-wrap:not(.video) .stage-stack{width:min(340px,100%); margin-inline:auto}
 .stage-wrap:not(.video) #stage{display:block; width:100%}
 #stageVideo{display:none; width:100%; height:auto; max-width:100%; background:#000}
+/* With a puppet in front of it, the clip's own video is not the picture — and
+   once the puppet can be scaled down inside the frame, its black backing is
+   what shows in the margin instead of the checkerboard that says "this will
+   export transparent". */
+.stage-wrap.p-img #stageVideo, .stage-wrap.p-vid #stageVideo{background:transparent}
+/* The same margin over a clip's own footage. The export puts nothing there, so
+   neither does the preview. */
+.stage-wrap.video #stageVideo{background:transparent}
 #stage{
   width:min(340px,100%); height:auto; aspect-ratio:1/1; image-rendering:auto;
   /* Without this, iOS claims the drag as a page pan and pointermove never
@@ -572,9 +581,13 @@ select, input[type=text], input[type=number]{
 }
 
 .overlay-tools{
-  display:flex; align-items:center; gap:9px; padding:8px 14px;
+  display:flex; align-items:center; gap:7px 9px; flex-wrap:wrap;
+  padding:8px 14px;
   border-top:1px solid var(--line-soft); background:var(--surface-2); font-size:11.5px;
 }
+/* The hint takes a whole line of its own in a narrow rail rather than being
+   squeezed into a five-word column between two controls. */
+.overlay-tools .hint{flex:1 1 150px; min-width:0}
 .overlay-tools .mono{font-size:11.5px; color:var(--accent)}
 .overlay-tools .ang{display:inline-flex; align-items:center; gap:1px; color:var(--accent); flex:none}
 .overlay-tools .ang input{
@@ -587,7 +600,8 @@ select, input[type=text], input[type=number]{
 /* The puppet on the stage is a DOM element behind the canvas, not pixels on it,
    so its mirror is a CSS transform. The canvas above it is not flipped — the
    mouth has its own switch, and the handles must stay where the pointer is. */
-.stage-wrap.flip-plate #stagePlate, .stage-wrap.flip-plate #platePlayer{transform:scaleX(-1)}
+/* The mirror is part of the puppet transform now — see syncPlateTransform —
+   so there is no class-based transform here to fight with the inline one. */
 .btn.ghost.mini[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
 .stage-wrap.p-img #stagePlate, .stage-wrap.p-vid #platePlayer{display:block}
 /* A puppet replaces the clip's own footage as the thing you see. */
@@ -602,7 +616,22 @@ select, input[type=text], input[type=number]{
 }
 .facepick button:hover{border-color:var(--ink-3)}
 .facepick button[aria-pressed="true"]{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent)}
-.facepick canvas{display:block; width:100%; height:100%}
+.facepick canvas, .facepick img{display:block; width:100%; height:100%; object-fit:contain}
+/* Mouth or puppet. Built like the export scope toggle rather than as two loose
+   buttons, so it reads as one control with two positions. */
+.layerpick{
+  display:inline-flex; flex:none; border:1px solid var(--line); border-radius:8px;
+  overflow:hidden; background:var(--surface-2);
+}
+.layerpick button{
+  appearance:none; border:0; background:transparent; cursor:pointer;
+  font:inherit; font-size:11.5px; padding:4px 10px; color:var(--ink-2);
+}
+.layerpick button + button{border-left:1px solid var(--line)}
+.layerpick button:hover{color:var(--ink)}
+.layerpick button[aria-pressed="true"]{
+  background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:600;
+}
 .plate-row{
   display:flex; align-items:center; gap:9px; flex-wrap:wrap;
   padding:8px 0 0; margin-top:8px; border-top:1px solid var(--line-soft);
@@ -625,10 +654,18 @@ select, input[type=text], input[type=number]{
   background-size:18px 18px; background-position:0 0, 9px 9px;
 }
 .stage-wrap.video #stage{border-radius:0}
+/* Directly under the picture, and bigger than the rest of the buttons on the
+   page. These are the controls you reach for most and the ones you hit while
+   watching something else — the stage — so they are sized to be found without
+   looking. 36px was a toolbar button; 46 is a transport. */
 .transport{
-  display:flex; align-items:center; gap:10px 6px; flex-wrap:wrap; padding:11px 14px;
-  border-top:1px solid var(--line-soft); background:var(--surface);
+  display:flex; align-items:center; gap:10px 8px; flex-wrap:wrap; padding:12px 14px;
+  border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft);
+  background:var(--surface);
 }
+.transport .btn.icon{width:46px; height:46px; border-radius:10px}
+.transport .btn.icon svg{width:19px; height:19px}
+.transport .tcount{font-size:12.5px}
 .transport .tcount:first-of-type{margin-left:8px}
 .transport .btn[aria-pressed="true"]{
   background:var(--accent-soft); border-color:var(--accent-line); color:var(--ink);
@@ -909,6 +946,10 @@ try {
     <div>
       <h1>Lip Sync Generator</h1>
       <p class="tag">Spoken audio in, viseme timing and transparent frames out</p>
+      <!-- Filled in from APP_VERSION at boot rather than typed here, so the
+           number in the window and the number in the code cannot disagree. A
+           screenshot of the title bar then answers "which build?" on its own. -->
+      <p class="ver mono" id="appVersion">v—</p>
     </div>
   </div>
   <div class="topbar-right">
@@ -954,6 +995,89 @@ try {
               title="A short recorded line and a drawn face, so there is something to look at">Demo</button>
       <label class="check" style="font-size:11.5px"><input type="checkbox" id="checkerToggle" checked><span>Checkerboard</span></label>
     </header>
+    <!-- Picture first. The file rows used to sit above it, which meant the
+         thing you are looking at was pushed a third of the way down the rail
+         and the transport that drives it was off the bottom on a laptop. The
+         order now is: the picture, the buttons that move it, the strip that
+         places the mouth on it, and only then the paperwork. -->
+    <div class="stage-wrap" id="stageWrap">
+      <span class="stage-badge">Frame <b id="badgeFrame" class="mono">—</b> · Shape <b id="badgeViseme" class="mono">—</b></span>
+      <!-- On the stage rather than in the Mouth tab. It belongs next to the
+           thing it changes: down among the style pickers it was missed. -->
+      <button class="btn ghost mini stage-flip" id="flipLips" aria-pressed="false"
+              title="Mirror the mouth left to right — for a character facing the other way">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"/><path d="M9 7 4 12l5 5z"/><path d="M15 7l5 5-5 5z"/></svg>
+        <span id="flipLipsState">Flip lips</span>
+      </button>
+      <div class="stage-stack" id="stageStack">
+        <video id="stageVideo" playsinline preload="auto"></video>
+        <!-- The puppet: a still or a video chosen separately from the voice
+             track. Same slot as the clip's own footage — behind a transparent
+             canvas that carries the mouth and the handles. -->
+        <img id="stagePlate" alt="">
+        <video id="platePlayer" playsinline preload="auto" muted></video>
+        <canvas id="stage" width="472" height="472"></canvas>
+      </div>
+    </div>
+    <div class="transport">
+      <button class="btn icon" id="headBtn" disabled title="Jump to the start (Home)" aria-label="Jump to the start">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.2v14H6zM19 5v14l-9.5-7z"/></svg>
+      </button>
+      <button class="btn icon" id="playBtn" disabled title="Play / pause (space)" aria-label="Play or pause">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" id="playIcon"><path d="M8 5.5v13l11-6.5z"/></svg>
+      </button>
+      <button class="btn icon" id="stopBtn" disabled title="Stop and rewind" aria-label="Stop and rewind">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg>
+      </button>
+      <button class="btn icon" id="tailBtn" disabled title="Jump to the end (End)" aria-label="Jump to the end">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.8 5H18v14h-2.2zM5 5v14l9.5-7z"/></svg>
+      </button>
+      <button class="btn icon" id="loopBtn" disabled aria-pressed="false" title="Loop the clip" aria-label="Loop the clip">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 2.5 21 6.5l-4 4"/><path d="M3 12.5v-2a4 4 0 0 1 4-4h14"/>
+          <path d="M7 21.5 3 17.5l4-4"/><path d="M21 11.5v2a4 4 0 0 1-4 4H3"/>
+        </svg>
+      </button>
+      <span class="tcount"><b id="tNow">0:00.00</b> / <span id="tTotal">0:00.00</span></span>
+      <span class="tspacer"></span>
+      <span class="tcount" id="frameCount">— frames</span>
+    </div>
+      <!-- The empty slot. With audio alone the mouth preview already owns the
+         middle of the stage, so the offer goes in the row underneath — the one
+         that holds the placement hints once there is something to place on. -->
+    <div class="overlay-tools" id="puppetInvite" hidden>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="4" width="18" height="14" rx="2"/><circle cx="8.5" cy="9" r="1.6"/>
+        <path d="M21 15l-5-5-5.5 5.5L8 13l-5 5"/>
+      </svg>
+      <span class="hint">Nothing behind the mouth yet — add a photo or a video to put it on</span>
+      <span class="tspacer"></span>
+      <!-- Four drawn faces, filled in from FACES so the markup cannot fall out
+           of step with the drawings. A face places the mouth and picks its own
+           lip style as well as supplying the picture. -->
+      <span class="facepick"></span>
+      <button class="btn ghost mini" id="puppetPick" style="width:auto">Add a puppet…</button>
+      <input type="file" id="puppetInput" accept="image/*,video/*" hidden>
+    </div>
+    <div class="overlay-tools" id="overlayTools" hidden>
+      <!-- Which layer the handles on the stage are driving. Two layers, one set
+           of handles: a second set drawn at the same time would be four corners
+           and two knobs on top of a face, and you would grab the wrong one. -->
+      <div class="layerpick" id="layerPick" role="group" aria-label="What the handles move">
+        <button type="button" data-layer="mouth" aria-pressed="true">Mouth</button>
+        <button type="button" data-layer="puppet" aria-pressed="false">Puppet</button>
+      </div>
+      <span class="hint" id="placeHint">Drag to place · corner sizes it · knob turns it</span>
+      <span class="tspacer"></span>
+      <span class="mono" id="overlaySize">30%</span>
+      <label class="ang" title="Angle in degrees — hold shift while turning to snap to 15°">
+        <input type="number" id="overlayAngle" value="0" min="-180" max="180" step="1" aria-label="Overlay angle in degrees"><span>°</span>
+      </label>
+      <button class="btn ghost mini" id="overlayReset">Reset</button>
+    </div>
+
+
     <!-- The file goes in here. It lives inside the preview because that is
          what it fills: hand it a clip, watch it here. -->
     <div class="intake" id="intake">
@@ -1011,78 +1135,7 @@ try {
           </details>
         </div>
     </div>
-    <div class="stage-wrap" id="stageWrap">
-      <span class="stage-badge">Frame <b id="badgeFrame" class="mono">—</b> · Shape <b id="badgeViseme" class="mono">—</b></span>
-      <!-- On the stage rather than in the Mouth tab. It belongs next to the
-           thing it changes: down among the style pickers it was missed. -->
-      <button class="btn ghost mini stage-flip" id="flipLips" aria-pressed="false"
-              title="Mirror the mouth left to right — for a character facing the other way">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"/><path d="M9 7 4 12l5 5z"/><path d="M15 7l5 5-5 5z"/></svg>
-        <span id="flipLipsState">Flip lips</span>
-      </button>
-      <div class="stage-stack" id="stageStack">
-        <video id="stageVideo" playsinline preload="auto"></video>
-        <!-- The puppet: a still or a video chosen separately from the voice
-             track. Same slot as the clip's own footage — behind a transparent
-             canvas that carries the mouth and the handles. -->
-        <img id="stagePlate" alt="">
-        <video id="platePlayer" playsinline preload="auto" muted></video>
-        <canvas id="stage" width="472" height="472"></canvas>
-      </div>
-    </div>
-    <!-- The empty slot. With audio alone the mouth preview already owns the
-         middle of the stage, so the offer goes in the row underneath — the one
-         that holds the placement hints once there is something to place on. -->
-    <div class="overlay-tools" id="puppetInvite" hidden>
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-           stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <rect x="3" y="4" width="18" height="14" rx="2"/><circle cx="8.5" cy="9" r="1.6"/>
-        <path d="M21 15l-5-5-5.5 5.5L8 13l-5 5"/>
-      </svg>
-      <span class="hint">Nothing behind the mouth yet — add a photo or a video to put it on</span>
-      <span class="tspacer"></span>
-      <!-- Four drawn faces, filled in from FACES so the markup cannot fall out
-           of step with the drawings. A face places the mouth and picks its own
-           lip style as well as supplying the picture. -->
-      <span class="facepick"></span>
-      <button class="btn ghost mini" id="puppetPick" style="width:auto">Add a puppet…</button>
-      <input type="file" id="puppetInput" accept="image/*,video/*" hidden>
-    </div>
-    <div class="overlay-tools" id="overlayTools" hidden>
-      <span class="hint">Drag to place · corner sizes it · knob turns it</span>
-      <span class="tspacer"></span>
-      <span class="mono" id="overlaySize">30%</span>
-      <label class="ang" title="Angle in degrees — hold shift while turning to snap to 15°">
-        <input type="number" id="overlayAngle" value="0" min="-180" max="180" step="1" aria-label="Overlay angle in degrees"><span>°</span>
-      </label>
-      <button class="btn ghost mini" id="overlayReset">Reset</button>
-    </div>
-
-
-    <div class="transport">
-      <button class="btn icon" id="headBtn" disabled title="Jump to the start (Home)" aria-label="Jump to the start">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.2v14H6zM19 5v14l-9.5-7z"/></svg>
-      </button>
-      <button class="btn icon" id="playBtn" disabled title="Play / pause (space)" aria-label="Play or pause">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" id="playIcon"><path d="M8 5.5v13l11-6.5z"/></svg>
-      </button>
-      <button class="btn icon" id="stopBtn" disabled title="Stop and rewind" aria-label="Stop and rewind">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg>
-      </button>
-      <button class="btn icon" id="tailBtn" disabled title="Jump to the end (End)" aria-label="Jump to the end">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.8 5H18v14h-2.2zM5 5v14l9.5-7z"/></svg>
-      </button>
-      <button class="btn icon" id="loopBtn" disabled aria-pressed="false" title="Loop the clip" aria-label="Loop the clip">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M17 2.5 21 6.5l-4 4"/><path d="M3 12.5v-2a4 4 0 0 1 4-4h14"/>
-          <path d="M7 21.5 3 17.5l4-4"/><path d="M21 11.5v2a4 4 0 0 1-4 4H3"/>
-        </svg>
-      </button>
-      <span class="tcount"><b id="tNow">0:00.00</b> / <span id="tTotal">0:00.00</span></span>
-      <span class="tspacer"></span>
-      <span class="tcount" id="frameCount">— frames</span>
-    </div>
-  </section>
+</section>
 
   <section class="motionbar" id="motionBar" hidden>
     <section class="panel" id="motionPanel">
@@ -1379,6 +1432,7 @@ try {
           <label class="check" hidden><input type="checkbox" id="fcpPlate"><span>Put the puppet behind it</span></label>
           <label class="check"><input type="checkbox" class="withaud" id="audFcp"><span>Include the voice track</span></label>
           <span class="est mono" id="estFcp">—</span>
+          <p class="hint warn" id="fcpPoseNote" hidden>The puppet has been moved on the stage, and it is a video. Final Cut gets the clip as it is — place it there to match.</p>
           <p class="hint" id="fcpBatchNote" hidden><b>Batch Export</b> gives you one project holding every clip on one timeline in load order, each as its own compound clip — not a project apiece. For one clip's own project, switch to <b>Current Selection Export</b>.</p>
           <button class="btn" id="expFcp" disabled>Export Final Cut project</button>
           <div class="expinfo" id="infoFcp" hidden>
@@ -2277,6 +2331,16 @@ const VIDEO_CODECS = {
    ========================================================================== */
 
 /* ---------------------------------------------------------------- 1. visemes */
+
+/* The one place the version is written. It shows under the title, it goes into
+   the diagnostics, and it is printed in the README of every export — so a zip
+   that turns up six months later says which build made it, and a screenshot of
+   the window is enough to answer "which version are you on?".
+
+   Semantic versioning: patch for a fix, minor for something new that breaks
+   nothing, major for a change to how existing work behaves. Bump it here and
+   nowhere else. */
+const APP_VERSION = '1.0.0';
 
 const VIS = ['X', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 
@@ -4419,6 +4483,55 @@ const overlay = { x: 0.5, y: 0.66, size: 0.30, rot: 0, keyed: false, keys: [] };
    (`drawPlateFrame`), and as a file handed to Final Cut, which gets a transform
    in the project instead so the file itself is untouched. */
 const mirror = { lips: false, plate: false };
+
+/* ---- the puppet's own placement ----------------------------------------------
+
+   The frame stays the puppet's own shape and size; what moves is the puppet
+   inside it. `size` 1 means "fills the frame", which is what it always did, so
+   a clip made before any of this existed draws identically.
+
+   Scaled down, the margin left behind is transparent — which is the point as
+   often as not: a drawing cropped tight to the figure has no air round it, and
+   a mouth placed near the chin ends up against the edge of every export.
+
+   One transform, written once and applied in three places that must agree: the
+   stage (as a CSS transform on the picture element under the canvas), every
+   export that composites the puppet, and the blur patch when it lifts a piece
+   of the picture to smear. Three implementations of the same arithmetic is how
+   the patch ends up sampling the wrong part of a mirrored puppet, which has
+   happened here before. */
+const PUPPET_POSE = { x: 0.5, y: 0.5, size: 1, rot: 0 };
+const puppetPose = { ...PUPPET_POSE };
+
+/** Which layer the handles on the stage are driving. */
+let editLayer = 'mouth';
+
+function puppetMoved() {
+  return Math.abs(puppetPose.size - 1) > 1e-6 || Math.abs(puppetPose.rot) > 1e-6 ||
+         Math.abs(puppetPose.x - 0.5) > 1e-6 || Math.abs(puppetPose.y - 0.5) > 1e-6;
+}
+
+function applyPuppetTransform(ctx, W, H) {
+  ctx.translate(puppetPose.x * W, puppetPose.y * H);
+  ctx.rotate(puppetPose.rot * Math.PI / 180);
+  ctx.scale((mirror.plate ? -1 : 1) * puppetPose.size, puppetPose.size);
+  ctx.translate(-W / 2, -H / 2);
+}
+
+/** The same transform for the <img>/<video> sitting under the stage canvas.
+    Percentages in a CSS translate are of the element's own box, which is the
+    stage, so the two agree by construction. */
+function syncPlateTransform() {
+  const t = 'translate(' + ((puppetPose.x - 0.5) * 100).toFixed(4) + '%,' +
+            ((puppetPose.y - 0.5) * 100).toFixed(4) + '%) rotate(' +
+            puppetPose.rot.toFixed(3) + 'deg) scale(' +
+            ((mirror.plate ? -1 : 1) * puppetPose.size).toFixed(5) + ',' +
+            puppetPose.size.toFixed(5) + ')';
+  ['stagePlate', 'platePlayer'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.transform = t;
+  });
+}
 const patch = { on: false, blur: 0.35, cover: 1.25 };   // the blur that hides a printed mouth
 const mouthCanvas = document.createElement('canvas');
 function mouthImage(size, v, style) {
@@ -4731,6 +4844,7 @@ function newClip(file) {
     appliedIn: 0, appliedGeom: null,
     duration: 0, frames: [], script: [], dirty: false,
     overlay: { x: 0.5, y: 0.66, size: 0.30, rot: 0, keyed: false, keys: [] },
+    puppetPose: { x: 0.5, y: 0.5, size: 1, rot: 0 },
     patch: { on: false, blur: 0.35, cover: 1.25 },
     mirror: { lips: false, plate: false },
     style: null, lipSetId: null,        // null = whatever is chosen globally
@@ -4749,6 +4863,7 @@ function bankClip() {
   c.video = state.video;
   c.analysed = state.frames.length > 0;
   c.overlay = JSON.parse(JSON.stringify(overlay));
+  c.puppetPose = { ...puppetPose };
   c.patch = { ...patch };
   c.mirror = { ...mirror };
   c.style = state.style;
@@ -4761,6 +4876,9 @@ function bankClip() {
 /** And the other direction, for everything that is not the audio itself. */
 function applyClipSettings(c) {
   Object.assign(overlay, JSON.parse(JSON.stringify(c.overlay)));
+  // A clip banked before the puppet could be placed has no record of one, and
+  // a missing record means "filling the frame", not "keep the last clip's".
+  Object.assign(puppetPose, PUPPET_POSE, c.puppetPose || {});
   Object.assign(patch, c.patch);
   // Clips banked before the mirrors existed have no record of them, and a
   // missing record means "not mirrored" rather than "leave the last clip's".
@@ -5711,51 +5829,166 @@ async function useFace(kind, quiet) {
   return true;
 }
 
+/* ---- the puppet shelf ---------------------------------------------------------
+
+   The four drawn faces, and everything you have loaded this visit, in one row
+   of chips. Choosing one switches to it; nothing is thrown away by switching.
+
+   That last part is the whole point of the shelf. Before it, "Replace…" meant
+   replace: load the second drawing and the first was gone, and getting it back
+   meant finding the file again and placing the mouth again. The common job —
+   the same line tried on three characters — was the one the app was worst at.
+
+   So each chip keeps its own two placements: where the picture sits in the
+   frame, and where the mouth sits on the picture. Go back to a puppet and it
+   is as you left it. Session-only and in memory, like everything else here:
+   the files are not written anywhere, and closing the tab clears the shelf.
+--------------------------------------------------------------------------- */
+const puppetShelf = [];
+
+const FACE_FILE_RE = /^face-([a-z]+)\.png$/;
+
 /** Which face, if any, is on the stage — by the file name it was given, which
     is the only thing that survives being banked on a clip and read back. */
 function activeFaceKind() {
-  const n = puppet.name || '';
-  const m = /^face-([a-z]+)\.png$/.exec(n);
+  const m = FACE_FILE_RE.exec(puppet.name || '');
   return m && FACES[m[1]] ? m[1] : null;
 }
 
+/** A stable id for a loaded file. Name and size together, because two files
+    called photo.png from different folders are two puppets, and the same file
+    chosen twice is one. */
+const shelfIdFor = f => 'f:' + f.name + ':' + (f.size || 0);
+
+function activeShelfId() {
+  const k = activeFaceKind();
+  if (k) return 'drawn:' + k;
+  const c = activeClip();
+  const f = c && c.puppet && c.puppet.file;
+  return f ? shelfIdFor(f) : null;
+}
+function activeShelfEntry() {
+  const id = activeShelfId();
+  return id ? puppetShelf.find(e => e.id === id) || null : null;
+}
+
+/** A chip-sized picture of a loaded puppet, letterboxed into the tile. Taken
+    once, when the puppet arrives, because a chip that re-reads the file every
+    repaint is a decode per chip per keystroke. */
+function shelfThumb(src, w, h) {
+  const S = 3, cw = 30 * S, ch = 34 * S;
+  const c = document.createElement('canvas');
+  c.width = cw; c.height = ch;
+  const x = c.getContext('2d');
+  if (!w || !h) return c.toDataURL('image/png');
+  const k = Math.min(cw / w, ch / h);
+  const dw = w * k, dh = h * k;
+  try { x.drawImage(src, (cw - dw) / 2, (ch - dh) / 2, dw, dh); } catch (e) {}
+  return c.toDataURL('image/png');
+}
+
+/** Put the live placements back on the chip that is showing, before leaving it. */
+function shelfBankCurrent() {
+  const e = activeShelfEntry();
+  if (!e) return;
+  e.pose = { ...puppetPose };
+  e.mouth = { x: overlay.x, y: overlay.y, size: overlay.size, rot: overlay.rot };
+}
+
+/** Record a puppet that has just been loaded, or find the record it already
+    has. Drawn faces are on the shelf from the start and never duplicated. */
+function shelfRemember(file, extra) {
+  if (FACE_FILE_RE.test(file.name)) return null;
+  const id = shelfIdFor(file);
+  let e = puppetShelf.find(x => x.id === id);
+  if (!e) {
+    e = { id, kind: 'file', label: file.name.replace(/\.[^.]+$/, ''), file };
+    puppetShelf.push(e);
+  }
+  e.file = file;
+  Object.assign(e, extra || {});
+  return e;
+}
+
+/** Switch to a chip. */
+async function useShelf(id) {
+  const e = puppetShelf.find(x => x.id === id);
+  if (!e) return false;
+  if (id === activeShelfId()) return true;
+  shelfBankCurrent();
+  if (e.kind === 'drawn') return useFace(e.faceKind);
+
+  const keepMouth = e.mouth;
+  const ok = await setPuppet(e.file, true,
+                             { noCrop: true, uncropped: e.uncropped, cropBox: e.cropBox });
+  if (!ok) return false;
+  Object.assign(puppetPose, PUPPET_POSE, e.pose || {});
+  if (keepMouth) Object.assign(overlay, keepMouth);
+  const c = activeClip();
+  if (c) c.puppetPose = { ...puppetPose };
+  syncPlateTransform();
+  syncPuppetUI();
+  sizeStage();
+  drawStage();
+  updateOverlayReadout();
+  updateEstimates();
+  buildPuppetShelf();
+  toast('Using “' + e.label + '”.', 2000);
+  return true;
+}
+
 function syncFacePick() {
-  const on = activeFaceKind();
-  document.querySelectorAll('.facepick button[data-face]').forEach(
-    b => b.setAttribute('aria-pressed', String(b.dataset.face === on)));
+  const on = activeShelfId();
+  document.querySelectorAll('.facepick button[data-shelf]').forEach(
+    b => b.setAttribute('aria-pressed', String(b.dataset.shelf === on)));
 }
 
-/** The four chips, drawn once. Each is the face itself at chip size rather
-    than a word: four names in a row read as a form, four faces read as a
-    choice, and the drawing is the thing being chosen. */
-function buildFacePick() {
-  document.querySelectorAll('.facepick').forEach(wrap => fillFacePick(wrap));
-}
-
-function fillFacePick(wrap) {
-  if (!wrap || wrap.childElementCount) return;
-  Object.keys(FACES).forEach(kind => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.dataset.face = kind;
-    b.title = 'Put the drawn ' + FACES[kind].label.toLowerCase() + ' behind the mouth';
-    b.setAttribute('aria-label', b.title);
-    b.setAttribute('aria-pressed', 'false');
-    const c = document.createElement('canvas');
-    const S = 3;                                    // retina-ish for a 30px chip
-    c.width = 30 * S; c.height = 34 * S;
-    const x = c.getContext('2d');
-    // Just the head: the shoulders are most of the drawing at this size and
-    // none of the recognition.
-    x.scale(c.width / (FACE_W * 0.78), c.width / (FACE_W * 0.78));
-    x.translate(-FACE_W * 0.11, -FACE_H * 0.055);
-    drawFace(x, FACE_W, FACE_H, kind);
-    b.appendChild(c);
-    b.onclick = () => useFace(kind);
-    wrap.appendChild(b);
+/** The chips, rebuilt whenever the shelf changes. Each is the puppet itself at
+    chip size rather than a word: four names in a row read as a form, four
+    pictures read as a choice, and the picture is the thing being chosen. */
+function buildPuppetShelf() {
+  if (!puppetShelf.length) {
+    Object.keys(FACES).forEach(kind => puppetShelf.push({
+      id: 'drawn:' + kind, kind: 'drawn', faceKind: kind, label: FACES[kind].label
+    }));
+  }
+  document.querySelectorAll('.facepick').forEach(wrap => {
+    wrap.innerHTML = '';
+    puppetShelf.forEach(e => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.shelf = e.id;
+      b.title = e.kind === 'drawn'
+        ? 'Put the drawn ' + e.label.toLowerCase() + ' behind the mouth'
+        : 'Switch back to ' + e.label;
+      b.setAttribute('aria-label', b.title);
+      b.setAttribute('aria-pressed', 'false');
+      if (e.kind === 'drawn') {
+        const c = document.createElement('canvas');
+        const S = 3;                                  // retina-ish for a 30px chip
+        c.width = 30 * S; c.height = 34 * S;
+        const x = c.getContext('2d');
+        // Just the head: the shoulders are most of the drawing at this size and
+        // none of the recognition.
+        x.scale(c.width / (FACE_W * 0.78), c.width / (FACE_W * 0.78));
+        x.translate(-FACE_W * 0.11, -FACE_H * 0.055);
+        drawFace(x, FACE_W, FACE_H, e.faceKind);
+        b.appendChild(c);
+      } else {
+        const i = document.createElement('img');
+        i.src = e.thumb || '';
+        i.alt = '';
+        b.appendChild(i);
+      }
+      b.onclick = () => useShelf(e.id);
+      wrap.appendChild(b);
+    });
   });
+  syncFacePick();
 }
 
+/** Kept under its old name because boot calls it. */
+function buildFacePick() { buildPuppetShelf(); }
 
 /** The head, the hair, the eyes and the shoulders — everything but the mouth.
     One construction with four sets of numbers, so the four read as a family
@@ -6348,6 +6581,9 @@ async function setPuppet(file, quiet, opts) {
   puppet.uncropped = (opts && opts.uncropped) || original;
   puppet.cropped = !!puppet.uncropped;
   puppet.cropBox = (opts && opts.cropBox) || (trimmed && trimmed.box) || null;
+  // A puppet arrives filling its frame. Coming back to one off the shelf, or
+  // reopening a clip, puts its own placement back afterwards.
+  if (!(opts && opts.keepPose)) Object.assign(puppetPose, PUPPET_POSE);
   const el = $('stagePlate');
   if (el && puppet.kind === 'image') el.src = url;
 
@@ -6363,6 +6599,15 @@ async function setPuppet(file, quiet, opts) {
   }
   if (c) c.puppet = { file, kind: puppet.kind, uncropped: puppet.uncropped,
                      cropBox: puppet.cropBox };
+  // On the shelf, so it can be come back to. A drawn face is already there and
+  // shelfRemember knows to leave it alone.
+  const shelved = shelfRemember(file, {
+    uncropped: puppet.uncropped, cropBox: puppet.cropBox,
+    thumb: shelfThumb(puppet.kind === 'image' ? puppet.img : plateVideo,
+                      puppet.w, puppet.h)
+  });
+  if (shelved && !shelved.pose) shelved.pose = { ...puppetPose };
+  buildPuppetShelf();
   sizeStage();
   setExportsEnabled(state.frames.length > 0);
   updateEstimates();
@@ -6394,9 +6639,12 @@ async function restorePuppet(c) {
   dropPuppet(true);
   if (file) {
     const keep = pose();
+    const keepPuppetPose = { ...puppetPose };
     const ok = await setPuppet(file, true,
                                { noCrop: true, uncropped: c.puppet.uncropped,
-                                 cropBox: c.puppet.cropBox });
+                                 cropBox: c.puppet.cropBox, keepPose: true });
+    Object.assign(puppetPose, keepPuppetPose);
+    syncPlateTransform();
     // Clicking through the queue faster than a picture decodes would otherwise
     // land one clip's puppet on another's stage.
     if (mine !== restoreToken) return;
@@ -6457,6 +6705,11 @@ function syncPuppetUI() {
     wrap.classList.toggle('flip-plate', mirror.plate && hasPlate());
   }
   syncMirrorUI();
+  syncPlateTransform();
+  // The puppet layer cannot be the one being edited when there is no puppet.
+  if (!hasPlate() && editLayer === 'puppet') editLayer = 'mouth';
+  const lp = $('layerPick');
+  if (lp) lp.hidden = !hasPlate();
   syncFacePick();
   const note = $('puppetShortNote');
   if (note) {
@@ -6525,6 +6778,46 @@ function overlayBox(W, H, p) {
     x: p.x * W - s / 2, y: p.y * H - s / 2,
   };
 }
+
+/** The puppet's box on the stage: the whole frame, moved and scaled and turned
+    by its own placement. Not square, unlike the mouth's — which is why the
+    handles below take a width and a height rather than one side. */
+function plateBox(W, H) {
+  return {
+    s: W * puppetPose.size, w: W * puppetPose.size, h: H * puppetPose.size,
+    cx: puppetPose.x * W, cy: puppetPose.y * H,
+    rot: puppetPose.rot * Math.PI / 180
+  };
+}
+
+/** Where a mouth placement ends up when the puppet under it moves from `p0` to
+    `p1`. The mouth belongs to the face: place it on the chin, then decide the
+    face is too big, and if the mouth stayed where it was you would have to
+    place it again. So it is carried — moved, scaled and turned by exactly the
+    change applied to the picture.
+
+    Worked in pixels rather than in the frame's own fractions, because a
+    rotation mixes x into y and the two axes are not the same number of pixels
+    per unit. The frame size cancels out of the final answer, which is why any
+    W and H give the same result. */
+function remapWithPuppet(p0, p1, m, W, H) {
+  const k = p1.size / p0.size;
+  const d = (p1.rot - p0.rot) * Math.PI / 180;
+  const cs = Math.cos(d), sn = Math.sin(d);
+  const dx = m.x * W - p0.x * W, dy = m.y * H - p0.y * H;
+  return {
+    x: (p1.x * W + (dx * cs - dy * sn) * k) / W,
+    y: (p1.y * H + (dx * sn + dy * cs) * k) / H,
+    size: m.size * k,
+    rot: normDeg(m.rot + (p1.rot - p0.rot))
+  };
+}
+
+/** Whichever layer the handles are driving. */
+function activeBox(W, H) {
+  return editLayer === 'puppet' ? plateBox(W, H) : overlayBox(W, H);
+}
+function activePose() { return editLayer === 'puppet' ? puppetPose : overlay; }
 
 /* ---------------------------------------------------------------- motion
 
@@ -6698,14 +6991,17 @@ function drawBlurPatch(ctx, W, H, b) {
   a0.setTransform(1, 0, 0, 1, 0, 0);
   a0.globalCompositeOperation = 'source-over';
   a0.clearRect(0, 0, w, h);
-  // With the puppet mirrored, the patch is over a different part of the source
-  // than its screen position suggests — and the piece it lifts has to be
-  // reversed as well, or the patch shows the picture running the wrong way
-  // inside a hole in a picture running the right way.
-  if (mirror.plate) {
+  // The piece lifted has to come from where the picture REALLY is, which is
+  // wherever the puppet's placement put it — mirrored, moved, scaled, turned.
+  // Mapping the patch rectangle back through the inverse by hand worked while
+  // the only transform was a mirror and would not survive a rotation, so the
+  // whole frame is drawn through the same transform the exports use and the
+  // patch canvas simply catches the part of it that lands inside.
+  if (puppetMoved() || mirror.plate) {
     a0.save();
-    a0.translate(w, 0); a0.scale(-1, 1);
-    a0.drawImage(plate, nat.w - x1 * sx, y0 * sy, w * sx, h * sy, 0, 0, w, h);
+    a0.translate(-x0, -y0);
+    applyPuppetTransform(a0, W, H);
+    a0.drawImage(plate, 0, 0, W, H);
     a0.restore();
   } else {
     a0.drawImage(plate, x0 * sx, y0 * sy, w * sx, h * sy, 0, 0, w, h);
@@ -6760,7 +7056,11 @@ function overlayLocal(p, b) {
     read this one function, so a handle can never be drawn somewhere you
     cannot grab it. */
 function overlayHandles(b, W, H) {
-  const h = b.s / 2;
+  // Half-width and half-height. A square box has one number; the puppet's box
+  // is the frame's shape, so it has two, and `h` stays the vertical one so
+  // every existing use of it still means what it meant.
+  const hw = (b.w == null ? b.s : b.w) / 2;
+  const h = (b.h == null ? b.s : b.h) / 2;
   const hs = Math.max(9, W * 0.022);
   const arm = Math.max(hs * 1.9, W * 0.055);      // how far the turn knob stands off
   // It stands off the top edge, but a mouth placed high in the frame would put
@@ -6768,7 +7068,7 @@ function overlayHandles(b, W, H) {
   // the far side when that happens.
   let ty = -h - arm;
   if (H != null && b.cy + ty * Math.cos(b.rot) < hs * 1.4) ty = h + arm;
-  return { h, hs, arm, scale: { x: h, y: h }, turn: { x: 0, y: ty } };
+  return { h, hw, hs, arm, scale: { x: hw, y: h }, turn: { x: 0, y: ty } };
 }
 
 /** Degrees wrapped to (-180, 180], so the readout never shows 359. Half a
@@ -6811,8 +7111,18 @@ function drawStage() {
     ctx.rotate(b.rot);
     ctx.drawImage(mouthImage(Math.min(1024, b.s * 2), v, state.style),
                   -b.s / 2, -b.s / 2, b.s, b.s);
-    if (!playing) drawOverlayHandles(ctx, b, W, H);
+    if (!playing && editLayer === 'mouth') drawOverlayHandles(ctx, b, W, H);
     ctx.restore();
+    // The puppet's handles are drawn after the mouth so they sit over it: when
+    // you are moving the picture, the picture is what you are looking at.
+    if (!playing && editLayer === 'puppet') {
+      const pb = plateBox(W, H);
+      ctx.save();
+      ctx.translate(pb.cx, pb.cy);
+      ctx.rotate(pb.rot);
+      drawOverlayHandles(ctx, pb, W, H);
+      ctx.restore();
+    }
   } else {
     paintMouth(ctx, W, H, v, state.style);
   }
@@ -6833,15 +7143,16 @@ function drawStage() {
    which is the only way the corner stays the corner. */
 function drawOverlayHandles(ctx, b, W, H) {
   const g = overlayHandles(b, W, H);
-  const h = g.h, hs = g.hs;
+  const h = g.h, hw = g.hw, hs = g.hs;
+  const bw = b.w == null ? b.s : b.w, bh = b.h == null ? b.s : b.h;
   ctx.save();
   ctx.lineWidth = Math.max(1, W * 0.003);
 
   ctx.strokeStyle = 'rgba(0,0,0,.55)';
-  ctx.strokeRect(-h - 1, -h - 1, b.s + 2, b.s + 2);
+  ctx.strokeRect(-hw - 1, -h - 1, bw + 2, bh + 2);
   ctx.strokeStyle = 'rgba(255,255,255,.85)';
   ctx.setLineDash([W * 0.014, W * 0.010]);
-  ctx.strokeRect(-h, -h, b.s, b.s);
+  ctx.strokeRect(-hw, -h, bw, bh);
   ctx.setLineDash([]);
 
   // the stem out to the turn knob, dark under light so it reads on any picture
@@ -7000,11 +7311,30 @@ function updateOverlayReadout() {
     // not the stored one, or they disagree with the picture on the stage.
     overlay.x = lp.x; overlay.y = lp.y; overlay.size = lp.size; overlay.rot = lp.rot;
   }
-  $('overlaySize').textContent = Math.round(overlay.size * 100) + '%';
+  // Both readouts belong to whichever layer the handles are on, or they report
+  // the mouth's size while you are dragging the picture.
+  const o = activePose();
+  $('overlaySize').textContent = Math.round(o.size * 100) + '%';
   // Never overwrite the field while it has focus, or typing "-9" turns into
   // "0" the moment the intermediate "-" parses as nothing.
   const a = $('overlayAngle');
-  if (a && document.activeElement !== a) a.value = String(Math.round(overlay.rot));
+  if (a && document.activeElement !== a) a.value = String(Math.round(o.rot));
+  const hint = $('placeHint');
+  if (hint) {
+    hint.textContent = editLayer === 'puppet'
+      ? 'Drag the picture · corner resizes · knob tilts'
+      : 'Drag to place · corner sizes · knob turns';
+  }
+  document.querySelectorAll('#layerPick button[data-layer]').forEach(
+    b => b.setAttribute('aria-pressed', String(b.dataset.layer === editLayer)));
+}
+
+/** Switch which layer the handles drive. Nothing else changes: the same four
+    handles, the same two readouts, the same Reset. */
+function setEditLayer(which) {
+  editLayer = which === 'puppet' && hasPlate() ? 'puppet' : 'mouth';
+  updateOverlayReadout();
+  drawStage();
 }
 
 /* ---- reading a script along the sheet -------------------------------------
@@ -7941,6 +8271,7 @@ function readme(size) {
     'LIP SYNC GENERATOR EXPORT',
     '=========================',
     '',
+    'Written by  : Lip Sync Generator v' + APP_VERSION,
     'Source      : ' + (state.name || 'untitled'),
     'Frame rate  : ' + state.fps + ' fps',
     'Frames      : ' + state.frames.length,
@@ -8391,6 +8722,37 @@ function fcpPuppetInfo() {
            rel: 'puppet/' + safeName(f.name || (kind === 'image' ? 'puppet.png' : 'puppet.mov')) };
 }
 
+/** The puppet's bytes for the project.
+
+    Normally the file itself, untouched: a puppet in Final Cut should be the
+    picture you chose, as a layer you can still move there.
+
+    Once the puppet can be placed on the stage, that stops being enough — the
+    project would open with the picture full-frame and the mouths positioned
+    for a picture that had been moved. FCPXML can express a transform, but its
+    position units are the sequence's own and getting them wrong is worse than
+    not trying, so for a STILL the placement is rendered into a full-frame PNG
+    instead. The result is exact, it is still one layer you can move in Final
+    Cut, and it needs no transform at all — the same trick the mouth stills
+    already use.
+
+    A video puppet keeps its file; there is no rendering a video in a page
+    without re-encoding it. The export card says so, and the mirror stays a
+    transform as it always was. */
+async function fcpPuppetBytes(pup) {
+  const posed = puppetMoved() || mirror.plate;
+  if (!posed || pup.kind !== 'image' || !puppet.img) {
+    return { data: new Uint8Array(await pup.file.arrayBuffer()), baked: false };
+  }
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, pup.w); c.height = Math.max(1, pup.h);
+  const x = c.getContext('2d');
+  applyPuppetTransform(x, c.width, c.height);
+  x.drawImage(puppet.img, 0, 0, c.width, c.height);
+  const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  return { data: new Uint8Array(await blob.arrayBuffer()), baked: true };
+}
+
 /* --- the voice track, on the timeline rather than beside it -------------------
 
    Ticking "Include the voice track" used to put the audio file in the zip and
@@ -8542,7 +8904,9 @@ function fcpxmlDoc(opts) {
     // and undo rather than a flip baked into somebody's original picture.
     // It has to come before the connected clips: the DTD puts the intrinsic
     // parameters ahead of the anchored items.
-    if (mirror.plate) L.push('              <adjust-transform scale="-1 1"/>');
+    // Baked: the placement, mirror and all, is already in the PNG, so a
+    // transform here would apply it twice.
+    if (mirror.plate && !pup.baked) L.push('              <adjust-transform scale="-1 1"/>');
     if (voiceClip) L.push('              ' + voiceClip);
     above.forEach(v => L.push('              ' + v));
     L.push('            ' + (pup.kind === 'image' ? '</video>' : '</asset-clip>'));
@@ -8741,7 +9105,7 @@ function fcpMultiReadme(entries, w, h) {
     return line;
   });
   return [
-    'Lip Sync Generator — the whole queue as one Final Cut project',
+    'Lip Sync Generator v' + APP_VERSION + ' — the whole queue as one Final Cut project',
     '',
     'all-clips.fcpxml holds every clip in the order they were loaded, laid end',
     'to end at ' + w + '×' + h + ', ' + state.fps + ' fps. Each clip keeps its own mouth art,',
@@ -8774,7 +9138,7 @@ function fcpReadme(w, h, folder, pup, aud) {
   const u = usedVisemes();
   const shapes = n + ' transparent PNG' + (n === 1 ? '' : 's');
   return [
-    'Lip Sync Generator — Final Cut Pro project',
+    'Lip Sync Generator v' + APP_VERSION + ' — Final Cut Pro project',
     '',
     'Contents',
     '  <name>.fcpxml   the project: one clip per run of frames',
@@ -8886,7 +9250,12 @@ async function exportFcpxml(sink) {
     let pup = plateOn('fcpPlate') ? fcpPuppetInfo() : null;
     if (pup) {
       try {
-        files.push({ name: pup.rel, data: new Uint8Array(await pup.file.arrayBuffer()) });
+        const got = await fcpPuppetBytes(pup);
+        if (got.baked) {
+          pup.rel = pup.rel.replace(/(\.[^.]+)?$/, '') + '-placed.png';
+          pup.baked = true;
+        }
+        files.push({ name: pup.rel, data: got.data });
       } catch (e) {
         // A File handle that has gone stale — the user moved the picture since
         // they chose it — is a reason to write the project without the puppet,
@@ -9916,6 +10285,14 @@ function updateBatchUI() {
   // is the thing making the promise, so it has to be the thing that decides.
   const fcpNote = $('fcpBatchNote');
   if (fcpNote) fcpNote.hidden = !isBatch('fcp');
+  // A moved STILL is rendered into the project exactly; a moved video cannot
+  // be, so that one case says so rather than quietly arriving in the wrong
+  // place.
+  const fcpPose = $('fcpPoseNote');
+  if (fcpPose) {
+    fcpPose.hidden = !(plateOn('fcpPlate') && puppet.kind === 'video' &&
+                       (puppetMoved() || mirror.plate));
+  }
   const cw = $('fcpCompoundLabel');
   if (cw) cw.textContent = isBatch('fcp') ? 'Wrap each clip in a Compound Clip'
                                           : 'Wrap the mouths in a Compound Clip';
@@ -10417,11 +10794,12 @@ async function drawPlateFrame(ctx, W, H, t) {
   // The seek has to happen before the transform is set, and the transform has
   // to come off afterwards whatever happened, so the mirror wraps the draw
   // rather than the whole function.
+  // The mirror used to be handled here on its own. It is one case of the
+  // puppet's placement now, so there is a single transform rather than two
+  // that have to be kept in step.
   const put = (el) => {
-    if (!mirror.plate) { ctx.drawImage(el, 0, 0, W, H); return; }
     ctx.save();
-    ctx.translate(W, 0);
-    ctx.scale(-1, 1);
+    applyPuppetTransform(ctx, W, H);
     ctx.drawImage(el, 0, 0, W, H);
     ctx.restore();
   };
@@ -11279,6 +11657,7 @@ function diagnostics() {
   const err = v && v.error;
   const lines = [
     'Lip Sync Generator diagnostics',
+    'version    : ' + APP_VERSION,
     'agent      : ' + navigator.userAgent,
     'file       : ' + (state.name || '—'),
     'audio      : ' + (state.buffer
@@ -11568,13 +11947,13 @@ function wire() {
      is tested first: it stands outside the box, but at small sizes its catch
      radius can reach back over the corner. */
   const ovHit = p => {
-    const b = overlayBox(stage.width, stage.height);
+    const b = activeBox(stage.width, stage.height);
     const g = overlayHandles(b, stage.width, stage.height);
     const l = overlayLocal(p, b);
     const near = (q, r) => Math.abs(l.x - q.x) < r && Math.abs(l.y - q.y) < r;
     if (near(g.turn, g.hs * 1.9)) return { mode: 'turn', b, l };
     if (near(g.scale, g.hs * 1.6)) return { mode: 'scale', b, l };
-    if (Math.abs(l.x) <= g.h && Math.abs(l.y) <= g.h) return { mode: 'move', b, l };
+    if (Math.abs(l.x) <= g.hw && Math.abs(l.y) <= g.h) return { mode: 'move', b, l };
     return { mode: null, b, l };
   };
 
@@ -11588,15 +11967,23 @@ function wire() {
     if (!hit.mode) return;
     ovMode = hit.mode;
     // Under keyframing the mouth is wherever the interpolation put it, so the
-    // drag has to start from that, not from the stored static pose.
-    if (overlay.keyed) {
+    // drag has to start from that, not from the stored static pose. Keyframes
+    // belong to the mouth only: the puppet is the set, and a set that drifts
+    // under a character is a different feature.
+    if (editLayer === 'mouth' && overlay.keyed) {
       const lp = livePose();
       overlay.x = lp.x; overlay.y = lp.y; overlay.size = lp.size; overlay.rot = lp.rot;
     }
+    const o = activePose();
     ovStart = {
-      p, l: hit.l, x: overlay.x, y: overlay.y, size: overlay.size, rot: overlay.rot,
+      p, l: hit.l, x: o.x, y: o.y, size: o.size, rot: o.rot,
       dist: Math.hypot(hit.l.x, hit.l.y),
       ang: Math.atan2(p.y - hit.b.cy, p.x - hit.b.cx),
+      // What the mouth looked like before the drag started. Every move is
+      // recomputed from this rather than from the last frame, so a long drag
+      // cannot accumulate rounding into a visible drift.
+      mouth0: { x: overlay.x, y: overlay.y, size: overlay.size, rot: overlay.rot },
+      keys0: overlay.keys.map(k => ({ ...k })),
     };
     try { stage.setPointerCapture(e.pointerId); } catch (err) { /* drag works without it */ }
     e.preventDefault();
@@ -11607,7 +11994,7 @@ function wire() {
         const m = ovHit(stagePt(e)).mode;
         // A turned box turns its corners with it, so the resize cursor has to
         // follow — otherwise it points across the box instead of out of it.
-        const q = ((Math.round(overlay.rot / 90) % 4) + 4) % 4;
+        const q = ((Math.round(activePose().rot / 90) % 4) + 4) % 4;
         stage.style.cursor = m === 'turn' ? 'grab'
           : m === 'scale' ? (q % 2 ? 'nesw-resize' : 'nwse-resize')
           : m === 'move' ? 'move' : '';
@@ -11615,36 +12002,63 @@ function wire() {
       return;
     }
     const p = stagePt(e);
+    const o = activePose();
+    const pup = editLayer === 'puppet';
     if (ovMode === 'move') {
-      overlay.x = clamp(ovStart.x + (p.x - ovStart.p.x) / stage.width, -0.2, 1.2);
-      overlay.y = clamp(ovStart.y + (p.y - ovStart.p.y) / stage.height, -0.2, 1.2);
+      o.x = clamp(ovStart.x + (p.x - ovStart.p.x) / stage.width, -0.2, 1.2);
+      o.y = clamp(ovStart.y + (p.y - ovStart.p.y) / stage.height, -0.2, 1.2);
     } else if (ovMode === 'turn') {
-      const b = overlayBox(stage.width, stage.height);
+      const b = activeBox(stage.width, stage.height);
       const a = Math.atan2(p.y - b.cy, p.x - b.cx);
       let deg = ovStart.rot + (a - ovStart.ang) * 180 / Math.PI;
       if (e.shiftKey) deg = Math.round(deg / 15) * 15;   // shift snaps to 15°
-      overlay.rot = normDeg(deg);
+      o.rot = normDeg(deg);
     } else {
       // Scale on the distance from the centre, not on screen-x: the corner
       // being dragged has moved round with the box, so a plain x delta would
       // shrink the box when you pull away from it on a turned overlay.
-      const b = overlayBox(stage.width, stage.height);
+      const b = activeBox(stage.width, stage.height);
       const l = overlayLocal(p, b);
       const d = Math.hypot(l.x, l.y);
-      overlay.size = clamp(ovStart.size * d / Math.max(1e-6, ovStart.dist), 0.04, 1.6);
+      // The puppet gets a wider range: it starts at 1 — filling the frame —
+      // so the useful moves are mostly downward, and 4x is enough to push in
+      // on a face that was photographed from across the room.
+      o.size = pup ? clamp(ovStart.size * d / Math.max(1e-6, ovStart.dist), 0.08, 4)
+                   : clamp(ovStart.size * d / Math.max(1e-6, ovStart.dist), 0.04, 1.6);
     }
     // Moving the mouth while keyframing is on IS how you set a key — there is
     // no separate "record" step to forget to press.
-    if (overlay.keyed) setKeyAt(currentFrameIndex());
+    if (!pup && overlay.keyed) setKeyAt(currentFrameIndex());
+    if (pup) {
+      // The mouth rides along, keys and all. Doing the keys too rather than
+      // leaving them behind when keyframing is on: an exception there would
+      // mean the picture and the mouth agree until the moment you use the one
+      // feature that makes them matter.
+      const p0 = { x: ovStart.x, y: ovStart.y, size: ovStart.size, rot: ovStart.rot };
+      const m = remapWithPuppet(p0, o, ovStart.mouth0, stage.width, stage.height);
+      overlay.x = m.x; overlay.y = m.y; overlay.size = m.size; overlay.rot = m.rot;
+      overlay.keys = ovStart.keys0.map(k => {
+        const r = remapWithPuppet(p0, o, k, stage.width, stage.height);
+        return { ...k, x: r.x, y: r.y, size: r.size, rot: r.rot };
+      });
+      syncPlateTransform();
+    }
     updateOverlayReadout();
     drawStage();
-    if (overlay.keyed) drawOverview();
+    if (!pup && overlay.keyed) drawOverview();
   });
   const endOverlay = e => {
     if (!ovMode) return;
     ovMode = null;
     try { stage.releasePointerCapture(e.pointerId); } catch (err) {}
-    if (overlay.keyed) { updateMotionUI(); drawOverview(); }
+    if (editLayer === 'puppet') {
+      const c = activeClip();
+      if (c) c.puppetPose = { ...puppetPose };
+      const sh = activeShelfEntry();
+      if (sh) sh.pose = { ...puppetPose };
+      updateEstimates();
+      updateBatchUI();
+    } else if (overlay.keyed) { updateMotionUI(); drawOverview(); }
   };
   stage.addEventListener('pointerup', endOverlay);
   stage.addEventListener('pointercancel', endOverlay);
@@ -11660,14 +12074,26 @@ function wire() {
     mirror.plate = !mirror.plate;
     const c = activeClip(); if (c) c.mirror = { ...mirror };
     syncPuppetUI();
+    syncPlateTransform();
     drawStage();
     toast(mirror.plate ? 'Puppet mirrored.' : 'Puppet back the way it was.', 1800);
   };
   $('overlayReset').onclick = () => {
+    if (editLayer === 'puppet') {
+      Object.assign(puppetPose, PUPPET_POSE);
+      const c = activeClip(); if (c) c.puppetPose = { ...puppetPose };
+      const sh = activeShelfEntry(); if (sh) sh.pose = { ...puppetPose };
+      syncPlateTransform(); updateOverlayReadout(); drawStage(); updateEstimates();
+      return;
+    }
     overlay.x = 0.5; overlay.y = 0.66; overlay.size = 0.30; overlay.rot = 0;
     overlay.keys = [];
     updateOverlayReadout(); updateMotionUI(); drawStage(); drawOverview();
   };
+  $('layerPick').addEventListener('click', e => {
+    const b = e.target.closest('button[data-layer]');
+    if (b) setEditLayer(b.dataset.layer);
+  });
 
   /* Typing an exact angle matters when you are matching a head that is tilted
      by a known amount, or copying a setting between shots. */
@@ -11675,7 +12101,8 @@ function wire() {
   angleField.addEventListener('input', () => {
     const v = parseFloat(angleField.value);
     if (!Number.isFinite(v)) return;              // mid-edit "-" or "": leave it be
-    overlay.rot = normDeg(v);
+    activePose().rot = normDeg(v);
+    if (editLayer === 'puppet') syncPlateTransform();
     drawStage();
   });
   angleField.addEventListener('blur', () => { updateOverlayReadout(); drawStage(); });
@@ -12127,6 +12554,8 @@ function detectDelivery() {
 /* ------------------------------------------------------------------- boot */
 
 function boot() {
+  const vEl = $('appVersion');
+  if (vEl) vEl.textContent = 'v' + APP_VERSION;
   initTheme();
   wireTabs();
   wireExpInfo();
