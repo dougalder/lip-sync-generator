@@ -1,0 +1,276 @@
+# Lip Sync Generator
+
+**Spoken audio in, viseme timing and transparent frames out.**
+
+One HTML file. Open it in a browser and it works — no install, no account, no
+server, nothing uploaded. Give it a voice track and it works out which mouth
+shape belongs on every frame, shows you the result as an exposure sheet you can
+correct by hand, and writes the mouths out in whatever form your animation tool
+wants.
+
+## Demos:
+
+[![Lego Movies](docs/images/scene-1.gif)](https://dougalder.github.io/lip-sync-generator/) [![Barbie Movies](docs/images/scene-2.gif)](https://dougalder.github.io/lip-sync-generator/) [![General Animation](docs/images/scene-3.gif)](https://dougalder.github.io/lip-sync-generator/)
+
+[![The generator building an exposure sheet](docs/images/lip-sync-generator-demo-short.gif)](https://dougalder.github.io/lip-sync-generator/)
+
+![The exposure sheet](docs/images/06-sheet.png)
+
+## 📖 The manual
+
+| | |
+|---|---|
+| **[docs/manual.md](docs/manual.md)** | The full manual, in Markdown. Renders right here on GitHub. |
+| **[docs/index.html](docs/index.html)** | The same manual as a styled page, for GitHub Pages or reading offline. |
+
+The two are checked against each other, so neither can quietly drift.
+
+**"How do I actually get the lips onto my puppet?"** —
+[Putting the lips on a puppet](docs/manual.md#putting-the-lips-on-a-puppet)
+walks through ToonSquid, Procreate Dreams, iMovie, Final Cut Pro, and finishing
+the clip in the page itself without any other software.
+
+---
+
+## What it's for
+
+- a stop-motion puppet or minifigure that needs a mouth for each frame
+- a 2D character in After Effects, Blender, Spine or a game engine
+- a talking head in Final Cut Pro, cut over real footage
+- a two-hander conversation split into lines, each with its own mouth
+
+## Quick start
+
+1. Open `lip-sync-generator.html` in Chrome, Edge, Safari or Firefox.
+2. Press **Demo** at the top of the **Stage** to see it working on a drawn
+   face, or drop a voice recording on the **Input** tab to start on your own.
+3. Wait a second — the exposure sheet under the stage fills in.
+4. Press <kbd>Space</kbd> to watch it.
+5. Go to **Export** and take whichever format you need.
+
+The window is two columns, two thirds to one. On the left the **Stage** and,
+directly under it, the exposure sheet for what is on the stage — the picture
+and its timing, in view together. On the right three tabs — **Input**,
+**Mouth** and **Export** — and a gear at the far end for **Settings**.
+
+> **Shortest useful path:** drop a WAV, press play, export the
+> **Chart + exposure sheet**. Nine transparent PNGs and a JSON/CSV timing list,
+> which is enough to drive almost any animation tool.
+
+## Ways to run it
+
+One file, so "installing" it means putting that file somewhere. Two kinds of
+place, and one difference between them that matters:
+
+| | Everything works | The `lips/` folder works |
+|---|---|---|
+| **Opened off the disk** (`file://`) | yes | **no** |
+| **Served** (a web server, local or remote) | yes | yes |
+
+- **Keep a copy** — **Code > Download ZIP**, or **File > Save As** from a hosted
+  copy (choose *Page Source*, not *complete page*). Put it on the desktop and
+  double-click. Works with no network at all.
+- **Give it a Dock icon** — Safari's **File > Add to Dock** (macOS 14+), Chrome
+  and Edge's **Install this site as an app**, or a wrapper like
+  [Coherence X](https://www.bzgapps.com/coherence) or
+  [Web2Mac](https://ensili.co/app/web2mac/).
+- **Serve it yourself** — MAMP on a Mac, XAMPP on Windows, or
+  `python3 -m http.server 8000` in the folder. This is the one that gives you a
+  preloaded `lips/` folder of your own mouth art.
+- **Put it on the web** — GitHub Pages, Amazon S3, any static host. Note that
+  neither GitHub Pages nor S3 lists directories, so a `lips/` folder there needs
+  a `sets.json` and the nine files named `X.png` … `H.png` —
+  [the full reference](docs/manual.md#setsjson-in-full) has a worked example.
+
+[Ways to run it](docs/manual.md#ways-to-run-it) in the manual has the detail,
+including what a wrapper does to the `lips/` folder and why.
+
+## What it can do
+
+- **Two analysers** — a built-in formant DSP that is instant and tunable, and
+  Rhubarb (PocketSphinx) for comparison
+- **An exposure sheet you can edit** — select a run, press a letter, done. Hand
+  edits survive a frame-rate change, a trim, and switching between clips
+- **Trim, split and drop** on the waveform — cut a conversation into one clip
+  per line, throw away the bits you don't want, bring them back if you change
+  your mind
+- **A queue** — up to 24 clips, each keeping its own edits, placement and mouth
+- **Twenty-one drawn mouth styles**, each in three head angles — front,
+  three-quarter and profile — plus your own pictures. Among them **Smiley** for
+  brick characters, **Squiggly** for hand-drawn ones, and four cut to fit the
+  drawn faces
+- **Four drawn faces to try them on** — a man, a woman, a child and an older
+  person, drawn in the page. One click gives you the picture, the placement and
+  the lip style drawn for that face
+- **A demo** — five seconds of speech and a face, one button, and the same
+  button brings it back after you have loaded your own
+- **A puppet to put it on** — a photograph or a video, chosen separately from the
+  voice track, one per clip. The empty border is measured and trimmed on import,
+  with 20px put back and an undo. Move, resize or tilt the picture itself, and
+  the mouth travels with it — and only the mouth: every other layer is placed in
+  the frame and stays where you put it
+- **A cast** — the drawn faces and everything you have loaded this visit in one
+  row. A chip is a character, not a picture: its placement, its mouth position
+  and size and its lips all travel with it, so switching heads
+  costs you nothing and nothing is thrown away. A drawn face suggests its own
+  lips the first time you use it and never again; a pin refuses even that
+- **Conversations, two ways** — *cut between them*: split a two-hander on its
+  pauses, tick two characters and deal them round the lines, each queue row
+  showing who speaks it. Or *keep them both on screen*: pin a mouth to each
+  face, leave the clip uncut, and fill in **Who is talking** — one row per
+  stretch between the markers — so the mouth moves on the speaker while
+  the listener's rests shut
+- **A timeline that is a cut list** — split a take and every piece stays on it,
+  named, with a division between them: press one to open it, drag a division to
+  move the cut, and undo any of it. **B** cuts at the playhead, **M** drops a
+  marker to cut at later
+- **Layers come and go** — **On from** and **Off at** per layer, honoured by the
+  compositor, so a character can arrive or leave in every export too
+- **Layers** — pictures, text, shapes and the mouth itself in an order you
+  choose, each with its own placement, opacity and drop shadow. Click a layer on
+  the stage to select it — smaller wins where they overlap, so the mouth is
+  never trapped behind a full-frame picture, and no puppet is needed for any of
+  it. Size, angle and opacity have a slider and a typeable field. A layer bigger
+  than the frame keeps its handles inside the stage where you can reach them.
+  Reorder by dragging, hide with the eye, edit with the pencil — the settings
+  open under the row they belong to. All of it composes into every export
+- **A canvas you can set** — match the puppet, 16:9, vertical, square or a size
+  you type. Placements are fractions of the frame, so the stack reflows, and
+  **Fit everything in the stack** grows the frame around whatever is hanging
+  over the edge without the stack growing with it
+- **Animated pictures** — an animated GIF or PNG as a layer, decoded in the page
+  and played off the clip's own frame numbers, with repeat / once / back-and-forth,
+  a speed and a start offset
+- **Line boil** — a real per-pixel warp in six kinds (jitter, warp, ripple,
+  tremble, swell, drift), cycled as a set of 2–12 drawings on twos or threes,
+  deterministic so the preview and the export agree frame for frame. Off until
+  you tick it, per layer or for the whole stack, and ticking it on warps the
+  drawings and plays them so you can actually see it A short one plays out and back so the loop has no
+  seam; a cut-out one keeps its transparency through the PNG exports
+- **Place the mouth on the picture**, with a blur patch to cover the one
+  printed on a doll or a minifigure
+- **Eight export formats** — chart + timing, Final Cut Pro project, transparent
+  GIF, animated PNG with a real alpha channel, sprite sheet, frame sequence,
+  chroma-key MP4, and video with the mouth burned in. Six of them will carry the
+  puppet: the Final Cut project puts it on the storyline as a layer you can still
+  move, and the rest composite it behind the mouth
+- **The whole scene as one file** — every line end to end, each wearing whoever
+  was cast on it, as an animated PNG or a GIF, with the joined voice track and a
+  note listing who speaks when
+- **Batch any of them** across the whole queue, as one download
+
+See the [manual](docs/manual.md) for how each of these works, with annotated
+screenshots.
+
+## Version
+
+The version shows under the title in the app, in **Diagnostics**, and in the
+README of every export. It lives in one place in the source — `APP_VERSION` at
+the top of the script — and everything else reads it from there.
+
+## Limits
+
+| | |
+|---|---|
+| Clips in the queue | 24 |
+| Size of one batch download | 600 MB |
+
+A split stops at the queue's limit and leaves the rest in the last piece.
+Length is not a limit: a clip over a minute is marked *long* and named on the
+batch card before the run, and it exports like any other.
+
+## Privacy
+
+Nothing is uploaded. There is no server, no account, no analytics, and **no
+network request of any kind** — not for your media, not for fonts, not for
+anything. Everything the page needs travels inside it. You can put it on a USB
+stick and use it on a machine with no network at all. The line under the title
+bar says so where someone opening it for the first time will see it.
+
+The one exception, and it is the page asking its own host: served from a web
+server, it looks for a `lips/` folder beside itself, if you keep one.
+
+`offlinetest.py` holds that claim to account: it watches every request the page
+makes, and it loads the file a second time from a `file://` URL with the network
+refused outright, then analyses a clip to prove it still works.
+
+## Built from
+
+| | |
+|---|---|
+| **Rhubarb engine** | [`lip-sync-engine`](https://github.com/biolimbo/lip-sync-engine) 1.0.3 (npm, MIT) — a ready-made WebAssembly build of [Rhubarb Lip Sync](https://github.com/DanielSWolf/rhubarb-lip-sync) by Daniel Wolf (MIT). |
+| **Speech model** | The standard CMU Sphinx US English acoustic model (© 2015 Alpha Cephei Inc., BSD), unmodified. |
+| **Typefaces** | [Archivo](https://github.com/Omnibus-Type/Archivo) and [DM Mono](https://github.com/googlefonts/dm-mono), both SIL Open Font License 1.1, embedded in the file. |
+
+A few notes on the above, since they are the kind of thing people ask:
+
+- **The WASM was not compiled here.** It is the published `lip-sync-engine`
+  build, byte-identical to the package on npm (verified by hash). No Emscripten
+  was run for this project; that package's author builds it in GitHub Actions,
+  and neither the package nor its repository declares the Emscripten version.
+- **No Rhubarb version is claimed**, because the port does not state which
+  release it derives from. What can be said from the binary is that it vendors
+  `sphinxbase-rev13216` and `pocketsphinx-rev13216`.
+- **The acoustic model is not trimmed.** What was removed is two files of the
+  36.1 MB bundle that only the transcript-driven path ever opens:
+  `en-us.lm.bin` (25.9 MB word language model) and `cmudict-en-us.dict` (3.1 MB
+  pronunciation dictionary). Everything the phonetic recogniser reads — the
+  acoustic model and `en-us-phone.lm.bin` — is byte-for-byte the original.
+  36.1 MB down to 7.1 MB, with nothing the engine uses altered.
+
+---
+
+## Repository layout
+
+```
+lip-sync-generator.html     the app — this is the whole thing
+docs/
+  manual.md                 the manual, in Markdown
+  index.html                the manual, as a page
+  images/                   annotated screenshots, and the demo GIFs
+fonts/                      the two typefaces, embedded at build time
+lips/                       optional: your own mouth sets, one folder each
+fixtures/
+  make_fixtures.py          rebuilds the media the harnesses drive the app with
+  make_favicon.py           redraws the tab icon from the app's own mark
+manualshots.py              regenerates the screenshots
+manualtest.py               checks the manual against the app
+offlinetest.py              proves the file makes no network request
+test_ui.py                  checks the shell: tab order, panel sizes, popovers
+uxtest.py                   drives the stage with a real pointer: selection,
+                            sliders, boil, the canvas fit
+stacktest.py                a stack with no puppet in it: handles, number
+                            fields, delete, the inline editor
+animtest.py                 animated GIF and APNG layers, decoded and played
+boiltest.py                 proves line boil warps rather than shifts, and
+                            cycles a fixed set of drawings
+twoshot.py                  two characters on screen, mouth on the speaker,
+                            turns following the markers
+fixtures/make_anim.py       builds the two animations animtest drives
+casttest.py                 checks a head keeps its lips across a switch
+timeline.py                 the cut list: pieces, divisions, markers, undo
+convtest.py                 splits a take, casts it, checks each line's character
+scenetest.py                renders a whole conversation and reads the file back
+```
+
+`speech.wav`, `trim-marks.wav`, `codec-vp9.mp4` and `fixtures/puppet-padded.png`
+are build inputs, not documentation, so they are not committed —
+`fixtures/make_fixtures.py` rebuilds them from nothing. The video is VP9
+and Opus on purpose: the Chromium that Playwright drives carries no proprietary
+codecs, so an H.264 fixture plays on your machine and hangs every harness.
+
+The four demo GIFs at the top — `scene-1.gif`, `scene-2.gif`, `scene-3.gif` and
+`lip-sync-generator-demo-short.gif` — are the exception to everything below.
+They are made by hand from real footage and are **not** regenerated by
+`manualshots.py`, so a rebuild leaves them alone and they have to be carried
+across by hand if `docs/images/` is ever rebuilt from scratch.
+
+The manual's screenshots are generated, not taken by hand: `manualshots.py`
+drives the app with Playwright and draws each callout at the real bounding box
+of the control it names. Re-run it after a UI change and the numbers follow the
+buttons — or it fails, if a control it points at no longer exists.
+
+`manualtest.py` then checks the manual against the running app: that every named
+control really is on the page, that every promised shortcut fires, that the
+quoted limits match the constants in the code, and that the Markdown and HTML
+versions still say the same things.

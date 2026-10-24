@@ -1,0 +1,2539 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lip Sync Generator — User Manual</title>
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADC0lEQVR4AexUXUhUQRg9c6Xox+66JoGrpgZGZpAWmJGBUmkqSU+lFCX9Cj0UBWmUm22WVi/1YEQIQSCuUtmvrkZlYIQ9mOAf0UNCqQiBthat5e4030Xjuv+u6/rismfvzJnvnO/MnWElqD9FdRpZX2OQS2oaBQY0eiP3B8hLQHgaL6G0PkTd8n8AzQVjhrzQ2svAShhjOwXC1YUzGZOXgPCEXrZZumW9MWvSTwkg62szIaFJFPmt6WQD+6fYoI4BDfJECElTXK0Ft92zL5z9Oa+SS+tCJb4g6GAgdm6/IQamY1brHgmMp9gvBmrOGVIkxjFnAUTvNPEGWHSgduzQh7FoyYEMMDEfYNpvIFGnxb6kWBSlJaA4fZ0CGhOXGK6d9gF6FSA5ajkqspLQcyYXLcczULk7GeeoOYUQoDFxLYUZ6Dq9S6kljTdp3AbIXRuJ9pM5aD6yHYUpq6GTF3v0jNQsUWpJQ9qcNRFuNS4DXM/egPt7t2BVaLBi0Df8E7qyBwi5WOsWMeWP0Df8S9GQtjo/FeSlEE5+nAY4lRqPY5vippTHaIPReHgbNq8Mm8KrJyli7eXRHYjRLlXTihd5TiEnJk4DTKw5PNaLS0YhOsU5PytIhxrd4n6YRMC4sGUOOneE0wA3W3txt+2zS12UOOetsSugRoSb+3HjbQ/I05mh0wBUeLahHfuNreg3/6apTyDtgdp3uPK606XeZQBSPO/tx8ZbL3De1IGuoRGivALVkoa0T3u+udW4DUBKy7gVle8/IfV2E+iGZ1a9wonHH1D+pgsVLd0KaEwcrUVdfajUkoa05OEOHgOoxSOWv2j7+h3VH7/gGjWnEAI0Jo7WRsfG1RKP42kF8OjmQ8F8AIlzPuTDm/OLhHpLYKzDL26+mIjeEgOfswDUWxqTcEeE9/5fRhT76TtCvSVLaX6fDfyQn0y9trEBBdRbIsWoIb+eA9kcfIDmswlx8QZhQ+aoIe8J9VEC0MBsyGs0S4sSOIdBFJkEBomfKUhPXgImscHL5j9B8T/K8pqJJ/wDAAD//1lQS0IAAAAGSURBVAMAceZB0kkxzTkAAAAASUVORK5CYII=">
+<link rel="icon" type="image/png" sizes="64x64" href="data:image/png;base64,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">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<style>
+/* ---------- tokens: light first, dark redefines only the values ---------- */
+:root{
+  --bg:#f7f8fa; --surface:#ffffff; --surface-2:#eef1f5; --surface-3:#dfe4ea;
+  --ink:#12161c; --ink-2:#4c5561; --ink-3:#8b95a3;
+  --line:#d7dde5; --line-soft:#e6eaf0;
+  --accent:#0f6f9e; --accent-soft:#e2f0f8; --accent-line:#a9d3e8;
+  --mark:#c6283a; --good:#1c7a4e; --warn:#9a5b00;
+  --code-bg:#f2f4f7;
+  --mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12151a; --surface:#191d24; --surface-2:#21262f; --surface-3:#2c333d;
+    --ink:#e8ecf1; --ink-2:#a7b1be; --ink-3:#727d8b;
+    --line:#2e353f; --line-soft:#252b33;
+    --accent:#4fb3e0; --accent-soft:#16303d; --accent-line:#2b5570;
+    --mark:#ef6b7c; --good:#4cbb87; --warn:#d59a3a;
+    --code-bg:#1d222a;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12151a; --surface:#191d24; --surface-2:#21262f; --surface-3:#2c333d;
+  --ink:#e8ecf1; --ink-2:#a7b1be; --ink-3:#727d8b;
+  --line:#2e353f; --line-soft:#252b33;
+  --accent:#4fb3e0; --accent-soft:#16303d; --accent-line:#2b5570;
+  --mark:#ef6b7c; --good:#4cbb87; --warn:#d59a3a;
+  --code-bg:#1d222a;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:24px}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font:16px/1.65 var(--sans);
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px; margin:0 auto; padding:0 24px 96px; display:flex; gap:40px}
+main{flex:1 1 auto; min-width:0; max-width:820px}
+
+/* ---------- masthead ---------- */
+.mast{
+  border-bottom:1px solid var(--line); background:var(--surface);
+  padding:36px 0 30px; margin-bottom:36px;
+}
+.mast .inner{max-width:1180px; margin:0 auto; padding:0 24px; display:flex; gap:16px; align-items:flex-start}
+.logo{
+  flex:none; width:46px; height:46px; border-radius:12px;
+  background:var(--accent-soft); border:1px solid var(--accent-line);
+  display:grid; place-items:center; color:var(--accent);
+}
+h1{font-size:30px; line-height:1.2; margin:0 0 4px; letter-spacing:-.02em}
+.mast p{margin:0; color:var(--ink-2); font-size:15.5px}
+.badges{display:flex; flex-wrap:wrap; gap:7px; margin-top:14px}
+.badge{
+  font-size:12px; padding:3px 10px; border-radius:999px;
+  background:var(--surface-2); border:1px solid var(--line); color:var(--ink-2);
+}
+
+/* ---------- contents ---------- */
+nav.toc{
+  flex:0 0 232px; position:sticky; top:24px; align-self:flex-start;
+  max-height:calc(100vh - 48px); overflow-y:auto; font-size:13.5px;
+}
+nav.toc h2{font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); margin:0 0 10px}
+nav.toc ol{list-style:none; margin:0; padding:0}
+nav.toc li{margin:0 0 2px}
+nav.toc a{
+  display:block; padding:4px 10px; border-radius:6px;
+  color:var(--ink-2); text-decoration:none; border-left:2px solid transparent;
+}
+nav.toc a:hover{background:var(--surface-2); color:var(--ink)}
+nav.toc .sub a{padding-left:22px; font-size:12.5px; color:var(--ink-3)}
+@media (max-width: 940px){
+  .wrap{display:block; padding-bottom:64px}
+  nav.toc{position:static; max-height:none; margin:0 0 32px; padding:16px;
+    background:var(--surface); border:1px solid var(--line); border-radius:10px}
+  main{max-width:none}
+}
+
+/* ---------- prose ---------- */
+h2{font-size:23px; margin:52px 0 6px; letter-spacing:-.01em; scroll-margin-top:20px}
+h2:first-child{margin-top:0}
+h3{font-size:17px; margin:30px 0 6px}
+h4{font-size:14.5px; margin:22px 0 4px; color:var(--ink-2)}
+p{margin:10px 0}
+ul,ol{margin:10px 0; padding-left:24px}
+li{margin:5px 0}
+a{color:var(--accent)}
+code, kbd, .mono{font-family:var(--mono); font-size:.9em}
+code{background:var(--code-bg); padding:1.5px 5px; border-radius:4px}
+kbd{
+  background:var(--surface); border:1px solid var(--line);
+  border-bottom-width:2px; border-radius:5px; padding:1px 6px; font-size:12.5px;
+  color:var(--ink); white-space:nowrap;
+}
+hr{border:0; border-top:1px solid var(--line-soft); margin:44px 0}
+.lede{font-size:17px; color:var(--ink-2)}
+
+/* ---------- figures with numbered keys ---------- */
+figure{
+  margin:22px 0 8px; background:var(--surface);
+  border:1px solid var(--line); border-radius:12px; overflow:hidden;
+}
+figure img{display:block; width:100%; height:auto; background:var(--surface-2)}
+figcaption{
+  padding:10px 14px; font-size:13px; color:var(--ink-3);
+  border-top:1px solid var(--line-soft);
+}
+ol.keys{
+  counter-reset:k; list-style:none; padding:0; margin:14px 0 26px;
+}
+ol.keys li{
+  position:relative; padding:5px 0 5px 40px; margin:0;
+  border-top:1px solid var(--line-soft);
+}
+ol.keys li:first-child{border-top:0}
+ol.keys li::before{
+  counter-increment:k; content:counter(k);
+  position:absolute; left:0; top:6px;
+  width:26px; height:26px; border-radius:50%;
+  background:var(--mark); color:#fff;
+  font:600 13px/26px var(--sans); text-align:center;
+}
+ol.keys b{color:var(--ink)}
+
+/* ---------- callout boxes ---------- */
+.note, .warn, .tip{
+  margin:20px 0; padding:13px 16px; border-radius:10px;
+  border:1px solid var(--accent-line); background:var(--accent-soft);
+  font-size:14.5px;
+}
+.note p:first-child, .warn p:first-child, .tip p:first-child{margin-top:0}
+.note p:last-child, .warn p:last-child, .tip p:last-child{margin-bottom:0}
+.warn{border-color:color-mix(in srgb, var(--warn) 45%, transparent);
+  background:color-mix(in srgb, var(--warn) 11%, transparent)}
+.tip{border-color:color-mix(in srgb, var(--good) 40%, transparent);
+  background:color-mix(in srgb, var(--good) 10%, transparent)}
+.boxlabel{
+  display:block; font-size:11px; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--ink-3); margin-bottom:3px;
+}
+
+/* ---------- tables ---------- */
+.tablewrap{overflow-x:auto; margin:18px 0}
+table{border-collapse:collapse; width:100%; font-size:14.5px}
+th,td{text-align:left; padding:8px 12px; border-bottom:1px solid var(--line-soft); vertical-align:top}
+th{font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-3); font-weight:600}
+tbody tr:last-child td{border-bottom:0}
+td code{white-space:nowrap}
+
+/* the viseme swatch column */
+.vis{display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-weight:600}
+.sw{width:13px; height:13px; border-radius:3px; flex:none; border:1px solid rgba(0,0,0,.12)}
+
+/* ---------- theme toggle ---------- */
+.themebtn{
+  position:fixed; right:18px; bottom:18px; z-index:5;
+  font:inherit; font-size:12.5px; cursor:pointer;
+  padding:7px 13px; border-radius:999px;
+  background:var(--surface); color:var(--ink-2);
+  border:1px solid var(--line); box-shadow:0 2px 10px rgba(0,0,0,.09);
+}
+.themebtn:hover{color:var(--ink)}
+@media print{ .themebtn, nav.toc{display:none} .wrap{display:block} }
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="inner">
+    <div class="logo" aria-hidden="true">
+      <svg width="26" height="26" viewBox="0 0 22 22" fill="none">
+        <path d="M2 11c3-5 15-5 18 0-3 5-15 5-18 0Z" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M6.5 9.4h9c-.6 1.2-1.9 1.9-4.5 1.9S7.1 10.6 6.5 9.4Z" fill="currentColor" opacity=".85"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Lip Sync Generator</h1>
+      <p>Spoken audio in, viseme timing and transparent frames out. This is the user manual.</p>
+      <div class="badges">
+        <span class="badge">One HTML file</span>
+        <span class="badge">Runs offline</span>
+        <span class="badge">Nothing is uploaded</span>
+        <span class="badge">Preston&nbsp;Blair A–H shapes</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<nav class="toc" aria-label="Contents">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#what">What it does</a></li>
+    <li><a href="#start">Getting started</a></li>
+    <li><a href="#run">Ways to run it</a></li>
+    <li><a href="#window">The window</a></li>
+    <li><a href="#loading">Loading a clip</a></li>
+    <li><a href="#analysis">Analysis</a></li>
+    <li><a href="#preview">Preview &amp; transport</a></li>
+    <li><a href="#sheet">The exposure sheet</a></li>
+    <li class="sub"><a href="#shapes">The nine shapes</a></li>
+    <li class="sub"><a href="#editing">Fixing frames by hand</a></li>
+    <li><a href="#trim">Markers, splits &amp; drops</a></li>
+    <li><a href="#queue">Working on several clips</a></li>
+    <li class="sub"><a href="#twoshot">Two characters on screen at once</a></li>
+    <li class="sub"><a href="#comingoing">Coming and going</a></li>
+    <li class="sub"><a href="#conversation">A conversation between two characters</a></li>
+    <li><a href="#mouth">Mouth style</a></li>
+    <li class="sub"><a href="#perclip">Different lips per clip</a></li>
+    <li class="sub"><a href="#ownlips">Your own lips</a></li>
+    <li><a href="#puppetin">A puppet to put it on</a></li>
+    <li><a href="#layers">Layers</a>
+    <ul>
+      <li><a href="#canvas">The canvas</a></li>
+      <li><a href="#boil">Line boil</a></li>
+    </ul></li>
+  <li><a href="#place">Placing the mouth</a></li>
+    <li><a href="#motion">Blur patch</a></li>
+    <li><a href="#script">Script</a></li>
+    <li><a href="#export">Exporting</a></li>
+    <li class="sub"><a href="#formats">The eight formats</a></li>
+    <li class="sub"><a href="#scene">The whole scene</a></li>
+    <li class="sub"><a href="#batch">Batch export</a></li>
+    <li><a href="#puppet">Putting the lips on a puppet</a></li>
+    <li class="sub"><a href="#ipad">ToonSquid and Procreate Dreams</a></li>
+    <li class="sub"><a href="#imovie">iMovie</a></li>
+    <li class="sub"><a href="#fcp">Final Cut Pro</a></li>
+    <li class="sub"><a href="#inapp">Straight from here</a></li>
+    <li><a href="#keys">Keyboard shortcuts</a></li>
+    <li><a href="#limits">Limits</a></li>
+    <li><a href="#trouble">Troubleshooting</a></li>
+    <li><a href="#privacy">Privacy</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<h2 id="what">What it does</h2>
+
+<p class="lede">You give it a voice track. It works out which mouth shape belongs
+on every frame, shows you the result as an exposure sheet you can correct by
+hand, and writes the mouths out in whatever form your animation tool wants.</p>
+
+<p>It is one HTML file. Open it in a browser and it works — no install, no
+account, no server. The audio never leaves the page.</p>
+
+<p>Typical jobs it is built for:</p>
+<ul>
+  <li>a stop-motion puppet or minifigure that needs a mouth for each frame</li>
+  <li>a 2D character in After Effects, Blender, Spine or a game engine</li>
+  <li>a talking head in Final Cut Pro, cut over real footage</li>
+  <li>a two-hander conversation split into lines, each with its own mouth</li>
+</ul>
+
+<hr>
+
+<h2 id="start">Getting started</h2>
+
+<ol>
+  <li>Open <code>lip-sync-generator.html</code> in Chrome, Edge, Safari or
+      Firefox. Double-clicking the file works; so does serving it.</li>
+  <li>Press <b>Demo</b> at the top of the Stage panel to see the whole thing
+      working on a drawn face, or drop a voice recording onto the panel to start
+      on your own.</li>
+  <li>Wait a second or two — the exposure sheet fills in.</li>
+  <li>Press <kbd>Space</kbd> to watch it.</li>
+  <li>Go to the <b>Export</b> tab and take whichever format you need.</li>
+</ol>
+
+<div class="tip">
+  <span class="boxlabel">Shortest useful path</span>
+  <p>Drop a WAV, press play, export the <b>Chart&nbsp;+&nbsp;exposure sheet</b>.
+  You get nine transparent PNGs and a JSON/CSV timing list, which is enough to
+  drive almost any animation tool.</p>
+</div>
+
+<h3 id="demo">The demo</h3>
+
+<p><b>Demo</b>, at the top of the Stage panel, loads five seconds of speech and
+a drawn face and analyses them. It is there so that opening the file for the
+first time shows the thing working rather than an empty stage and four tabs of
+settings for something that is not there.</p>
+
+<p>It is also the way back. Once you have loaded your own clip the button reads
+<b>Restore demo</b>, and pressing it clears what is loaded and puts the demo
+back — useful when an experiment has gone sideways and you want a known-good
+state to compare against. It clears the queue first, because restoring the demo
+on top of your own clips is not what the word restore means.</p>
+
+<p>The voice is synthesized rather than recorded, by
+<a href="https://github.com/espeak-ng/espeak-ng">eSpeak NG</a>. It sounds like a
+robot, and it is meant to: a synthesiser gives clean, evenly spaced phonemes,
+which is what makes the exposure sheet legible as an example. It travels inside
+the file like everything else — nothing is fetched to play it.</p>
+
+<hr>
+
+<h2 id="run">Ways to run it</h2>
+
+<p>It is one HTML file with everything inside it, so "installing" it means
+putting that file somewhere and opening it. There are two kinds of place, and the
+only difference that matters is this:</p>
+
+<table>
+<tr><th></th><th>Everything works</th><th>The <code>lips/</code> folder works</th></tr>
+<tr><td><b>Opened off the disk</b> (<code>file://</code>)</td><td>yes</td><td><b>no</b></td></tr>
+<tr><td><b>Served</b> (a web server, local or remote)</td><td>yes</td><td>yes</td></tr>
+</table>
+
+<p>Analysis, editing, the puppet and all eight exports work either way, offline,
+with no network request. The one thing that needs a server is
+<a href="#ownlips">a folder of your own lip sets</a> shipped alongside the page — a
+browser will not let a page read a folder off the disk, and a picture loaded that
+way taints the canvas, which would break every export. So from
+<code>file://</code> the shelf says so rather than half-working.</p>
+
+<p>Pick by whether you want that folder.</p>
+
+<h3 id="run-disk">Keep a copy on your machine</h3>
+
+<p>The simplest thing, and enough for most people.</p>
+
+<ol>
+<li>Get the file. From the repository: <b>Code &gt; Download ZIP</b>, or take
+<code>lip-sync-generator.html</code> on its own. From a page already open in a
+browser: <b>File &gt; Save As</b>, and choose <i>Page Source</i> or <i>HTML
+Only</i> — you want the one file, not a "complete page" with a folder beside
+it.</li>
+<li>Put it on the desktop.</li>
+<li>Double-click it.</li>
+</ol>
+
+<p>That is the whole installation. It keeps working with no network at all, and a
+copy you saved is a copy you own — nothing can change it underneath you.</p>
+
+<h3 id="run-app">Make it double-clickable like a real app</h3>
+
+<p>The file already opens in one click; these give it a Dock icon and its own
+window without the browser's chrome around it.</p>
+
+<ul>
+<li><b>Safari, macOS Sonoma 14 or later</b> — open the page, then <b>File &gt;
+Add to Dock</b>. It lands in Applications and behaves like an app. This is the
+free, built-in option, and it works on a page you are <i>serving</i> (see below)
+or on a hosted copy. Chrome and Edge have their own versions of the same idea —
+<b>Install this site as an app</b>.</li>
+<li><b>A wrapper app</b> — <a href="https://www.bzgapps.com/coherence">Coherence
+X</a> or <a href="https://ensili.co/app/web2mac/">Web2Mac</a> build a real
+<code>.app</code> around a page, with your own icon and name. Worth it if you are
+handing the tool to someone else and want it to look like software rather than a
+download.</li>
+</ul>
+
+<div class="note">
+  <span class="boxlabel">Wrappers and the lips folder</span>
+  <p>A wrapper pointed at a file on the disk is still <code>file://</code>
+  inside, so the <code>lips/</code> folder will not load. Point the wrapper at a
+  <b>served</b> address instead — <code>http://localhost:8888/…</code> from the
+  next section — and it works, with the server doing the serving quietly in the
+  background.</p>
+</div>
+
+<h3 id="run-local">Serve it from your own Mac or PC</h3>
+
+<p>This is the version that gives you the <code>lips/</code> folder: a preloaded
+set of custom mouths that is simply <i>there</i> every time the page opens, with
+nothing for anyone to import.</p>
+
+<p>Put the HTML file and a <code>lips/</code> folder in the same directory, and
+point a web server at it:</p>
+
+<ul>
+<li><b>MAMP</b> (Mac) — drop the folder into <code>htdocs</code> and open
+<code>http://localhost:8888/lip-sync-generator.html</code>. MAMP is free, and the
+free version is all this needs.</li>
+<li><b>XAMPP</b> (Windows) — the same idea; the folder is <code>htdocs</code>
+there too.</li>
+<li><b>One line, no install</b> — in a terminal, in the folder:
+<code>python3 -m http.server 8000</code>, then open
+<code>http://localhost:8000/</code>. On a Mac this may ask to install the
+developer command line tools the first time.</li>
+</ul>
+
+<p>Name the file <code>index.html</code> and the address is just
+<code>http://localhost:8888/</code>.</p>
+
+<h3 id="run-web">Put it on the web</h3>
+
+<p><b>GitHub Pages</b> is the least work: push the file to a repository, turn
+Pages on in <b>Settings &gt; Pages</b>, and the address is
+<code>https://&lt;you&gt;.github.io/&lt;repo&gt;/lip-sync-generator.html</code>.
+Anyone you send it to gets the current version, and they can still use <b>File
+&gt; Save As</b> to keep their own.</p>
+
+<p>Nothing about the page changes when it is hosted — there is still no server
+side to it, and no audio ever leaves the browser.</p>
+
+<h3 id="run-lips">Getting the lips folder to be found</h3>
+
+<p>The page looks for <code>lips/</code> next to itself and shows whatever it
+finds. <b>How</b> it finds it depends on the server:</p>
+
+<ul>
+<li><b>If the server lists directories</b> — MAMP, XAMPP and
+<code>python -m http.server</code> all do by default — it reads the listing, and
+the files inside can be called anything. <code>mouth-D.png</code>,
+<code>04_D_wide.png</code> and <code>D.png</code> all land on <code>D</code>.</li>
+<li><b>If it does not</b> — <b>GitHub Pages</b> does not; it returns "not
+found" for a folder with no <code>index.html</code> in it, and <b>Amazon S3</b>
+does not either, at any of its endpoints, whether or not the bucket is public —
+the page needs two things:
+<ol>
+<li>A <code>lips/sets.json</code> naming the folders:
+<pre><code>["robot", "sock", "granny"]</code></pre></li>
+<li>Inside each of those folders, the nine files named <b>exactly</b>
+<code>X.png A.png B.png C.png D.png E.png F.png G.png H.png</code>. With no
+listing to read, those are the only names the page can ask for.</li>
+</ol></li>
+</ul>
+
+<p>Adding <code>sets.json</code> does no harm anywhere else — it is only read
+when a listing is unavailable — so if you want one folder layout that works on
+every host, use the nine plain names and ship the manifest.</p>
+
+<h4 id="setsjson"><code>sets.json</code> in full</h4>
+
+<p><b>Where it goes.</b> Beside the HTML file, inside <code>lips/</code> — never
+inside a set. Two levels, and only two:</p>
+
+<pre><code>your-site/
+  lip-sync-generator.html
+  lips/
+    sets.json
+    Bright-Woman/
+      X.png  A.png  B.png  C.png  D.png  E.png  F.png  G.png  H.png
+    Scraggly lips/
+      X.png  A.png  B.png  C.png  D.png  E.png  F.png  G.png  H.png</code></pre>
+
+<p><b>What it is.</b> A JSON array of the folder names under <code>lips/</code>,
+exactly as they are spelled on disk — the same string that appears in the URL.
+That is all it is: the page cannot see the folder, so this is the list of places
+to look.</p>
+
+<pre><code>[
+  "Bright-Woman",
+  "Cartoony-Male-Lips",
+  "Scraggly lips",
+  "Woman-Coral"
+]</code></pre>
+
+<p><b>The rules, and why each one is there.</b></p>
+
+<div class="tablewrap">
+<table>
+  <tbody>
+    <tr><td>Folder names are case-sensitive and must match exactly</td>
+        <td>They become URLs, and a web server is not a Mac disk:
+            <code>Woman-Coral</code> and <code>woman-coral</code> are two
+            different addresses.</td></tr>
+    <tr><td>Spaces are fine</td>
+        <td><code>"Scraggly lips"</code> and <code>"Fat and Simple II"</code>
+            both work — the browser encodes them. Do not write
+            <code>%20</code> yourself.</td></tr>
+    <tr><td>The nine pictures must be named <code>X A B C D E F G H</code> with a
+            <code>.png</code> extension</td>
+        <td>With no directory listing the page has nothing to go on but the
+            names, so these are the only nine it can ask for. A set that works
+            locally and comes up empty when hosted is almost always this.</td></tr>
+    <tr><td>A missing shape is not an error</td>
+        <td>A folder with seven of the nine loads as a set showing
+            <code>7/9</code>, and the two it has no picture for are filled with
+            a best guess.</td></tr>
+    <tr><td>The folder name is the set's name</td>
+        <td>It is what appears on the shelf, so name the folder what you want to
+            read.</td></tr>
+    <tr><td><code>{ "sets": [...] }</code> is accepted</td>
+        <td>As is an array of <code>{ "name": "…" }</code> objects. Neither buys
+            anything today — only the name is read — but a file written either
+            way will not be rejected.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><b>One file for the whole shelf.</b> A worked example — seventeen sets, mixed
+naming, spaces and all. This exact file is what the project's own test harness
+serves, and all seventeen load from it:</p>
+
+<pre><code>[
+  "Bright-Woman",
+  "Cartoony-Male-Lips",
+  "Cartoony-Off-Centre",
+  "Cartoony-Peachy-Mouth",
+  "Cartoony-Peachy-Variant",
+  "Cartoony-Simple-Lo",
+  "Cartoony-Simplistic",
+  "Faces",
+  "Fat and Simple II",
+  "Fat-and-Simple",
+  "Mouthy-Boy",
+  "Scraggly lips",
+  "Teen-Boy-Asian",
+  "Teen-Caucasian",
+  "Woman-Coral",
+  "Woman-Full-Red-Lips",
+  "Woman-Medium"
+]</code></pre>
+
+<p><b>Checking it.</b> Open <code>…/lips/sets.json</code> in the browser: you
+should see the list. Then open one of the pictures directly —
+<code>…/lips/Woman-Coral/D.png</code>. If both answer and the shelf is still
+empty, the names in the manifest do not match the folders. If the picture does
+not answer, it is permissions or the path, and no manifest will help.</p>
+
+<blockquote>
+<p>On a host with no listing you will see a 404 in the browser console for
+<code>lips/</code> and one for each set folder. They are the page trying the
+directory first, which is the better answer where it is available, and falling
+back to the manifest. They are expected and harmless.</p>
+</blockquote>
+
+<blockquote>
+<p><b>The folder is there and nothing shows up</b></p>
+<p>Open one of the pictures directly in the browser —
+<code>.../lips/robot/D.png</code>. If it displays, the files are public and the
+names are right, and what is missing is the manifest. If it does not, it is
+permissions or the path, and no manifest will help. That one check separates
+the two causes, and it is the first thing to do on S3, where a bucket can be
+public and still refuse an object.</p>
+</blockquote>
+
+<hr>
+
+<h2 id="window">The window</h2>
+
+<p>The title bar across the top, a line about privacy under it, and then two
+columns: the <b>Stage</b> and, directly under it, the exposure sheet, filling
+two thirds of the width on the left; the tabs in the remaining third on the
+right.</p>
+
+<figure>
+  <img src="images/01-first-run.png" alt="The title bar, with the engine chip, the source chip and the appearance toggle marked">
+  <figcaption>The title bar.</figcaption>
+</figure>
+
+<ol class="keys">
+  <li><b>Engine</b> — which analyser is running. Built-in DSP by default.</li>
+  <li><b>Source</b> — where the file came from and how exports will be handed
+      back. <span class="mono">Local file · ZIP exports</span> is the normal
+      case.</li>
+  <li><b>Appearance</b> — one button, light or dark. It opens on whatever your
+      system is set to; click it once and your choice sticks between
+      visits.</li>
+</ol>
+
+<p>Under the title is the version — <span class="mono">v1.0.0</span> and so on.
+It is worth quoting in a bug report, and it is the quickest way to tell whether
+the copy you saved to the desktop is the one you have been reading about: the
+number in the window, the number in <b>Diagnostics</b>, and the number in the
+README of every export are all the same one, taken from the code rather than
+typed anywhere.</p>
+
+<figure>
+  <img src="images/01b-privacy.png" alt="The privacy line under the title bar">
+  <figcaption>The privacy line.</figcaption>
+</figure>
+
+<p>The line under the title bar is not a slogan. Everything happens in the
+browser, nothing is uploaded, and the only thing the page ever fetches is a
+<span class="mono">lips/</span> folder sitting beside it — see
+<a href="#privacy">Privacy</a>.</p>
+
+<figure>
+  <img src="images/01c-window.png" alt="The whole window: the preview rail on the left, the tabs on the right">
+  <figcaption>The window, with the exposure sheet open.</figcaption>
+</figure>
+
+<p>The left column is the work: the stage, and directly beneath it the exposure
+sheet for what is on the stage. Neither is ever a tab that can be shut over the
+other, because the whole job is reading the mouth against the timing — you
+scrub the sheet and watch the picture. The right column is everything you set.
+Below about 1200px of width — a narrow window, a tablet — the two columns
+become one and the tabs sit under the sheet.</p>
+
+<figure>
+  <img src="images/03-tabs.png" alt="The tabs: Input, Mouth, Export, and a gear for Settings">
+  <figcaption>Three tabs for the work, and a gear for what is set once. Arrow keys move between them when one has focus.</figcaption>
+</figure>
+
+<p><b>Input</b> is the first and opens by default: the file, the clips in the
+queue, who is in them, which picture each one wears, and the layer stack on top
+of it — everything that answers "what are we working on" and "what is in the
+frame". <b>Mouth</b> holds the shapes it is drawn with, and <b>Export</b> what
+comes out at the end. The gear, <b>Settings</b>, is the analyser's settings and
+the script: things you set once and leave, which is not what the first tab in a
+row is for.</p>
+
+<p>Layers used to be a tab of its own. It is folded into Input because the
+stack sits on the puppet, and "put a picture behind this character" should not
+be a trip between two screens.</p>
+
+<hr>
+
+<h2 id="loading">Loading a clip</h2>
+
+<p>Everything you load lives in the <b>Input</b> tab, on the right: the drop
+area, the queue of clips, the cast, the puppet rows and the layer stack. The
+script and the analyser's settings are behind the gear at the far end of the
+tabs.</p>
+
+<figure>
+  <img src="images/02-drop.png" alt="The empty drop area, with the stage and the transport marked">
+  <figcaption>Before anything is loaded.</figcaption>
+</figure>
+
+<ol class="keys">
+  <li><b>Drop area</b> — drag a file here, or click to browse. WAV, MP3, M4A,
+      OGG, FLAC, AAC, MP4, MOV, WebM. Drop several at once to start a queue.</li>
+  <li><b>Stage</b> — where the mouth is drawn, over a checkerboard so you can see
+      the transparency. With a video loaded, the mouth sits over the picture.</li>
+  <li><b>Transport</b> — play, stop and scrub, directly under the picture and
+      sized to be hit without looking away from it. Greyed out until a clip is
+      in.</li>
+  <li><b>Demo</b> — loads a short recorded line and a drawn face, so there is
+      something to look at before you have anything of your own. See
+      <a href="#demo">The demo</a>.</li>
+</ol>
+
+<p>A <b>video</b> file is treated the same way: the soundtrack is analysed and the
+picture becomes the backdrop, so you can place the mouth exactly where the face
+is. If the browser cannot decode the picture, the audio still works and a note
+says so.</p>
+
+<hr>
+
+<h2 id="analysis">Analysis</h2>
+
+<figure>
+  <img src="images/04-analysis.png" alt="The Analysis panel with every control marked">
+  <figcaption>The analyser's settings, behind the gear. Changing anything here re-analyses immediately.</figcaption>
+</figure>
+
+<ol class="keys">
+  <li><b>Engine</b> — <b>Built-in DSP</b> is formant analysis written from
+      scratch: instant, tunable, and it uses the whole A–H chart.
+      <b>Rhubarb</b> is the PocketSphinx-based analyser, slower and less
+      tunable, included for comparison.</li>
+  <li><b>Frame rate</b> — the rate your animation runs at. 12&nbsp;fps
+      (“on twos”) is the usual choice for character animation; 24, 25 and 30 are
+      there for film and video. <b>Set this before you start hand-editing</b>,
+      since changing it re-times everything.</li>
+  <li><b>Silence gate</b> — how far above the noise floor counts as speech.
+      Raise it if a hissy room keeps the mouth chattering through pauses.</li>
+  <li><b>Vocal tract size</b> — shifts the vowel map. Lower for deeper voices,
+      higher for lighter or younger ones. Nudge it until “ee” and “oo” land on
+      the right shapes. Built-in engine only.</li>
+  <li><b>Minimum hold</b> — shapes shorter than this get absorbed into their
+      neighbours. This is the control that kills one-frame flicker.</li>
+  <li><b>Close the mouth into pauses</b> — drops an <code>A</code> on the last
+      frame before silence, the way a hand-timed chart would. On by default.</li>
+  <li><b>Detect L</b> — tongue shapes are genuinely hard to hear, so this is off
+      by default and those frames become <code>C</code> or <code>E</code>
+      instead. Turn it on and check the result.</li>
+  <li><b>Reset</b> — puts every analysis setting back to its default.</li>
+</ol>
+
+<div class="note">
+  <span class="boxlabel">Which knob first</span>
+  <p>If the mouth flaps during silence, raise the <b>silence gate</b>. If it
+  flickers during speech, raise the <b>minimum hold</b>. If the vowels are simply
+  wrong — “oo” coming out as “ah” — that is <b>vocal tract size</b>.</p>
+</div>
+
+<hr>
+
+<h2 id="preview">The stage &amp; the transport</h2>
+
+<figure>
+  <img src="images/05-preview.png" alt="The Stage panel with a clip loaded, every transport control marked">
+  <figcaption>The Stage with a voice track loaded.</figcaption>
+</figure>
+
+<ol class="keys">
+  <li><b>Frame and shape</b> — which frame the playhead is on and which mouth
+      shape is showing.</li>
+  <li><b>Stage</b> — the mouth, drawn at the current frame. Click a cell in the
+      <b>Chart</b> to preview any shape here.</li>
+  <li><b>Jump to the start</b> — also <kbd>Home</kbd>.</li>
+  <li><b>Play / pause</b> — also <kbd>Space</kbd>.</li>
+  <li><b>Stop</b> — stops and rewinds.</li>
+  <li><b>Jump to the end</b> — also <kbd>End</kbd>. Lands one frame short of the
+      very end, because seeking to the last instant leaves most browsers showing
+      black.</li>
+  <li><b>Loop</b> — plays the clip round and round. Respects a trim.</li>
+  <li><b>Frame count</b> — how many frames the clip is at the current rate.</li>
+</ol>
+
+<p>The row naming the loaded file — its length, sample rate and channels, with
+the <b>×</b> that clears it and <b>Diagnostics</b> beside it — is in the
+<b>Input</b> tab with the rest of what is loaded.</p>
+
+<hr>
+
+<h2 id="sheet">The exposure sheet</h2>
+
+<p>This is the working document: one cell per frame, coloured and lettered by
+mouth shape, with the waveform above it.</p>
+
+<figure>
+  <img src="images/06-sheet.png" alt="The exposure sheet panel with the waveform, the sheet and the tools marked">
+  <figcaption>The exposure sheet.</figcaption>
+</figure>
+
+<ol class="keys">
+  <li><b>Waveform</b> — the whole clip at a glance, with the shapes as a colour
+      band underneath. Press anywhere to seek. It is also where trimming and
+      splitting happen — see <a href="#trim">Markers, splits &amp; drops</a>.</li>
+  <li><b>The sheet</b> — one cell per frame. Drag across it to select a run.
+      Scrolls sideways on a long clip.</li>
+  <li><b>Legend</b> — which colour is which shape.</li>
+  <li><b>Selection</b> — what is selected right now, in frames and seconds.</li>
+  <li><b>Undo / redo</b> — also <kbd>⌘Z</kbd> and <kbd>⇧⌘Z</kbd>
+      (<kbd>Ctrl</kbd> on Windows).</li>
+  <li><b>Clear frames</b> — empties the selected frames back to rest.</li>
+  <li><b>Reset all edits</b> — throws away every hand edit and returns to the
+      raw analysis.</li>
+</ol>
+
+<h3 id="shapes">The nine shapes</h3>
+
+<p>The Preston Blair set, which is also what Rhubarb writes. Every export ships
+all nine PNGs even if the take only used five, so you can correct a frame later
+without exporting again.</p>
+
+<p><b>C</b> and <b>D</b> are drawn 15% shorter than the classic proportion, and
+the reason is practical rather than phonetic. Those two set the tallest frame in
+the set, so they set the scale of the whole export: a Lego minifigure or a Barbie
+head has perhaps a fifth of its face to spare for a mouth, and a D at full height
+forced the entire sheet to be scaled down to fit it, which left every other shape
+too small to read. Width, roundness, teeth and tongue are untouched — it is only
+the opening.</p>
+
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Key</th><th>Shape</th><th>Sounds</th></tr></thead>
+  <tbody>
+    <tr><td><span class="vis"><span class="sw" style="background:#7c8794"></span>X</span></td><td>Rest</td><td>silence</td></tr>
+    <tr><td><span class="vis"><span class="sw" style="background:#c9476b"></span>A</span></td><td>Closed</td><td>M, B, P</td></tr>
+    <tr><td><span class="vis"><span class="sw" style="background:#3f8fce"></span>B</span></td><td>Slightly open</td><td>S, T, D, K, N, R, and “ee”</td></tr>
+    <tr><td><span class="vis"><span class="sw" style="background:#22a06b"></span>C</span></td><td>Open</td><td>“eh”, “ae”</td></tr>
+    <tr><td><span class="vis"><span class="sw" style="background:#d99320"></span>D</span></td><td>Wide open</td><td>“aa”</td></tr>
+    <tr><td><span class="vis"><span class="sw" style="background:#8b6fd6"></span>E</span></td><td>Rounded</td><td>“o”, “aw”, “er”</td></tr>
+    <tr><td><span class="vis"><span class="sw" style="background:#d4562e"></span>F</span></td><td>Puckered</td><td>“oo”, W</td></tr>
+    <tr><td><span class="vis"><span class="sw" style="background:#7fa62c"></span>G</span></td><td>Teeth on lip</td><td>F, V</td></tr>
+    <tr><td><span class="vis"><span class="sw" style="background:#cf5fbe"></span>H</span></td><td>Tongue</td><td>L</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3 id="editing">Fixing frames by hand</h3>
+
+<p>The analyser gets most of it. The last five per cent is yours:</p>
+
+<ol>
+  <li>Drag across the sheet to select the frames you want to change.</li>
+  <li>Press the letter of the shape you want — <kbd>A</kbd>…<kbd>H</kbd>, or
+      <kbd>X</kbd> for rest. The whole selection changes.</li>
+  <li><kbd>Delete</kbd> clears a selection back to rest.</li>
+  <li><kbd>⌘Z</kbd> undoes.</li>
+</ol>
+
+<p>Hand edits survive everything except <b>Reset all edits</b>: they are kept
+when you change the frame rate, switch to another clip and back, or trim.</p>
+
+<hr>
+
+<h2 id="trim">Markers, splits &amp; drops</h2>
+
+<p>All of this happens on the sheet's own waveform, which draws <b>the whole
+source file</b>. After a cut it keeps drawing the whole file: each piece is
+marked out and named, with a division between them, the way a timeline in an
+editor is. The open piece is the bright one.</p>
+
+<figure>
+  <img src="images/07-trim.png" alt="The timeline with markers down, and the cutting controls beneath it, all marked">
+  <figcaption>Markers dropped in the pauses, ready to cut at.</figcaption>
+</figure>
+
+<ol class="keys">
+  <li><b>The timeline</b> — drag either <b>end</b> of the open piece to trim it.
+      Press another piece to open it, at the moment you pressed. Press anywhere
+      in the open piece to seek. The green flags along the top are markers; the
+      grey shoulders are divisions between pieces.</li>
+  <li><b>Readout</b> — what is kept, out of how long, how many markers are
+      down, and which piece of the file you are on.</li>
+  <li><b>Undo / redo</b> — for the timeline itself: a cut, a dragged division,
+      a trim, a drop, a marker. &#8984;Z does it too whenever the timeline is
+      the thing you last touched.</li>
+  <li><b>Split</b> (<b class="mono">B</b>) — cuts the open piece in two at the
+      playhead, there and then. If a marker is within a few frames, the cut
+      lands on it.</li>
+  <li><b>+ Marker</b> (<b class="mono">M</b>) — drops a marker where the
+      playhead is. A marker is a bookmark: it cuts nothing, and you can leave
+      as many as you like.</li>
+  <li><b>Find the pauses</b> — drops a marker in every pause the analyser
+      found. On a conversation this is usually the whole job.</li>
+  <li><b>Split at markers</b> — cuts at every marker at once. Appears once
+      there is a marker to cut at.</li>
+  <li><b>Whole file</b> — puts the pieces back together: one clip spanning the
+      whole recording again, with the trim undone and every dropped stretch
+      restored. The clips strip goes with them.</li>
+</ol>
+
+<p><b>Drop this bit</b> throws away the stretch the playhead is standing in,
+bounded by the markers either side. The audio is genuinely removed and
+everything after it moves earlier; press the struck-through stretch to bring it
+back. <b>Delete</b> removes this clip from the queue.</p>
+
+<h3 id="movecut">Moving a cut after you have made it</h3>
+
+<p>Drag the division between two pieces. Both sides follow it — the first piece
+ends where the second begins, always — and the piece that is not open is
+re-analysed the next time you open it. This is the thing to reach for when a
+cut landed half a word early.</p>
+
+<div class="note">
+  <span class="boxlabel">Two people talking</span>
+  <p>Load the recording, press <b>Find the pauses</b>, check the flags are in
+  the right gaps, then <b>Split at markers</b>. You get one clip per line. Now
+  give the first speaker their mouth and press <b>Every other clip</b>
+  (see <a href="#perclip">below</a>), then do the same from the second clip.
+  Moving along the timeline from there shows each character in turn on the
+  stage, because opening a piece brings its own puppet and lips with it.</p>
+</div>
+
+<div class="tip">
+  <span class="boxlabel">Why two words for one idea</span>
+  <p>A marker and a cut used to be the same thing — a "split point" that a
+  second button later cut at. That made the common job (cut here, now) two
+  presses and a concept, and the uncommon one (remember this spot) impossible
+  without threatening a cut. They are separate now, and they meet in one place:
+  a split lands on a marker if there is one within a few frames.</p>
+</div>
+
+<hr>
+
+<h2 id="queue">Working on several clips</h2>
+
+<p>Drop several files, or split one, and a queue appears in the Input tab.
+Only one clip is open at a time; the rest keep their own edits, placement and
+mouth until you come back to them.</p>
+
+<figure>
+  <img src="images/14-queue.png" alt="The clip queue with the count, the lips thumbnails, the open clip and the remove buttons marked">
+  <figcaption>A queue of four clips, alternating between two mouth styles.</figcaption>
+</figure>
+
+<ol class="keys">
+  <li><b>Count</b> — how many clips are loaded.</li>
+  <li><b>Lips</b> — the mouth that clip will be drawn with. This is what lets you
+      see at a glance that two speakers are alternating.</li>
+  <li><b>The open clip</b> — highlighted. Click any row to open it.</li>
+  <li><b>×</b> — takes that clip out of the queue.</li>
+  <li><b>Play all</b> — plays every line in order, from the top, in the stage
+      you are already looking at. It opens each clip as it reaches it, so the
+      lines of a split take follow one another closely; press it again, or
+      touch the transport, and it stops where it is. Looping is put aside while
+      it runs and given back afterwards, since a looping line would never
+      end.</li>
+  <li><b>Add more</b> — adds files to the queue.</li>
+  <li><b>Clear all</b> — empties it.</li>
+</ol>
+
+<p>Shared across the queue: the engine, the frame rate and the analysis settings.
+Per clip: the frames and hand edits, the mouth style, the placement, the blur
+patch, the script, the puppet, the layers and the canvas.</p>
+
+<h3 id="twoshot">Two characters on screen at once</h3>
+
+<p>The section below cuts between people, a clip per line. This one keeps them
+<b>both on screen</b>, with the mouth moving on whoever is talking and the
+other's resting shut — which is what a two-shot actually looks like. It is one
+clip, marked up, with nothing cut.</p>
+
+<p><b>1. Put both characters on the stage.</b> Two picture layers, placed where
+you want them. The canvas is probably worth setting wide for this.</p>
+
+<p><b>2. Give each one a mouth.</b> Select a character, drag the mouth onto
+their face on the stage, then press <b>Put the mouth here</b> in that layer's
+settings. The mouth is now described in <i>their</i> coordinates — move or
+resize them and it goes with them.</p>
+
+<p>The mouth layer moves above the faces when you do this, because a mouth
+underneath an opaque drawing is an invisible mouth.</p>
+
+<p><b>3. Say who talks when.</b> With two characters pinned, a <b>Who is
+talking</b> panel appears above the layer list: one row per stretch between your
+markers, each with a picker. It fills in alternately as a head start —
+every row is yours to change, and a three-hander or an interruption is just a
+different answer in a picker.</p>
+
+<p>Move a marker and the rows follow it. The assignments are carried across by
+<b>overlap</b>, not by position in the list, so adding a marker in the middle
+does not shunt every later line onto the wrong person.</p>
+
+<div class="tip">
+  <span class="boxlabel">Markers do two different jobs</span>
+  <p><b>Split at markers</b> cuts the take into separate clips, which is the
+  section below. Leaving them uncut and filling in <b>Who is talking</b> keeps
+  one clip and moves the mouth between faces. Same markers, same <b>Find the
+  pauses</b>, two ways to use them.</p>
+</div>
+
+<p><b>Only one mouth is ever drawn moving</b>, because only one person speaks at
+a time. That is what makes this cheap: no second blur patch to manage, and the
+one there is applies to the speaker only — smearing the listener's face would
+be an odd thing to do to them.</p>
+
+<h3 id="comingoing">Coming and going</h3>
+
+<p>Every layer has <b>On from</b> and <b>Off at</b> in its settings, in seconds.
+Leave them blank and the layer is there for the whole clip; fill one in and the
+character arrives or leaves. It is the compositor that honours them, so it holds
+in every export and not just the preview.</p>
+
+<h3 id="conversation">A conversation between two characters</h3>
+
+<p>This is what the split is for. A recording of two people talking, cut into
+one clip per line, with a different cartoon character on each — and the whole
+thing back out as one piece.</p>
+
+<p><b>1. Set the scene up once, before you cut it.</b> Choose a puppet, place
+the mouth, add any layers you want on every line. Everything here is carried to
+each piece by the split, so doing it once does it for all of them.</p>
+
+<p><b>2. Cut it on the pauses.</b> <b>Find the pauses</b> under the sheet
+drops a marker in every silence; <b>Split at markers</b> cuts at them. See
+<a href="#trim">Markers, splits and drops</a>.</p>
+
+<p><b>3. Say who speaks the first two lines.</b> Click a line in the queue to
+open it, then click a face under <b>Who says this line?</b>. That character
+goes on that line — the stage changes with it, so you can see you got the right
+one. Do the same on the second line with somebody else.</p>
+
+<p><b>4. Let the rest deal themselves.</b> A small <b>1</b> and <b>2</b> appear
+on the faces to show who opens the scene and who answers; press <b>Deal in
+turn</b> and they take alternate clips the rest of the way: Alice, Bob, Alice,
+Bob. Cast three lines with three different faces and <b>Deal in turn</b> gives
+a three-hander. Cast one and the button reads <b>Put on every clip</b>.</p>
+
+<p>The running order is read off the queue rather than kept in a list of its
+own, so changing who says line two changes who answers all the way down.</p>
+
+<p>Each queue row shows a small picture of who is speaking it.</p>
+
+<p><b>What casting carries, and what it does not.</b> A character brings its
+picture, its placement, its mouth position and size, and its lips. It does
+<b>not</b> bring the other clip's timing: that belongs to one particular line's
+audio, and stamping it onto a different line would move the mouth to a beat
+that is not there.</p>
+
+<p>Casting writes to the clips without opening them, so dealing twelve
+characters round twelve lines takes a moment rather than twelve decodes. Open
+any line afterwards and it is wearing what it was given.</p>
+
+<p><b>4. Take it out.</b> Three ways, and they are not alternatives so much as
+different jobs:</p>
+
+<table>
+  <tr><td><b>The whole scene</b></td><td>One file, every line end to end — see <a href="#scene">The whole scene</a></td></tr>
+  <tr><td><b>Final Cut Pro</b></td><td>Every line on one timeline, each with its own character and voice, still editable — see <a href="#batch">Batch export</a></td></tr>
+  <tr><td><b>Batch</b></td><td>A zip with a folder per line, to assemble wherever you like</td></tr>
+</table>
+
+<hr>
+
+<h2 id="mouth">Mouth style</h2>
+
+<figure>
+  <img src="images/08-mouth.png" alt="The Mouth and motion tab, with the two sub-tabs, the style chips and the chart marked">
+  <figcaption>The Mouth tab.</figcaption>
+</figure>
+
+<ol class="keys">
+  <li><b>Built-in lips</b> — twenty-one drawn styles, from a plain line to a
+      rendered mouth, each in three head angles: <b>Front</b>,
+      <b>Three-quarter</b> and <b>Profile</b>.</li>
+  <li><b>Custom lips</b> — sets of pictures, either shipped with the app or added
+      for this visit. See below.</li>
+  <li><b>The styles</b> — click one to use it. With a queue up it applies to the
+      open clip only.</li>
+  <li><b>Chart</b> — all nine shapes in the current style. Click a cell to
+      preview it on the stage.</li>
+</ol>
+
+<h4 id="worthknowing">The ones worth knowing about</h4>
+
+<p>Most of the twenty-one are variations on realism and colour and you can pick
+one by looking. Six are not:</p>
+
+<ul>
+  <li><b>Smiley</b> — the big friendly cartoon mouth: a heavy black line, a solid
+      black inside, a broad band of white across the top and a red tongue filling
+      the floor. The difference from <b>Cartoon</b> is where the mass goes. In
+      Cartoon the dark is the mouth and the teeth are a detail; in Smiley the
+      teeth and the tongue take most of the opening, which is what makes it read
+      as a grin rather than as a hole. This is the one for minifigures and brick
+      characters.</li>
+  <li><b>Squiggly</b> — pen on paper. The outline is drawn three times, each pass
+      nudged and turned a hair, so the line frays the way a real one does. For
+      drawings that are themselves wobbly, where a clean vector mouth sits on the
+      face like a sticker. The fraying is fixed per shape, not random per frame —
+      shape D is the same shape D every time it comes round, or the mouth would
+      boil.</li>
+  <li><b>Man</b>, <b>Woman</b>, <b>Child</b> and <b>Older</b> — the four that go
+      with the drawn faces. The line weight matches the faces' own, the colour is
+      picked against each one's skin, and the proportions follow the head: the
+      child's narrower and rounder, the older one's thinner and flatter. Choosing
+      a drawn face picks its own one of these; they are in the shelf as well
+      because a puppet of your own may want the same treatment.</li>
+</ul>
+
+<h4 id="angles">Head angles</h4>
+
+<p>A mouth chart belongs to a head angle: the same nine shapes drawn for a
+character facing the camera are wrong on one that has turned. The turned views
+are rebuilt geometry rather than the front view squashed. Three-quarter
+foreshortens the far half and tucks that corner behind the cheek. Profile takes
+the same idea further: the aperture loses its far corner altogether and becomes
+a wedge, wide at the front and running to a point where the cheek takes over,
+with the lips drawn as that same wedge grown outward &mdash; one ring of lip round
+one opening, exactly as front-on. Width stops meaning how wide the mouth is and
+starts meaning how far the lips stick out; the jaw does nearly all of the
+opening and takes the mouth corner down with it; the upper lip is grown further
+forward than the lower, so the leading edge steps back as it comes down, which
+is the overbite that says &ldquo;side of a face&rdquo;; and a pucker gathers the
+opening into a small hole up at the front while the lips themselves still run
+back to the corner. Inside, two rows of teeth run from nothing at the corner to
+their full depth at the front, leaving the dark as a slot that is widest where
+the lips part rather than as a black bubble behind them.</p>
+
+<p>Both turned views face <b>right</b>. Because the styles match across all
+three, a character can keep its look through a turn — put the front set on one
+clip and the three-quarter on the next. The pane opens on <b>Built-in lips</b>
+and <b>Front</b> every time, whichever tab and angle you were last using.</p>
+
+<h4 id="flips">Facing the other way</h4>
+
+<p>Two buttons, one for each half of the picture, and they are independent:</p>
+
+<ul>
+<li><b>Flip lips</b> sits on the stage itself, top right, opposite the frame
+badge. It mirrors the mouth left to right wherever it is drawn — the stage, the
+chart, and every export. It works with a custom lip set as readily as with the
+drawn styles, and with no puppet at all.</li>
+<li><b>Flip</b> sits on the <b>PUPPET</b> line, beside Replace and Remove. It
+mirrors the picture behind the mouth.</li>
+</ul>
+
+<p>Both are horizontal only. A mouth upside down is not a mouth.</p>
+
+<p>Which one you want depends on which half is facing the wrong way. A puppet
+photographed looking left needs the lips turned round; a lip set drawn for a
+left-facing character over footage of a right-facing one needs the puppet turned
+instead. Pressing both mirrors the whole picture, which is occasionally what you
+want and is not the same as pressing either.</p>
+
+<p>Both belong to the open clip, so two speakers in a queue can face each
+other.</p>
+
+<div class="note">
+  <span class="boxlabel">Final Cut is given a transform, not a flipped file</span>
+  <p>The <b>Final Cut Pro project</b> export ships the puppet as its own file. A
+  mirrored puppet is therefore mirrored in the project — a scale of &minus;1
+  across — rather than baked into a copy of your picture. You can see it in the
+  inspector and take it off. The mouths are ours to draw, so those really are
+  flipped in the PNGs.</p>
+</div>
+
+<div class="note">
+  <span class="boxlabel">Two things to expect</span>
+  <p><b>Profile reads less precisely than front-on</b>, and that is true of
+  profile lip sync generally rather than a limitation here. Front-on,
+  <code>B</code> <code>C</code> and <code>D</code> differ mainly by how wide the
+  mouth opens, and from the side that difference largely disappears. What
+  survives is jaw travel and lip protrusion, so <code>A</code>, <code>F</code>
+  and <code>G</code> still read strongly while the open vowels sit closer
+  together.</p>
+  <p><b>The angle control is not a substitute.</b> It turns the mouth in the
+  picture plane; a real turn foreshortens it and hides the far corner.</p>
+</div>
+
+<h3 id="perclip">Different lips per clip</h3>
+
+<figure>
+  <img src="images/15-lips-per-clip.png" alt="The mouth style panel with a queue up, showing which clip the picker belongs to and the two spreading buttons">
+  <figcaption>With a queue loaded, the picker belongs to one clip at a time.</figcaption>
+</figure>
+
+<ol class="keys">
+  <li><b>Whose lips these are</b> — the picker belongs to the clip that is open.
+      Open another clip to give it different ones.</li>
+  <li><b>All clips</b> — give every clip in the queue these lips.</li>
+  <li><b>Every other clip</b> — give them to this clip and every second one after
+      it. This is the two-speakers-taking-turns case that splitting on the
+      pauses produces.</li>
+</ol>
+
+<h3 id="ownlips">Your own lips</h3>
+
+<figure>
+  <img src="images/09-custom-lips.png" alt="The custom lips pane, with the set chips and the folder picker marked">
+  <figcaption>Custom lip sets.</figcaption>
+</figure>
+
+<ol class="keys">
+  <li><b>The sets</b> — anything found in a <code>lips/</code> folder beside the
+      HTML file when the page loaded, plus anything you have added this visit.
+      A set showing <span class="mono">7/9</span> has two shapes no picture was
+      named for; they are filled with a best guess.</li>
+  <li><b>Use my own lips…</b> — pick a folder of nine pictures named for the
+      shapes: <code>X A B C D E F G H</code>. It stays on this page for this
+      visit only. Nothing is uploaded, nothing is stored, and reloading clears
+      it.</li>
+  <li><b>Match pictures to shapes…</b> — say which picture is which, by hand.</li>
+</ol>
+
+<h4>When the names don't say which shape is which</h4>
+
+<p>Pictures are matched to shapes by filename: a letter on its own, so
+<code>mouth-D.png</code>, <code>D.png</code> and <code>04_D_wide.png</code> all
+land on <code>D</code>. When a name says nothing — a folder of
+<code>frame01.png … frame09.png</code>, or one that calls its wide-open shape
+<code>aah</code> — the leftovers are handed out in name order, counting
+numerically, which puts a folder numbered in chart order
+(<code>X A B C D E F G H</code>) right on its own.</p>
+
+<p>Where that guess is wrong, <b>Match pictures to shapes…</b> opens a list of
+the nine shapes with a chooser on each: pick any picture in the folder for any
+shape, and the chart, the stage and every export follow as you go. Shapes nobody
+named a picture for are marked, so you can see which ones were a guess and which
+you chose. <b>Match by name again</b> throws away your choices and re-runs the
+automatic match.</p>
+
+<p>It opens by itself right after an import that left anything to guess at, which
+is the moment you still remember what is in the folder. A folder named for the
+shapes is already right, so it stays out of the way.</p>
+
+<div class="note">
+  <span class="boxlabel">Shipping your own sets</span>
+  <p>To have sets appear for everyone automatically, put them in a
+  <code>lips/</code> folder next to the HTML file — one sub-folder per set, nine
+  pictures inside each, named for the shapes. They are found on load. This only
+  works when the page is served over HTTP; opening the file directly from disk
+  blocks the folder scan, and the <b>Use my own lips…</b> button is the way in.</p>
+</div>
+
+<hr>
+
+<h2 id="puppetin">A puppet to put it on</h2>
+
+<p>The mouth has to go on something. A video clip brings its own picture, but a
+voice recording does not — so the picture is its own input, and a photograph
+will do.</p>
+
+<figure>
+  <img src="images/20-puppet.png" alt="The preview panel with audio only offering Add a puppet, beside the same panel with a photograph added behind the mouth">
+  <figcaption>Before and after: the offer, then a photograph behind the mouth.</figcaption>
+</figure>
+
+<p>With audio alone the row under the stage says there is nothing behind the
+mouth yet and offers <b>Add a puppet…</b>. Take a photo or a video; you can also
+drop either straight onto the stage. A <b>PUPPET</b> line then appears under the
+file row with its name, size, whether it is a still, and whether it is
+transparent, plus <b>Replace…</b> and <b>Remove</b>.</p>
+
+<p>A photograph is the easy case and the good one. It is a locked-off shot by
+definition — nothing drifts, nothing needs tracking — so a picture of the doll
+and a voice note is all it takes.</p>
+
+<p>Once there is a puppet, everything the video path already offered turns on:
+placement on the stage, the blur patch, <b>Video with mouth overlay</b>, and
+Final Cut's <b>Match the picture</b>.</p>
+
+<h3 id="faces">Four drawn faces</h3>
+
+<figure>
+  <img src="images/21-faces.png" alt="The four drawn faces — man, woman, child and older — each with a mouth on it">
+  <figcaption>The four drawn faces, each with its own mouth style on it.</figcaption>
+</figure>
+
+<p>Beside <b>Add a puppet…</b> there are four small portraits: a man, a woman, a
+child and an older person, drawn in the page rather than carried as pictures.
+Click one and it becomes the puppet.</p>
+
+<p>A face brings three things, not one: the picture, the place its mouth goes,
+and the lip style drawn for it — <b>Man</b>, <b>Woman</b>, <b>Child</b> or
+<b>Older</b> from the style shelf. Any one of them alone would leave you doing
+the other two by hand for a face the app drew itself.</p>
+
+<p>It brings them <b>the first time you use that face, and only then</b>. Come
+back to it later and you get the lips you last had on it instead, because by
+then the suggestion has stopped being help and started being a face overwriting
+work you did. See <a href="#heads">Heads keep their lips</a>.</p>
+
+<p>They are transparent, so they export like any other cut-out puppet, and they
+are drawn at 900×1200, which is large enough that a 2048px export is not
+resampling upward. The same four chips appear on the <b>PUPPET</b> line once
+there is a puppet, so one face can be swapped for another without going back to
+the start.</p>
+
+<p>They are deliberately plain, and they have no mouths. A face that already had
+one would be answering the question it is asking.</p>
+
+<h3 id="shelf">The puppet shelf</h3>
+
+<p>The four drawn faces and <b>everything you have loaded this visit</b> share
+one row of chips. Choosing one switches to it. Nothing is thrown away by
+switching: load a second drawing and the first stays on the shelf, one click
+away.</p>
+
+<p>The shelf is in memory and lasts the visit. Nothing is written to disk, and
+reloading the page clears it.</p>
+
+<h3 id="heads">Heads keep their lips</h3>
+
+<p>A chip is not a picture. It is a <b>character</b>, and a character is five
+things that travel together:</p>
+
+<table>
+  <tr><td><b>The picture</b></td><td>the file, and the crop it arrived with</td></tr>
+  <tr><td><b>Its place</b></td><td>where that picture sits in the frame</td></tr>
+  <tr><td><b>Its mouth</b></td><td>where the mouth sits on it, and how big</td></tr>
+  <tr><td><b>Its lips</b></td><td>which drawn style or imported set it speaks with</td></tr>
+  <tr><td><b>Its mirror</b></td><td>whether it is facing the other way</td></tr>
+</table>
+
+<p>Switch to another head and back and all five are as you left them. Try the
+same line on three characters and each keeps its own mouth: the small one you
+set on the doll does not follow you onto the drawing.</p>
+
+<p><b>The pin</b> sits at the end of the row of chips. Normally a drawn face you
+have never used brings its own lips, once. Turn the pin on and nothing is ever
+suggested — your style, your size, your placement and your keys survive every
+change of head, including the first. Turn it off again and first-time
+suggestions come back.</p>
+
+<p>A loaded photograph never suggests lips either way. It has none of its own to
+suggest.</p>
+
+<h3 id="puppetplace">Moving the puppet itself</h3>
+
+<figure>
+  <img src="images/22-layerpick.png" alt="The placement strip, with the Mouth and Puppet switch">
+  <figcaption>The placement strip, switched to the puppet.</figcaption>
+</figure>
+
+<p>The strip under the transport has a <b>Mouth / Puppet</b> switch. It decides
+which of the two the handles on the stage are driving — one set of handles, not
+two, because four corners and two knobs over one face is a guess every time you
+reach for one.</p>
+
+<p>On <b>Puppet</b>, the whole picture gets the box: drag it to move, pull the
+corner to resize, use the knob to tilt. The readouts and <b>Reset</b> beside the
+switch follow whichever layer you are on.</p>
+
+<p>A puppet starts at 100%, filling its frame, which is exactly what it always
+did. Scale it down and the margin left behind is <b>transparent</b> — which is
+often the point: a drawing cropped tight to the figure has no air around it, and
+a mouth near the chin ends up hard against the edge of every export. Scale it up
+to push in on a face photographed from across the room.</p>
+
+<p><b>The mouth travels with it — and only the mouth.</b> Move, resize or tilt
+the picture and the mouth goes along. Place the mouth, decide the head is too
+big, pull the corner — the mouth is still on the mouth.</p>
+
+<p>Nothing else in the stack is tied to the puppet. A caption, a prop, a
+background, a second character: those are placed in the <b>frame</b>, and they
+stay where you put them when the puppet moves. The puppet and the mouth are one
+thing, because a mouth means nothing anywhere but on a face; everything else is
+a layer in the ordinary sense and moves on its own.</p>
+
+<p>Three things worth knowing:</p>
+
+<ul>
+  <li>The frame does not change size. It stays the puppet's own shape, which is
+      what every export is built at, so moving the puppet never changes the
+      dimensions of what comes out.</li>
+  <li><b>Flip</b> and the placement are the same mechanism now, so a mirrored
+      puppet that has also been turned behaves the way you would expect rather
+      than the way two separate features would.</li>
+  <li>The mouth is placed on the face, and the face is the set. A set that
+      drifts under a character would be a different feature altogether.</li>
+</ul>
+
+<h4 id="puppetfcp">What Final Cut gets</h4>
+
+<p>A <b>still</b> that has been moved is rendered into the project exactly as you
+placed it — the file in the zip is a full-frame PNG named
+<span class="mono">…-placed.png</span>, with the transparency kept. It is still
+one layer you can move in Final Cut; it simply arrives where you put it.</p>
+
+<p>A <b>video</b> puppet cannot be rendered in a page without re-encoding it, so
+Final Cut gets the clip as it is. The card says so when that applies, and you
+place it there to match.</p>
+
+<h3 id="trim">Trimming the empty border</h3>
+
+<p>Pictures of puppets arrive with a lot of nothing round them — a phone photo of
+a minifigure on a desk, a PNG exported at canvas size, a scan. That costs twice:
+the mouth has to be shrunk to a few per cent of the frame to sit on a face that
+occupies a fifth of it, and every export that carries the puppet carries the
+empty margin at full resolution.</p>
+
+<p>So the border is measured and cut on the way in, and 20px of it is put back so
+nothing sits hard against the edge. The <b>PUPPET</b> line says
+<span class="mono">trimmed</span> when this has happened and offers <b>Undo
+trim</b>; on a picture that was left alone the same button reads <b>Trim
+edges</b> and will do it on demand.</p>
+
+<p>What counts as empty is not a guess. A picture <b>with transparency</b> is
+trimmed on its alpha. One <b>without</b> is trimmed against the colour its own
+four corners agree on — and if the corners disagree, which is the case for any
+photograph with a real background, nothing is cropped at all. That is why this
+can run automatically without surprising anyone.</p>
+
+<p>Trimming changes the frame, so the mouth's placement is moved with the picture
+rather than being left to slide off the chin; undoing it moves the placement
+back. Videos are not trimmed: the measurement is of one frame and a video's
+subject moves out of it.</p>
+
+<h3 id="puppetclip">It belongs to the clip</h3>
+
+<p>Not to the app. Each clip in the queue carries its own, alongside its own lips
+and its own placement, so a two-hander split into lines can have one puppet on
+the odd ones and another on the even ones. Leave a clip and come back and its
+puppet is there.</p>
+
+<p><b>Take the audio away and the stage goes with it.</b> Removing the voice
+track — the <b>×</b> beside the file, or <b>Clear all</b> — clears the whole
+stack: the puppet, the mouth and anything else that had been put on it. The
+audio is the clip, and what was built on it has nothing to stand on once it is
+gone. The mouth used to survive that, sitting on an empty stage over whatever
+backdrop was still there. The canvas is the exception and is kept on purpose:
+it is a format, not a thing on the stage.</p>
+
+<h3 id="puppetlen">When the lengths disagree</h3>
+
+<div class="tablewrap">
+<table>
+  <tbody>
+    <tr><td>A still</td>
+        <td>Takes the length of the take. There is nothing to disagree about.</td></tr>
+    <tr><td>A video shorter than the take</td>
+        <td>Plays <b>out and back again</b> — to its end, then in reverse to its
+            start, then out again.</td></tr>
+    <tr><td>A video longer than the take</td>
+        <td>Cut to the take. The tail is not used.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Out-and-back rather than a plain loop because a loop cuts from the last frame
+to the first every time round, and on a puppet that jolt is the thing you notice.
+Coming back the way it went has no seam in it at all.</p>
+
+<div class="note">
+  <span class="boxlabel">The preview steps through the reverse half</span>
+  <p>A <code>&lt;video&gt;</code> cannot be played backwards, so the reverse leg
+  is drawn by seeking rather than playing and moves at about twenty frames a
+  second on the stage instead of smoothly. Scrub and every frame is exact, and
+  the export renders every frame of it properly. It is only the live preview of
+  the backwards half that is steppy.</p>
+</div>
+
+<p><b>A puppet is always silent</b>, whatever its file contains. The voice track
+is the voice track; two at once is nobody's intention.</p>
+
+<h3 id="puppetalpha">Transparency</h3>
+
+<p>If the puppet has an alpha channel — a cut-out character on nothing — the app
+says <b>transparent</b> on the PUPPET line and keeps the checkerboard behind it
+on the stage rather than a black ground, so you can see that it is cut out.</p>
+
+<p>To keep it through an export, tick <b>Include the other layers</b> on
+<b>Animated PNG</b> or <b>PNG frame sequence</b>. Those two become the whole picture
+rather than the mouth alone: the puppet's own size, the mouth composited on top,
+and eight bits of alpha all the way through.</p>
+
+<p><b>Video cannot hold transparency at all</b> — no browser will encode an alpha
+movie, which is covered under <a href="#puppet">Putting the lips on a
+puppet</a> — so a cut-out puppet comes out of <b>Video with mouth overlay</b> on
+black. That is what the two PNG routes are for.</p>
+
+<h3 id="plate-exports">Which exports carry the puppet</h3>
+
+<p><b>Include the other layers</b> appears on six of the eight cards once there
+is a puppet, and choosing a puppet ticks five of them. Each format does something
+slightly different with it, because each format can hold something different.</p>
+
+<table>
+<tr><th>Export</th><th>Default</th><th>What it does with the puppet</th></tr>
+<tr><td><b>Final Cut Pro project</b></td><td>on</td><td>Ships the puppet file in the zip and puts it on the storyline, with the mouths connected above it in lane 1. A layer you can still move, not pixels baked together.</td></tr>
+<tr><td><b>Chroma-key MP4</b></td><td>on</td><td>The frame becomes the whole picture at the puppet's proportions instead of a square. A cut-out puppet's transparency fills with the key colour, so keying it out cuts it out again on the far side.</td></tr>
+<tr><td><b>Transparent GIF</b></td><td>on</td><td>Every frame is the whole picture, quantised against one palette so nothing shifts colour between frames. The long edge is held to 800px whatever output size is chosen.</td></tr>
+<tr><td><b>Animated PNG</b></td><td>on</td><td>The whole picture with a real alpha channel. The best of them for a cut-out.</td></tr>
+<tr><td><b>PNG frame sequence</b></td><td>on</td><td>One PNG per frame, the whole picture, transparency and all.</td></tr>
+<tr><td><b>Sprite sheet + atlas</b></td><td><b>off</b></td><td>Cells become whole pictures: nine for a still puppet with the line boil off, one per frame for a video or a boiled drawing. The atlas gains a <span class="mono">sequence</span> list saying which cell each frame wants.</td></tr>
+</table>
+
+<p>Every one of these cards also has <b>Include the effects — line boil, drop
+shadows</b>, ticked. Untick it and the frames come out without the wobble and
+without the shadows, which is what you want when the grade or the finish is
+being done somewhere else, or when a boil that reads nicely at full size reads
+as noise at 256px.</p>
+
+<p><b>Chart + exposure sheet</b> has no box.
+The chart is nine mouths by definition; the overlay video is already the picture
+with the mouth burned into it.</p>
+
+<p>Two things worth knowing:</p>
+
+<ul>
+<li><b>The boxes belong to the clip only through its puppet.</b> They keep their
+setting when you click to a clip that has no puppet and back again, so a batch
+run exports what you set, not what the last clip you looked at happened to
+have.</li>
+<li><b>A clip's own footage does not tick them.</b> If the thing behind the mouth
+is the video you loaded as the voice track rather than a puppet you chose, the
+boxes appear but stay clear — that export has always been the mouth alone and the
+footage is already on your timeline.</li>
+</ul>
+
+<blockquote>
+<p><b>A trimmed clip's movie carries a trimmed voice</b></p>
+<p>When the source is an MP4 or a MOV with an AAC track, the two movie exports
+copy that track out of the file rather than re-encoding it, which is exact and
+costs nothing. For a clip that has been trimmed or split, the copy is cut to
+the part of the file the clip uses — the card says <i>audio copied from the
+source, cut to this clip</i> when it is about to do that.</p>
+<p>This matters more than it sounds. A movie lasts as long as its longest
+track, so a four-second picture against a ninety-second sound track is a movie
+that plays its four seconds and then shows black for a minute and a half. The
+cut lands within about 23 milliseconds of the handle, which is inside one frame
+at 24fps; landing it to the sample would mean re-encoding, and a generation of
+quality for a twentieth of a frame is a bad trade.</p>
+</blockquote>
+
+<blockquote>
+<p><b>Final Cut and a short puppet</b></p>
+<p>The app plays a puppet shorter than the take out and back. A project cannot
+say that in one clip, so the storyline runs to the puppet's own length and the
+rest is a gap. To match it, copy the puppet, paste it into the gap and reverse
+the copy with <b>Retime &gt; Reverse Clip</b>. The README in the zip says the
+same.</p>
+</blockquote>
+
+<hr>
+
+<h2 id="layers">Layers</h2>
+
+<figure>
+  <img src="images/23-layers.png" alt="The layer list, with the canvas, line boil, the add buttons and a row's controls marked">
+  <figcaption>The layer stack, in the Input tab under what is loaded.</figcaption>
+</figure>
+
+<ol class="keys">
+  <li><b>Canvas</b> — the frame everything is composed into. See below.</li>
+  <li><b>Add</b> — a picture from disk, a line of text, a shape, or a
+      balloon.</li>
+  <li><b>Line boil</b> — the wobble of a redrawn line, under the list. See
+      below.</li>
+  <li><b>The grip</b> — drag it to reorder. Top of the list is the front of the
+      picture.</li>
+  <li><b>The eye</b> — hides a layer from the stage <b>and</b> from every
+      export. Hidden is not "faded"; it is not there.</li>
+  <li><b>The pencil</b> — opens that layer's settings underneath the list, and
+      <b>Done</b> shuts them again.</li>
+  <li><b>The bin</b> — deletes the layer. The mouth cannot be deleted; the
+      puppet's bin removes the puppet.</li>
+</ol>
+
+<p>The picture is a stack. Pictures, text, shapes and the mouth itself, in an
+order you choose, each with its own placement, opacity and drop shadow. A hat, a
+speech bubble, a name plate, a second character, a coloured ground behind a
+cut-out — all of it composes into every export rather than waiting for another
+application afterwards.</p>
+
+<p>The handles work on <b>anything in the stack</b> — a puppet is not required.
+A picture added through <b>Add a picture…</b> is a layer, not a puppet, and the
+puppet row goes on saying there is nothing behind the mouth; that is correct and
+it does not stop you placing anything.</p>
+
+<p><b>Everything on the stage can be taken back.</b> Moving, resizing or
+turning a layer, adding or deleting one, changing anything in a layer's
+settings, choosing a puppet or removing one: the two arrows on the placement
+strip walk back and forward through all of it, and <kbd>⌘Z</kbd> does the
+same.</p>
+
+<p>The stage and the exposure sheet keep their own histories, because a
+frame's shape and a layer's placement are not the same kind of thing.
+<kbd>⌘Z</kbd> takes back whichever you did most recently, so pressing it
+repeatedly retraces your actual order across both. A drag is one step, however
+far you dragged, and a slider pushed across its range is one step rather than
+two hundred. Opening another clip starts that clip's own history — undoing past
+the moment it opened would be undoing into somebody else's stack.</p>
+
+<p><b>Clicking a layer on the stage selects it</b>, so the usual way to move
+something is to point at it and drag. Where two layers overlap the <i>smaller</i>
+one wins — the mouth beats the face behind it, a logo beats the picture it sits
+on, and bare background gives you the puppet. That is deliberately not "topmost
+wins": a full-frame picture is the whole stage, and topmost would make the mouth
+unreachable the moment anything was added above it.</p>
+
+<p>The pencil opens that layer's settings <b>directly beneath its own row</b>,
+so there is never a question of which layer a box of settings belongs to.</p>
+
+<p>The arrow on each row also puts the stage handles on that layer, which is the
+same thing as choosing it in the dropdown on the placement strip. Then drag to
+move it, pull <b>any of the four corners</b> to resize, use the knob to tilt —
+exactly as for the mouth. All four corners do the same job, so you grab
+whichever one is in front of you rather than reaching round the picture for a
+particular one. A corner or the knob always belongs to whatever is already
+selected, so a handle sticking out past a neighbour still works.</p>
+
+<p>Three things that are not arbitrary:</p>
+
+<ul>
+  <li><b>The mouth is a layer like any other.</b> Drag something above it and
+      that thing crosses in front of the face. The mouth keeps what only it
+      has: the blur patch that hides a printed mouth on whatever is behind
+      it.</li>
+  <li><b>A video layer is held at the back.</b> This is a browser limitation
+      rather than a preference — a page cannot reliably draw a playing video into
+      a canvas, so the one video has to stay a real element underneath, and
+      nothing can be put beneath it. Stills have no such problem and move
+      freely.</li>
+  <li><b>Layers belong to the clip.</b> A two-hander split into lines can have a
+      caption on one and a prop on the next, and switching between them brings
+      each one's stack back.</li>
+</ul>
+
+<p>Every layer's settings carry <b>opacity</b> and a <b>drop shadow</b> —
+softness, offset, colour and strength, all as fractions of the frame, so a
+shadow looks the same at 512px as it does at 2048. Text adds its words, colour,
+outline, typeface and weight; a shape adds its type, fill, edge, proportions and
+corner rounding.</p>
+
+<h3 id="balloons">Balloons and panels</h3>
+
+<p><b>Add a balloon</b> puts a speech balloon on the stage with words already
+in it. Any shape layer can be any of these, from <b>Shape</b> in its
+settings:</p>
+
+<table>
+  <thead><tr><th>Shape</th><th>What it is for</th></tr></thead>
+  <tbody>
+    <tr><td><b>Rectangle</b>, <b>Ellipse</b></td><td>Plain blocks — a ground behind a cut-out, a plate under a name</td></tr>
+    <tr><td><b>Speech balloon</b></td><td>Someone is talking. A tail you aim at them</td></tr>
+    <tr><td><b>Thought balloon</b></td><td>A cloud with a trail of bubbles</td></tr>
+    <tr><td><b>Shout burst</b></td><td>A spiked balloon, with one long point for the tail</td></tr>
+    <tr><td><b>Whisper balloon</b></td><td>The same body drawn with a broken line</td></tr>
+    <tr><td><b>Caption panel</b></td><td>The narration box, double-ruled, square-cornered</td></tr>
+    <tr><td><b>Banner</b></td><td>A ribbon with notched ends, for a title</td></tr>
+  </tbody>
+</table>
+
+<p>A balloon or a panel carries its own <b>words</b> — type them into the
+settings and they wrap to fit inside the shape, so a balloon is one layer
+rather than a bubble and a text layer you then have to keep together. Word
+size, colour and typeface are there beside them.</p>
+
+<p><b>Tail at</b> aims the tail in degrees, clockwise from the right: 125° is
+down-and-left, 55° is down-and-right. <b>Tail out</b> is how far it reaches
+past the balloon. Set it to nought and the tail goes away, which is what you
+want for an off-screen voice. The shout burst has <b>Points</b> and <b>Point
+depth</b> as well.</p>
+
+<p>Balloons are layers like any other, so they take the same placement handles,
+the same opacity and drop shadow, the same <b>On from</b> / <b>Off at</b>
+times — a balloon that appears on the line it belongs to and goes again
+afterwards is two numbers, not an edit in another program.</p>
+
+<h3 id="animated">Animated pictures</h3>
+
+<p>A picture layer can be an <b>animated GIF</b> or an <b>animated PNG</b>, and
+it plays. Drop one in and it is decoded frame by frame; the row says how many
+frames it has, and its settings grow three controls:</p>
+
+<div class="tablewrap">
+<table>
+  <tbody>
+    <tr><td><b>Loop</b></td><td><b>Repeat</b>, <b>Play once, then hold</b> the last frame, or <b>Back and forth</b></td></tr>
+    <tr><td><b>Speed</b></td><td>5% to 800% of the file's own timing</td></tr>
+    <tr><td><b>Start at</b></td><td>How far into the take it begins, so two animations need not be in lockstep</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>It is <b>deterministic</b>, like everything else that moves here. Which frame
+you see is worked out from the clip's frame number and the file's own delays,
+not from a clock — so the preview and every export agree, scrubbing backwards
+shows what scrubbing forwards showed, and exporting twice gives the same
+file.</p>
+
+<p>Both formats are decoded in the page. Pointing an <span class="mono">&lt;img&gt;</span>
+at the file and letting the browser animate it would be easier and is wrong:
+<span class="mono">drawImage</span> copies whichever frame that element happens
+to be showing, a detached image never advances in some browsers, and where it
+does advance it does so on wall-clock time — which would make the picture a
+function of when you looked.</p>
+
+<p>A long or large animation is held at 300 frames or about 420MB of decoded
+frames, whichever comes first; past that the layer keeps its first frame and
+says so. A still picture is unaffected and is offered none of these
+controls.</p>
+
+<div class="tip">
+  <span class="boxlabel">One size, one meaning</span>
+  <p>Every layer is placed by the same four numbers — across, down, size and
+  angle — and size is a percentage of the frame's width. A layer's own
+  proportions do the rest, so a tall picture stays tall.</p>
+</div>
+
+<p><b>Size, angle and opacity have a slider <i>and</i> a number field</b>, both
+in a layer's settings and in the strip under the stage. The slider is for
+finding a value, the field for saying one — 2% to 400% across ninety pixels is
+four percent a pixel, which is no way to set 113%. Type into either and the
+other follows. The strip's controls drive whichever layer the handles are on, so
+they follow the selection the same way the handles do.</p>
+
+<p><b>Delete</b> on the strip removes the layer the handles are on, so a picture
+can go without scrolling to the list. It refuses the mouth.</p>
+
+<p>A layer <b>bigger than the frame</b> keeps its handles: the real corner would
+be off the edge of the stage where no pointer can reach it, so the corner and
+the knob are pulled back inside. Scaling is a ratio from wherever you grabbed
+and turning is an angle about the centre, so neither gesture changes
+meaning.</p>
+
+<h3 id="canvas">The canvas</h3>
+
+<p>The frame used to be whatever the puppet was: a 900×1200 drawing made a
+900×1200 export. That is still the default, and <b>Match the puppet</b> says so
+with the numbers in it. But it is a poor rule once there is a stack — a caption
+needs room under the chin, and a 16:9 delivery needs 16:9 whatever shape the
+character is.</p>
+
+<p>So the canvas can be set: 1920×1080, 1280×720, 1080×1920, 1080×1080, or a
+size you type. Everything downstream follows it — the stage, all eight exports,
+and Final Cut's <b>Match the picture</b>.</p>
+
+<p><b>You can see the frame.</b> The preview draws it as a bordered sheet with
+the checkerboard inside it and a plain surround outside, so changing the canvas
+visibly changes the shape of what you are making: pick 16:9 and bands appear
+above and below, pick vertical and they move to the sides. The checkerboard
+marks the frame and only the frame — painted across the whole panel, as it used
+to be, it claimed that parts of the panel which are not in the frame at all
+would export transparent, and left nothing on screen to show what a canvas
+change had done.</p>
+
+<p><b>Fit everything in the stack</b> is the one to reach for when something is
+hanging over the edge. The canvas line says so when it happens — <i>"2 layers
+off the edge"</i> — and this grows the frame until they are not, <b>without the
+stack growing with it</b>: it resizes and re-places in one step, so every layer
+keeps the size and position it already had. Without that second half it would
+chase its own tail, since a layer at 220% of the width is 220% of whatever the
+width becomes.</p>
+
+<p>It is a measurement, not a mode: it works out a size once and then behaves
+like any other canvas you typed, so adding a layer later does not silently move
+the frame — and with it every placement.</p>
+
+<p>Placements are fractions of the frame, so changing it <b>reflows</b>: a layer
+in the middle stays in the middle, one at 20% across stays at 20% across. That is
+what keeps a composition recognisable through a resize. The alternative — holding
+pixel positions and cropping — pushes work off the edge where you cannot see it
+to drag it back.</p>
+
+<p>A puppet keeps its own proportions inside the frame. At 100% its width is the
+frame's width; a portrait drawing in a landscape frame is not stretched to fit,
+it simply does not fill the sides.</p>
+
+<p><b>A new puppet is measured against the frame before it lands.</b> Its size
+is its width as a fraction of the frame, so 100% was the right arrival for as
+long as the frame <i>was</i> the puppet — and badly wrong as soon as it is not:
+a 900×1200 face dropped on a 1920×1080 frame at 100% is 1920 wide and 2560
+tall, a chin filling the screen. So a puppet now arrives at whatever size fits
+the frame it is landing on, top to bottom, and the mouth comes with it: the
+same place on the face, scaled to match. On a canvas that matches the puppet
+this is exactly 100%, so the ordinary case is untouched. It applies to a
+picture you import, a drawn face you pick, and a character dealt round the
+queue.</p>
+
+<p><b>The format outlives the clip.</b> Once a canvas has been chosen it is the
+one every clip gets — the pieces of a split, the next file you load, and
+whatever you load after clearing the audio. A clip that was given its own
+canvas keeps it; only clips that have never been set follow the standing
+choice. Before this a new clip quietly fell back to <b>Match the puppet</b>,
+which is how a take cut into eight ended up with eight different frame
+sizes.</p>
+
+<h3 id="boil">Line boil</h3>
+
+<p>The wobble a drawing has when a human redraws it for every frame.
+Traditional animation has it for free; vector animation has to put it back on
+purpose, and without it a mouth cut onto hand-drawn artwork sits on the page
+like a sticker, perfectly still while everything around it breathes.</p>
+
+<p><b>It is off on every layer to start with.</b> The tick in the Line boil row
+turns it on for the whole stack; the tick in a layer's own settings turns it on
+for that one.</p>
+
+<h4>Six kinds</h4>
+
+<div class="tablewrap">
+<table>
+  <tbody>
+    <tr><td><b>Jitter</b></td><td>Fine, even shimmer over the whole drawing — the classic boil.</td></tr>
+    <tr><td><b>Warp</b></td><td>Broad taffy pull. Whole limbs breathe in and out of shape.</td></tr>
+    <tr><td><b>Ripple</b></td><td>Concentric waves from the centre, like heat off a road.</td></tr>
+    <tr><td><b>Tremble</b></td><td>Noise plus grit. Rough, nervous, hand-inked-at-2am.</td></tr>
+    <tr><td><b>Swell</b></td><td>A slow breathing pulse in scale, with a light shimmer on top.</td></tr>
+    <tr><td><b>Drift</b></td><td>Registration wobble — the paper shifts on the pegs, lines stay clean.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Five of the six move parts of the drawing by <i>different</i> amounts, which
+is what a hand does and a transform cannot. <b>Drift</b> is the exception: it
+moves the whole sheet as one, so the line quality is untouched — nothing is
+resampled.</p>
+
+<h4>The controls</h4>
+
+<div class="tablewrap">
+<table>
+  <tbody>
+    <tr><td><b>intensity</b></td><td>How far the drawing moves, 1 to 12, with the screen pixels beside it. Starts at <b>1</b> — the gentlest there is, which is what a drawn line usually wants.</td></tr>
+    <tr><td><b>wobble scale</b></td><td>How big each wobble is. Low is a slow bend through a limb; high is a fine tremble along the line.</td></tr>
+    <tr><td><b>drawings</b></td><td>How many distinct drawings cycle, 2 to 12. This is also how many warps get made, so it costs something.</td></tr>
+    <tr><td><b>frame rate</b></td><td>How fast they cycle, in their own frames a second. Against the clip's rate this is what "on twos" means, and the readout says so.</td></tr>
+    <tr><td><b>lines only</b></td><td>How much the wobble sticks to the lines. At 0 everything warps evenly; turn it up and flat fills stop swimming.</td></tr>
+    <tr><td><b>seed</b> / <b>Reroll</b></td><td>A different set of drawings from the same settings.</td></tr>
+    <tr><td><b>Back and forth</b></td><td>Play the cycle out and back, so the loop has no jump at the join.</td></tr>
+    <tr><td><b>Smooth</b></td><td>Sample between pixels instead of snapping to the nearest. Softer edges, slower to make.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Every one of them has a slider and a number field: the slider to find a
+value, the field to say one.</p>
+
+<h4>What it does not do</h4>
+
+<p>It is <b>deterministic</b> — the displacement comes from value noise seeded
+by the layer, the drawing number and the seed, never from a random draw. The
+preview and the export agree frame for frame, scrubbing backwards shows what
+scrubbing forwards showed, and exporting the same clip twice gives the same
+file.</p>
+
+<p>Each drawing is <b>warped once and kept</b>. That is why the drawing count is
+the setting that costs: three drawings is three warps, not three per frame.
+Changing any setting throws the cached drawings away and they are made again.</p>
+
+<p>A <b>video puppet cannot boil</b>. It is the element under the canvas rather
+than something drawn into it, and its tick says so.</p>
+
+<p>A <b>background grows a little</b> when it boils. The warp pulls each pixel
+from somewhere nearby, so a layer that reaches the edge of the frame is asked
+for paper it does not have, and what comes back is nothing — a ragged pale
+fringe all round the picture. Any layer that covers all four edges is quietly
+blown up by enough to cover the warp's reach before it is warped, and the frame
+shows the middle of it. A couple of percent of scale on a background, and no
+fringe. Layers that do not reach the edge are untouched.</p>
+
+<p>The boil <b>comes through every export</b>. The GIF, the animated PNG and
+the sprite sheet all save work on a still puppet by making one picture per
+mouth shape and repeating it — which is right, and was throwing the boil away,
+since the whole point of it is that the drawing changes every few frames. With
+boil on anywhere in the stack they render every frame.</p>
+
+<div class="tip">
+  <span class="boxlabel">It plays itself</span>
+  <p>Boil is a different drawing every few <i>frames</i>, so on a paused
+  preview it is one still picture and a change to it looks like it did nothing
+  — the single most common reason people think it is broken. So: ticking it
+  on, <b>letting go of any slider</b>, committing a typed number, choosing an
+  effect or rerolling the seed all warp the drawings, say <b>Boiling…</b> while
+  they do, run the preview through a couple of seconds and put the playhead
+  back. Nudge another slider while it is playing and the new setting takes over
+  rather than being refused. <b>Try it</b>, beside the switch, watches it again
+  on demand.</p>
+</div>
+
+<hr>
+
+<h2 id="place">Placing the mouth</h2>
+
+<p>With a video loaded, the mouth is placed directly on the picture.</p>
+
+<figure>
+  <img src="images/10-placement.png" alt="The stage with a video loaded, showing the placement tools">
+  <figcaption>Placing the mouth over a video.</figcaption>
+</figure>
+
+<ol class="keys">
+  <li><b>The stage</b> — <b>drag</b> the mouth to move it, drag the
+      <b>corner</b> to size it, and drag the <b>knob</b> to turn it. Hold
+      <kbd>Shift</kbd> while turning to snap to 15°.</li>
+  <li><b>Size</b> — as a percentage of the frame.</li>
+  <li><b>Angle</b> — type an exact number of degrees if you would rather.</li>
+  <li><b>Reset</b> — back to the centre at the default size, square on.</li>
+</ol>
+
+<p>The placement is <b>baked into the exported pictures</b>. A Final Cut project
+or a frame sequence drops onto your timeline at 100% and lands exactly where the
+preview showed it — no transform needed at the other end.</p>
+
+<hr>
+
+<h2 id="motion">Blur patch</h2>
+
+<p>It lives in the <b>mouth layer's own settings</b> — the Layers list is in
+the <b>Input</b> tab, so press the pencil on the Mouth row and it opens
+underneath. It belongs to the mouth, so that is where it is, and it is the only
+place it is: there used to be a second copy of it in a panel under the stage,
+which is a good way to end up with two controls fighting over one setting.</p>
+
+<figure>
+  <img src="images/11-motion.png" alt="The blur patch controls in the mouth layer's settings, marked">
+  <figcaption>The blur patch, inside the Mouth row's settings.</figcaption>
+</figure>
+
+<ol class="keys">
+  <li><b>Blur patch</b> — blurs the picture underneath the mouth, to cover the
+      one printed on a doll or a minifigure.</li>
+  <li><b>Blur</b> — how strong.</li>
+  <li><b>Cover</b> — how much area it covers.</li>
+</ol>
+
+<p>It appears once there is a picture with a mouth on it to blur.</p>
+
+<div class="warn">
+  <span class="boxlabel">Where the blur does and does not go</span>
+  <p>It is baked into <b>Video with mouth overlay</b> only. It cannot go into
+  the Final Cut project, because a transparent PNG has nothing underneath it to
+  blur.</p>
+</div>
+
+<div class="tip">
+  <span class="boxlabel">Keyframes have gone</span>
+  <p>There used to be keyframes beside the blur: set a key, scrub, drag the
+  mouth, set another, and it interpolated between them to follow a moving shot.
+  They were removed in v1.14.0. The honest reason they did not work well is
+  that a mouth following a head is a tracking problem, and straight lines drawn
+  between hand-set keys are not a tracker. For footage that moves, export
+  <b>Video with mouth overlay</b> and keyframe it in an editor that can see the
+  picture — which is work Final Cut and Premiere do properly.</p>
+</div>
+
+<hr>
+
+<h2 id="script">Script</h2>
+
+<figure>
+  <img src="images/12-script.png" alt="The Script panel">
+  <figcaption>The Script panel, in the Input tab.</figcaption>
+</figure>
+
+<p>The Script panel is in the <b>Input</b> tab. Paste what is being said and
+press <b>Align to the audio</b>. The words are spread across the phrases the
+analyser found, by syllable count, and drawn under the sheet.</p>
+
+<p>It is a way of finding your place on a long clip — “this is the bit where she
+says the name” — not a transcription, and not something the analysis uses.</p>
+
+<hr>
+
+<h2 id="export">Exporting</h2>
+
+<figure>
+  <img src="images/17-export-grid.png" alt="The full export tab showing all seven format cards">
+  <figcaption>The Export tab. One card per format.</figcaption>
+</figure>
+
+<p>Every format is a card, and every card carries its own options and its own
+button. Read the card, set what it offers, press the button at the bottom of it.</p>
+
+<p>A card shows only what changes: its options, its size estimate, and any
+warning that applies right now. What the format is and what it is good for
+lives behind the small <b>i</b> in the corner, so that eight cards fit on a
+screen instead of two. Click the <b>i</b> to read it, click anywhere else or
+press <kbd>Esc</kbd> to put it away; only one opens at a time.</p>
+
+<figure>
+  <img src="images/13-export-card.png" alt="The Final Cut Pro card with each of its controls marked">
+  <figcaption>One card in detail — the Final Cut Pro project.</figcaption>
+</figure>
+
+<ol class="keys">
+  <li><b>Frame size</b> — the timeline the project will be built for. “Match the
+      video” appears when a video is loaded and is the right answer when you are
+      cutting over that footage.</li>
+  <li><b>Media folder</b> — leave it empty and the project points at the pictures
+      beside it, so the unzipped folder just works. Fill in where the folder will
+      end up and the paths become absolute instead.</li>
+  <li><b>Wrap … in a Compound Clip</b> — the run of mouths arrives as one item
+      you can slide, trim and stack, instead of dozens of one-frame pieces.
+      Double-click it in Final Cut to get at the individual shapes, or
+      <b>Clip&nbsp;&gt;&nbsp;Break Apart Clip Items</b> to lay them out loose.</li>
+  <li><b>Include the voice track</b> — puts the audio in the zip beside the
+      pictures. Off by default. Every card has its own.</li>
+  <li><b>Estimate</b> — roughly what you are about to get, before you commit.</li>
+  <li><b>The button</b> — does the export. It always says what it is about to do.</li>
+  <li><b>Info</b> — the notes about this format: what it is, and what to watch
+      for.</li>
+</ol>
+
+<figure>
+  <img src="images/13c-export-info.png" alt="The same card with its notes panel open">
+  <figcaption>The notes, open.</figcaption>
+</figure>
+
+<p>Warnings never go in here — “this browser cannot decode the picture”, and the
+one about what a batch run will do, stay on the face of the card where you
+cannot miss them.</p>
+
+<figure>
+  <img src="images/13b-output-size.png" alt="The output size selector at the top of the export tab">
+  <figcaption>The one setting shared across cards, at the top of the tab.</figcaption>
+</figure>
+
+<ol class="keys">
+  <li><b>Output size</b> — the pixel size of the mouth pictures, used by the
+      GIF, sprite sheet, frame sequence and chart exports. The Final Cut project,
+      chroma-key MP4 and overlay video have their own size on their own cards,
+      because those are frame sizes rather than mouth sizes.</li>
+</ol>
+
+<h3 id="formats">The eight formats</h3>
+
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Format</th><th>You get</th><th>Good for</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>Chart&nbsp;+ exposure sheet</b></td>
+      <td>Nine transparent PNGs plus frame-by-frame timing as JSON and CSV</td>
+      <td>After Effects, Blender, Spine — the small, sane option, and the one to
+          reach for first</td>
+    </tr>
+    <tr>
+      <td><b>Final Cut Pro project</b></td>
+      <td>An <code>.fcpxml</code> project plus full-frame transparent PNGs, one
+          clip per run of frames — and the voice track and puppet in the project
+          too, if you asked for them</td>
+      <td>Cutting over real footage in Final Cut. Import&nbsp;&gt;&nbsp;XML and
+          paste over your clip</td>
+    </tr>
+    <tr>
+      <td><b>Transparent GIF</b></td>
+      <td>An animated GIF with a see-through background</td>
+      <td>A slide, a web page, a chat window — anywhere without a matte</td>
+    </tr>
+    <tr>
+      <td><b>Animated PNG</b></td>
+      <td>The same animation as one <code>.png</code> file, with a real alpha
+          channel</td>
+      <td>Anywhere the GIF's hard edge shows. Three times the size of the GIF and
+          worth it over video</td>
+    </tr>
+    <tr>
+      <td><b>Sprite sheet + atlas</b></td>
+      <td>One PNG with all nine shapes packed in, plus a coordinate map</td>
+      <td>Game engines and web animation</td>
+    </tr>
+    <tr>
+      <td><b>PNG frame sequence</b></td>
+      <td>One numbered transparent PNG for every frame</td>
+      <td>Dropping straight onto a timeline. The cleanest matte — and it gets
+          big fast</td>
+    </tr>
+    <tr>
+      <td><b>Chroma-key MP4</b></td>
+      <td>The mouth over a solid key colour, voice track muxed in</td>
+      <td>Any editor that can key. Note the chroma is half-resolution, so the
+          edge is softer than the PNG alpha</td>
+    </tr>
+    <tr>
+      <td><b>Video with mouth overlay</b></td>
+      <td>Your source video with the mouth burned into it</td>
+      <td>A finished clip in one step. The only export that carries the blur
+          patch</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note">
+  <span class="boxlabel">Every export says which one it is</span>
+  <p>The file name is the clip's, with the format on the end in capitals:
+  <code>speech-CHART.zip</code>, <code>speech-FCPXML.zip</code>,
+  <code>speech-GIF.gif</code>, <code>speech-APNG.png</code>,
+  <code>speech-SPRITE.zip</code>, <code>speech-FRAMES.zip</code>,
+  <code>speech-CHROMA.mp4</code>, <code>speech-OVERLAY.mp4</code>. A batch zip
+  carries the same tag. Eight files of one take otherwise differ by a word nobody
+  reads, and Final Cut puts the file name on the clip — so the wrong one goes on
+  the timeline and looks right until it does not.</p>
+</div>
+
+<div class="note">
+  <span class="boxlabel">Everything ships the whole set</span>
+  <p>Even if a take never uses <code>G</code> or <code>H</code>, those pictures
+  are in the zip. That is what lets you correct a frame in your editor a week
+  later without coming back here.</p>
+</div>
+
+<div class="note">
+  <span class="boxlabel">Timing: the GIF and the animated PNG run at a constant frame rate</span>
+  <p>Both used to write a held shape as one long frame — six frames of
+  <code>B</code> as a single picture with a six-frame delay. Smaller, and correct
+  in a browser, but it made the file <b>variable</b>-frame-rate, and an editor
+  importing one has to place each of those frames on its own grid by rounding up.
+  A twelve-frame animation on a 25 fps timeline came out about 14% long, and the
+  error only ever went one way.</p>
+  <p>So there is now one frame for every frame of the take, all the same length.
+  A held shape is a <i>hold frame</i> — a single transparent pixel that changes
+  nothing and costs about thirty bytes — so the files are barely larger and the
+  rate is declared and constant, which is what lets an editor conform the clip
+  the way it conforms any other clip: by repeating frames and keeping the length.
+  Most do. Final Cut, on a long take, still does not — see the next box.</p>
+  <p><b>The animated PNG is exact.</b> It carries its own denominator, so a frame
+  at 12 fps is written as the fraction 1/12.</p>
+  <p><b>The GIF is within a frame.</b> Its delays are whole hundredths of a
+  second and 12 fps is 8.3333 of them, so the GIF is written at the nearest rate
+  a hundredth can express — 8 hundredths, or 12.5 fps — and the mouth track is
+  sampled at that rate. The total comes out right and no frame is more than half
+  a frame from where it would have been.</p>
+  <p><b>If it still does not line up</b>, set the frame rate in <b>Analysis</b>
+  to your timeline's. No frame duration lands cleanly on every grid — 1/12 of a
+  second is 2.08 frames of 25 and 2.5 frames of 30 — so matching the two rates is
+  the one thing that is exact under every reading.</p>
+</div>
+
+<div class="note">
+  <span class="boxlabel">Final Cut and long takes: a known one</span>
+  <p>Final Cut Pro does not always hold the length of an imported animated GIF or
+  PNG, and the error grows with the length of the take — a two-minute one can
+  arrive several seconds long. It is the import rather than the file: the same
+  exports line up exactly in ToonSquid and in a browser, and the frames
+  themselves are all the same length with the rate declared.</p>
+  <p>Three ways round it, best first:</p>
+  <ol>
+    <li><b>Use the Final Cut Pro project export.</b> It is built for Final Cut
+    and is frame-accurate by construction — and it gives you the mouths as clips
+    you can already edit rather than one item to fight with.</li>
+    <li><b>Work in shorter pieces.</b> Split the take into lines and export each
+    (see <a href="#trim">Markers, splits and drops</a>). Drift you cannot see over ten
+    seconds is obvious over two minutes.</li>
+    <li><b>Retime the clip in Final Cut.</b> Select it, <b>Modify &gt; Retime
+    &gt; Custom</b>, and set the duration to the audio's. One factor across the
+    whole clip, so the mouths stay in step with each other.</li>
+  </ol>
+</div>
+
+<h3 id="scene">The whole scene</h3>
+
+<p>With a queue loaded, a card appears above the others: <b>The whole scene</b>.
+It is the conversation as one continuous file — every clip in the queue, end to
+end, each line wearing whoever was cast on it.</p>
+
+<p>The zip holds three things: the picture, the joined voice track in the same
+order, and a note listing the lines with who speaks them and when.</p>
+
+<table>
+  <tr><td><b>Scene as animated PNG</b></td><td>A real alpha channel and every colour. One walk through the queue. This is the one to use.</td></tr>
+  <tr><td><b>as GIF</b></td><td>Transparency as one colour, cut to 255 of them. Walks the queue <b>twice</b> and takes about double the time, because a palette has to be counted across the whole scene before any of it can be indexed — a palette taken from the first line alone would band every character who came after.</td></tr>
+</table>
+
+<p><b>The clips are butted end to end</b>, not placed at their original offsets
+in the source file. That is deliberate: a split cuts on the <i>middle</i> of a
+pause, so half of each pause ends one line and half begins the next, and butting
+them together reproduces the original timing exactly. Laying them at source
+offsets would faithfully reinstate the stretches you had just dropped.</p>
+
+<p><b>The frame is taken from the first line.</b> Every placement in the app is
+a fraction of the frame and a puppet keeps its own shape, so a line whose
+character is a different shape sits in the middle of that frame rather than
+being stretched to fit. If you want a particular size for the whole scene, set a
+<a href="#canvas">canvas</a> before exporting.</p>
+
+<p>The scene puts the open clip back where it was found when it finishes, so an
+export never quietly moves which line you were working on.</p>
+
+<hr>
+
+<h3 id="batch">Batch export</h3>
+
+<p>With more than one clip loaded, the first thing on the Export tab is the
+question the whole tab turns on: <b>All <i>n</i> clips</b>, or <b>Just this
+clip</b>. It sets every format card below it in one press.</p>
+
+<p>Every card then carries the same two-way switch of its own, so one format
+can disagree with the rest — when it does, the switch at the top says <i>set
+per format below</i> rather than claiming an answer it no longer has.</p>
+
+<figure>
+  <img src="images/16b-scope-toggle.png" alt="An export card with the Batch Export and Current Selection Export toggle marked">
+  <figcaption>The scope switch, in the card, above the button it governs.</figcaption>
+</figure>
+
+<ol class="keys">
+  <li><b>Batch Export</b> — runs this format across every clip in the queue,
+      analysing any that have not been yet, and using each clip's own edits,
+      placement and mouth.</li>
+  <li><b>Current Selection Export</b> — does the open clip only.</li>
+  <li><b>The button</b> — says which it is about to do, and how many.</li>
+  <li><b>Card note</b> — anything that differs between the two, spelled out.</li>
+</ol>
+
+<p>Each card decides for itself, so you can batch the GIFs while pulling a single
+Final Cut project for the clip in front of you.</p>
+
+<figure>
+  <img src="images/16-export-batch.png" alt="The batch status strip at the top of the export tab">
+  <figcaption>The strip at the top of the tab, while a queue is loaded.</figcaption>
+</figure>
+
+<ol class="keys">
+  <li><b>Count</b> — how many clips a batch will cover.</li>
+  <li><b>All <i>n</i> clips</b> — every card runs the whole queue.</li>
+  <li><b>Just this clip</b> — every card runs the open clip only.</li>
+  <li><b>What a batch does</b> — including which clip “current selection” means
+      right now.</li>
+  <li><b>Status</b> — progress during a run, and a <b>Stop</b> button beside it.</li>
+</ol>
+
+<h4>What a batch hands you</h4>
+
+<p><b>One download</b>, a zip with everything in it side by side — no folder
+per clip. Each file is named for the clip it came from, so a format that makes
+a whole set apiece (a frame sequence is hundreds of PNGs) still sorts into runs
+by name. Not one download per clip: a browser will only let a page start one
+download from a click, and the rest get dropped or blocked, which looks exactly
+like "only the first clip exported".</p>
+
+<p><b>Final Cut is the exception</b>, because its batch output is naturally a
+single document: you get one project holding every clip on one timeline in load
+order, each as its own compound clip — not a project apiece. For one clip's own
+project, switch that card to <b>Current Selection Export</b>.</p>
+
+<p><b>Video with mouth overlay is the whole stage.</b> It burns in everything
+the stage shows — the other layers, the balloons, the line boil, the drop
+shadows — because it composes each frame through the same compositor the
+preview uses. <b>Include the other layers</b> drops everything but the plate
+and the mouth; <b>Include the effects</b> drops the boil and the shadows.</p>
+
+<p><b>And it takes the batch switch too.</b> It used to be the one
+card that ignored it and quietly did the open clip — press Export with <b>All 4
+clips</b> chosen and one file comes back, which reads as an export that only did
+the last one. It batches like the rest now. It does render roughly as long as
+the clips run, and the card says how long that will be, so a batch of it is a
+job to leave running rather than one to wait on.</p>
+
+<p><b>Every clip in the queue goes in.</b> A clip is skipped only if it could
+not be read at all. Length is not a reason — a clip over a minute is marked
+<i>long</i> in the queue and named on the batch card before the run, so what
+you get is a slower run rather than a shorter zip.</p>
+
+<p>Stopping mid-run still gives you a zip of whatever finished.</p>
+
+<hr>
+
+<h2 id="puppet">Putting the lips on a puppet</h2>
+
+<p>This app makes the mouth. Joining it to the puppet is the next program's job,
+and every one of them does it differently.</p>
+
+<p>Wherever you do it, two things have to be true: the mouth sits on its own
+layer <b>above</b> the puppet, and something keeps the two together when the
+puppet moves. Which export to take is mostly a question of which of those the
+tool can manage.</p>
+
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Working in</th><th>Take</th><th>Because</th></tr></thead>
+  <tbody>
+    <tr><td>ToonSquid</td><td><b>Transparent GIF</b>, or <b>PNG frame sequence</b></td>
+        <td>It animates a GIF, and imports a run of PNGs as consecutive drawings</td></tr>
+    <tr><td>Procreate Dreams</td><td><b>Transparent GIF</b></td>
+        <td>An animated GIF arrives as a Flipbook</td></tr>
+    <tr><td>iMovie, and most Windows editors</td>
+        <td><b>Transparent GIF</b>, or <b>Chroma-key MP4</b></td>
+        <td>Picture in Picture, or the green-screen mode</td></tr>
+    <tr><td>Anything that reads an <b>Animated PNG</b></td>
+        <td><b>Animated PNG</b></td>
+        <td>One file, real alpha, no hard edge — try it before settling for the GIF</td></tr>
+    <tr><td>Final Cut Pro</td><td><b>Final Cut Pro project</b>, or an <b>Animated PNG</b></td>
+        <td>The project builds the timeline for you; the APNG is one file to drag in</td></tr>
+    <tr><td>After Effects, Blender, Spine, a game engine</td>
+        <td><b>Chart&nbsp;+&nbsp;exposure sheet</b> or <b>PNG frame sequence</b></td>
+        <td>Timing as data, or one PNG per frame</td></tr>
+    <tr><td>Nothing — you just want a finished clip</td>
+        <td><b>Video with mouth overlay</b></td><td>Done here, in one step</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Take the voice track with it unless the audio is already in your project —
+every card has its own <b>Include the voice track</b>.</p>
+
+<div class="note">
+  <span class="boxlabel">The Final Cut project takes the voice with it properly</span>
+  <p>On every other card, <b>Include the voice track</b> puts an audio file in
+  the zip for you to drag in yourself. On the <b>Final Cut Pro project</b> it
+  goes into the project as well: an asset in the document and a clip connected
+  below the mouths at 00:00, so the timeline opens with picture and sound already
+  together. Keep the audio file in the folder with the <code>.fcpxml</code> and
+  the PNGs — the project points at it by name, the same way it points at the
+  pictures.</p>
+  <p>A batch run does the same for every clip, each one's voice under its own
+  mouths at its own place on the timeline.</p>
+</div>
+
+<div class="note">
+  <span class="boxlabel">Why there is no alpha movie</span>
+  <p>An HEVC <code>.mov</code> with an alpha channel is the file an iPad
+  animation app would most like to be handed, and this page cannot make one.
+  Chromium answers "Alpha encoding is not currently supported" to every codec it
+  has, and Apple's HEVC-with-alpha is built by Apple's own tools. The
+  <b>Animated PNG</b> is the nearest a browser can get on its own: one file,
+  eight bits of alpha, no codec involved. For a real alpha movie, take the
+  <b>PNG frame sequence</b> and convert it outside.</p>
+</div>
+
+<div class="note">
+  <span class="boxlabel">Final Cut Pro imports and plays animated PNGs</span>
+  <p>Worth knowing, because it is not documented anywhere obvious and most
+  people assume a <code>.png</code> is a still. Drag one into an event and it
+  arrives as a clip that animates, alpha and all — no conversion, no image
+  sequence, one file. That makes it a real alternative to the <b>Final Cut Pro
+  project</b> export when all you want is the mouths as a single item to drop
+  over your own footage: the project is better when you want the run broken into
+  clips you can re-time or correct, and the APNG is better when you do not.</p>
+  <p>Other editors may well do the same. If yours opens a <code>.png</code>
+  without complaint and it moves, you have found a shortcut.</p>
+</div>
+
+<h3 id="ipad">ToonSquid and Procreate Dreams (iPad)</h3>
+
+<p>Import the mouths and the voice track, drag them into the timeline above your
+puppet, and resize and position them there.</p>
+
+<p>Both can keep the mouth attached to the body so the two travel together, which
+is worth setting up before you animate anything:</p>
+
+<ul>
+  <li><b>ToonSquid</b> calls it the <b>transform hierarchy</b> — the button in
+      the timeline's bottom toolbar. Drag the mouth layer onto the body layer to
+      make it a child, and scaling, rotating or moving the body does the same to
+      the mouth. Layers inside a group are already in an implicit hierarchy with
+      the group as their parent.</li>
+  <li><b>Procreate Dreams</b> groups instead: select the tracks in Timeline Edit,
+      tap and hold, then <b>Group</b>. Movement, effects and filters applied to
+      the group reach everything in it.</li>
+</ul>
+
+<p>Either app will take the <b>Transparent GIF</b>, which is the quickest route:
+Dreams reads an animated GIF as a Flipbook, and ToonSquid animates one too.</p>
+
+<p>ToonSquid has a second route worth knowing about. Its <b>Image Sequence</b>
+import takes a selected run of images, in filename order, and lays them out as
+consecutive drawings on one animation layer — one mouth per drawing, the way you
+would have drawn them yourself. Take the <b>PNG frame sequence</b> for that. It is
+more files to shepherd, but the mouths arrive as real drawings you can paint on
+rather than as a video clip, and the transparency is a full eight bits instead of
+the GIF's on-or-off.</p>
+
+<h3 id="imovie">iMovie, on Mac or iPad</h3>
+
+<p>Stack the audio first, then the puppet, then the mouths on top. Select the
+mouth clip, open the <b>Video Overlay Settings</b> button — the overlapping
+squares — and change the menu from <b>Cutaway</b> to <b>Picture in Picture</b>.
+That gives you the resize and position handles.</p>
+
+<figure>
+  <img src="images/18-imovie-pip.png" alt="iMovie's video overlay settings, with the overlay button and the Picture in Picture menu arrowed">
+  <figcaption>iMovie on the Mac: the overlay button, then Picture in Picture.</figcaption>
+</figure>
+
+<p>iMovie has no keyframing, so this suits a puppet that stays put. If the mouth
+clip covers the face with a black rectangle, its transparency is not surviving the
+import: switch the same menu to <b>Green/Blue Screen</b> and bring in the
+<b>Chroma-key MP4</b> instead. Most Windows video editors have an equivalent pair
+of features under different names.</p>
+
+<h3 id="fcp">Final Cut Pro</h3>
+
+<p>Take the <b>Final Cut Pro project</b> export and <b>File &gt; Import &gt;
+XML</b> it. You get a whole timeline built for you — one compound clip per clip —
+which you drag over your puppet footage.</p>
+
+<p>Then use Final Cut's own tracker: mask the face, track the movement, and attach
+the mouths to it. That makes this the most flexible route by a good distance,
+because the mouth can follow a puppet that moves. It is also the one that needs
+software not everybody has.</p>
+
+<p>Leave <b>Wrap … in a Compound Clip</b> ticked. Without it the mouths arrive as
+dozens of loose one-frame pieces, and gathering them up is the first thing you
+would do anyway.</p>
+
+<h3 id="inapp">Straight from here, with nothing else</h3>
+
+<p>If you shot your puppet on video, you can finish in this page.</p>
+
+<p>Load the video, pick a mouth style, then drag the mouth onto the face, size it
+from the corner and tilt it with the knob. Turn on <b>Blur patch</b> to hide the
+mouth printed on a doll or a minifigure, and export <b>Video with mouth
+overlay</b>. The placement controls and that export only appear once a video is
+loaded, because until then there is no picture to place anything on.</p>
+
+<figure>
+  <img src="images/19-overlay-in-app.png" alt="The app with a doll's video loaded, the tilt knob and the blur patch checkbox arrowed">
+  <figcaption>Placing the mouth on a doll: the knob tilts it, the blur patch hides the mouth underneath.</figcaption>
+</figure>
+
+<div class="warn">
+  <span class="boxlabel">Lock the shot off</span>
+  <p>The mouth has one placement for the whole clip, so a puppet that wanders
+  leaves it behind. Shoot on a tripod, hold the angle, and this export is
+  solid. When the puppet really has to move, export the overlay video and track
+  the mouth in an editor — that is a job Final Cut's tracker does properly.</p>
+</div>
+
+<h3 id="turned">Puppets that are not facing you</h3>
+
+<p>The twenty-one styles each come in three head angles — <b>Front</b>,
+<b>Three-quarter</b> and <b>Profile</b> — so a puppet can be turned away or side
+on and still get a mouth that belongs to it. They are the sub-tabs under
+<b>Built-in lips</b>; see <a href="#angles">Head angles</a>.</p>
+
+<hr>
+
+<h2 id="keys">Keyboard shortcuts</h2>
+
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Key</th><th>Does</th><th>Where</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Space</kbd></td><td>Play / pause</td><td>anywhere*</td></tr>
+    <tr><td><kbd>Home</kbd></td><td>Jump to the start</td><td>anywhere*</td></tr>
+    <tr><td><kbd>End</kbd></td><td>Jump to the end</td><td>anywhere*</td></tr>
+    <tr><td><kbd>B</kbd></td><td>Cut the clip in two at the playhead</td><td>anywhere* except the sheet</td></tr>
+  <tr><td><kbd>M</kbd></td><td>Drop a marker at the playhead</td><td>anywhere*</td></tr>
+  <tr><td><kbd>X</kbd> <kbd>A</kbd>–<kbd>H</kbd></td><td>Set the selected frames to that shape</td><td>exposure sheet</td></tr>
+    <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Move the selection a frame</td><td>exposure sheet</td></tr>
+    <tr><td><kbd>Shift</kbd> + <kbd>←</kbd> <kbd>→</kbd></td><td>Extend the selection</td><td>exposure sheet</td></tr>
+    <tr><td><kbd>Delete</kbd></td><td>Clear the selection back to rest</td><td>exposure sheet</td></tr>
+    <tr><td><kbd>Esc</kbd></td><td>Collapse the selection to one frame</td><td>exposure sheet</td></tr>
+    <tr><td><kbd>⌘A</kbd> / <kbd>Ctrl A</kbd></td><td>Select every frame</td><td>exposure sheet</td></tr>
+    <tr><td><kbd>⌘Z</kbd> / <kbd>Ctrl Z</kbd></td><td>Undo</td><td>sheet, stage <b>or</b> timeline — whichever you touched last</td></tr>
+    <tr><td><kbd>⇧⌘Z</kbd> / <kbd>Ctrl ⇧ Z</kbd></td><td>Redo</td><td>the same</td></tr>
+    <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Move between tabs</td><td>tab strip</td></tr>
+    <tr><td><kbd>Shift</kbd> while turning</td><td>Snap the angle to 15°</td><td>stage</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p style="font-size:14px; color:var(--ink-2)">* Not while a field, menu or button
+has focus — there, the key belongs to that control. Click an empty part of the
+page first and the transport keys come back. <kbd>B</kbd> is the one key that
+means two things: inside the exposure sheet it is the mouth shape B, because
+that is what a letter means in a sheet, and everywhere else it is the
+blade.</p>
+
+<hr>
+
+<h2 id="limits">Limits</h2>
+
+<div class="tablewrap">
+<table>
+  <tbody>
+    <tr><td><b>Clips in the queue</b></td><td>24</td></tr>
+    <tr><td><b>Size of one batch download</b></td><td>600 MB</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>These are stated up front rather than discovered.</p>
+
+<p><b>The queue holds 24 clips</b>, and a split cannot push it past that. Ask
+for more pieces than there is room for — "find the pauses" on a long
+conversation can easily find thirty — and it cuts at as many points as will
+fit, says so, and leaves the rest in the last piece for you to split again.
+Nothing is thrown away; it is just not cut any finer in one go.</p>
+
+<p><b>Length is not a limit.</b> A clip over a minute is marked in the queue
+with an amber dot reading <i>long — slower in a batch, but it does export</i>,
+and the batch card names it before you start, because a long line makes a long
+run. It used to be a red dot and a refusal: the clip was marked "too long", and
+a batch skips anything marked — so choosing <b>All 4 clips</b> and pressing
+Export gave back three, with the reason in a status line after the fact. The
+thing that actually protects a run is the 600 MB below, measured as the zip is
+built.</p>
+
+<p>A batch that would come to more than 600 MB stops and says so, rather than
+handing the browser a file it cannot save. Frame sequences are the only export
+that gets anywhere near this; everything else is orders of magnitude under.</p>
+
+<hr>
+
+<h2 id="trouble">Troubleshooting</h2>
+
+<h4>The mouth chatters through silence</h4>
+<p>Raise the <b>silence gate</b>. A hissy or roomy recording sits further above
+the noise floor than the analyser assumes.</p>
+
+<h4>It flickers between shapes during speech</h4>
+<p>Raise the <b>minimum hold</b> to 3 frames. Anything shorter gets absorbed.</p>
+
+<h4>The vowels are wrong</h4>
+<p><b>Vocal tract size</b>. Lower it for a deep voice, raise it for a light one,
+until “ee” and “oo” land on the shapes you expect.</p>
+
+<h4>The batch only exported one clip</h4>
+<p>You are on an older build. A batch is one download now; if yours produces one
+zip per clip, the browser is blocking the rest.</p>
+
+<h4>In Final Cut, the GIF or the animated PNG is longer than the audio</h4>
+<p>Final Cut does not always hold the length of an animated GIF or PNG when it
+imports one, and the further it drifts the longer the take. It is the import, not
+the file: the same files line up exactly in ToonSquid and in a browser. Any of
+these fixes it:</p>
+<ul>
+<li>Take the <b>Final Cut Pro project</b> instead. It is built for Final Cut, it
+is frame-accurate by construction, and it arrives as clips you can already
+edit.</li>
+<li>Split the take into shorter clips — see
+<a href="#trim">Markers, splits and drops</a>. A drift you cannot see over ten seconds
+is obvious over two minutes.</li>
+<li>Keep the clip and retime it: select it, <b>Modify &gt; Retime &gt;
+Custom</b>, and set the duration to the audio's. The mouths stay in step because
+the whole clip is stretched by one factor.</li>
+</ul>
+
+<h4>Final Cut says the clips are missing</h4>
+<p><b>File&nbsp;&gt;&nbsp;Relink Files</b>, point it at the mouths folder, and
+they all reconnect at once. Keeping the <code>.fcpxml</code> and its picture
+folders together avoids it entirely.</p>
+
+<h4>The chroma-key edge is soft</h4>
+<p>Video chroma is half-resolution — that is the format, not the export. For a
+clean matte use the <b>frame sequence</b> or the <b>Final Cut project</b>, both
+of which carry real alpha.</p>
+
+<h4>The GIF's edges are hard and the colours are flat</h4>
+<p>GIF transparency is one colour, not an alpha channel, and the palette is 255
+colours. For a soft edge over video, use the frame sequence.</p>
+
+<h4>My custom lips folder is not being found</h4>
+<p>The folder scan needs the page to be served over HTTP. Opened straight from
+disk, browsers block it. Use <b>Use my own lips…</b> instead, which works
+everywhere.</p>
+
+<h4>A video loads but shows no picture</h4>
+<p>The browser cannot decode that codec. The audio still analyses, and you can
+still export everything except the overlay video. Re-wrapping the clip as H.264
+fixes it.</p>
+
+<h4>The page went unresponsive</h4>
+<p>Decoding a long video blocks the browser for a few seconds. There is a
+spinner that keeps turning through it — if you can see it turning, it has not
+crashed.</p>
+
+<hr>
+
+<h2 id="privacy">Privacy</h2>
+
+<p>Nothing is uploaded. There is no server, no account, no analytics, and
+<b>no network request of any kind</b> — not for your media, not for fonts, not
+for anything. Everything the page needs travels inside it, typefaces included.
+The audio is decoded in the page, analysed in the page, and written back out by
+the page.</p>
+
+<p>Custom lip sets you add with <b>Use my own lips…</b> live in memory for that
+visit only: nothing is written to disk, nothing is stored in the browser, and
+reloading clears them. Sets in a <code>lips/</code> folder beside the file are
+read from where they already are.</p>
+
+<p>You can put the whole thing on a USB stick and use it on a machine with no
+network at all.</p>
+
+<p>The line under the title bar says all of this in one sentence, where someone
+being handed the tool for the first time will see it. The one thing that is not
+quite “no request at all”: served from a web server, the page asks that same
+server for the <code>lips/</code> folder beside it, if you keep one. That is the
+only fetch in the file, it goes nowhere but the host the page came from, and the
+check that keeps this honest — <code>offlinetest.py</code> in the repository —
+runs the page over HTTP and again from <code>file://</code> with the network
+refused, and fails if anything else is requested.</p>
+
+</main>
+</div>
+
+<button class="themebtn" id="themeBtn" type="button">Switch theme</button>
+<script>
+(function () {
+  var root = document.documentElement;
+  var KEY = 'lipsync-manual-theme';
+  try {
+    var saved = localStorage.getItem(KEY);
+    if (saved) root.setAttribute('data-theme', saved);
+  } catch (e) {}
+  document.getElementById('themeBtn').addEventListener('click', function () {
+    var now = root.getAttribute('data-theme');
+    if (!now) {
+      now = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    var next = now === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem(KEY, next); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

@@ -174,6 +174,14 @@ def load(page, asset, fps="12"):
     page.wait_for_timeout(900)
 
 
+def to_sheet(page):
+    """The sheet is not a tab any more — it lives under the stage. Put it on
+       screen the way a reader scrolling the page would."""
+    page.evaluate("() => document.querySelector('.sheetwrap')"
+                  ".scrollIntoView({block: 'start'})")
+    page.wait_for_timeout(300)
+
+
 def tab(page, name):
     page.click("#tabBtn-" + name)
     page.wait_for_timeout(300)
@@ -218,9 +226,9 @@ with sync_playwright() as pw:
     print("the drawn faces")
     face_sheet(page)
 
-    print("analysis")
-    tab(page, "analysis")
-    shot(page, "04-analysis", "#tab-analysis .panel", [
+    print("settings")
+    tab(page, "settings")
+    shot(page, "04-analysis", "#tab-settings .panel:first-of-type", [
         ("#engineSel", "l"),
         ("#fps", "l"),
         ("#gate", "l"),
@@ -232,15 +240,14 @@ with sync_playwright() as pw:
     ])
 
     print("a clip loaded")
-    # #fps lives in the Analysis tab, and the sheet is what opens now, so the
+    # #fps lives in the Settings tab, and the sheet is what opens now, so the
     # control has to be on screen before it can be set.
-    tab(page, "analysis")
+    tab(page, "settings")
     page.select_option("#fps", "12")
     load(page, "speech.wav")
     page.evaluate("seekTo(1.2)")
     page.wait_for_timeout(400)
     shot(page, "05-preview", ".stage-panel", [
-        ("#loaded", "r"),
         (".stage-badge", "r"),
         ("#stageWrap", "l"),
         ("#headBtn", "b"),
@@ -250,9 +257,9 @@ with sync_playwright() as pw:
         ("#loopBtn", "b"),
         ("#frameCount", "t"),
     ])
-    # The sheet is a tab now, not a panel in the deck, so it has to be opened
-    # before it can be photographed — a canvas on a hidden pane has no box.
-    tab(page, "sheet")
+    # The sheet is under the stage; scroll to it so the whole panel is in the
+    # viewport before it is photographed.
+    to_sheet(page)
     shot(page, "06-sheet", ".sheet-panel", [
         ("#overview", "l"),
         ("#xsScroll", "l"),
@@ -263,8 +270,8 @@ with sync_playwright() as pw:
         ("#clearEdits", "t"),
     ])
 
-    print("trim and split")
-    tab(page, "sheet")
+    print("markers and the blade")
+    to_sheet(page)
     page.click("#trimAuto")
     page.wait_for_timeout(500)
     page.evaluate("seekTo(1.6)")
@@ -272,12 +279,12 @@ with sync_playwright() as pw:
     shot(page, "07-trim", ".sheet-panel .panel-body", [
         ("#overview", "l"),
         ("#trimRead", "b"),
+        ("#timeUndo", "b"),
+        ("#trimSplit", "t"),
         ("#trimMark", "t"),
         ("#trimAuto", "t"),
-        ("#trimDrop", "t"),
         ("#trimCommit", "b"),
         ("#trimReset", "b"),
-        ("#trimDelete", "b"),
     ])
 
     print("placement, blur and keys — needs a video, on its own")
@@ -287,18 +294,14 @@ with sync_playwright() as pw:
     page.goto(URL)
     page.wait_for_timeout(1200)
     page.evaluate("() => document.documentElement.setAttribute('data-theme','light')")
-    # #fps lives in the Analysis tab, and the sheet is what opens now, so the
+    # #fps lives in the Settings tab, and the sheet is what opens now, so the
     # control has to be on screen before it can be set.
-    tab(page, "analysis")
+    tab(page, "settings")
     page.select_option("#fps", "12")
     load(page, "codec-vp9.mp4", "12")
     page.wait_for_timeout(600)
     page.evaluate("overlay.x=0.5; overlay.y=0.66; overlay.size=0.30; drawStage(); "
                   "patch.on = true; syncPatchUI();")
-    page.evaluate("() => { overlay.keyed = true; updateMotionUI(); "
-                  "setKeyAt(0, {x:0.42,y:0.62,size:0.28,rot:0}); "
-                  "setKeyAt(Math.round(state.frames.length*0.6), {x:0.58,y:0.66,size:0.3,rot:8}); "
-                  "updateMotionUI(); drawOverview(); }")
     page.wait_for_timeout(600)
 
     print("mouth and motion")
@@ -321,7 +324,7 @@ with sync_playwright() as pw:
 
     shot(page, "10-placement", ".stage-panel", [
         ("#stageStack", "r"),
-        ("#overlaySize", "t"),
+        ("#overlaySizeRange", "t"),
         ("#overlayAngle", "t"),
         ("#overlayReset", "t"),
     ])
@@ -332,18 +335,49 @@ with sync_playwright() as pw:
     plain(page, "22-layerpick", "#overlayTools")
     page.evaluate("setEditLayer('mouth')")
     page.wait_for_timeout(250)
-    shot(page, "11-motion", "#motionPanel", [
+    # The blur lives in the mouth's own settings, in the layer list, so the
+    # picture has to be taken with that editor open.
+    tab(page, "inputs")
+    page.evaluate("""() => {
+      const m = layers.find(L => L.kind === 'mouth');
+      if (m && layerEditorId !== m.id) openLayerEditor(m.id);
+    }""")
+    page.wait_for_timeout(500)
+    shot(page, "11-motion", "#layerEdit", [
         ("#patchOn", "l"),
         ("#patchBlur", "t"),
         ("#patchCover", "t"),
-        ("#keyToggle", "b"),
-        ("#keyPrev", "b"),
-        ("#keyAdd", "b"),
-        ("#keyDel", "b"),
-        ("#keyCount", "b"),
     ])
-    tab(page, "sheet")
+    tab(page, "settings")
     plain(page, "12-script", "#scriptBar")
+
+    print("layers")
+    tab(page, "inputs")
+    page.evaluate("""() => {
+      addTextLayer();
+      const T = layers.find(x => x.kind === 'text');
+      T.text = 'HELLO'; T.pose = { x: 0.5, y: 0.12, size: 0.1, rot: 0 };
+      T.shadow = { on: true, blur: 0.02, dx: 0.004, dy: 0.008, color: '#000000', alpha: 0.6 };
+      addShapeLayer();
+      const S = layers.find(x => x.kind === 'shape');
+      S.shape = 'ellipse'; S.fill = '#F2C14E';
+      S.pose = { x: 0.74, y: 0.3, size: 0.26, rot: -12 };
+      boil.on = true; syncBoilUI();
+      layerEditorId = null; renderLayerPanel(); drawStage();
+    }""")
+    page.wait_for_timeout(500)
+    shot(page, "23-layers", "#tab-inputs .panel:nth-of-type(2)", [
+        ("#canvasPreset", "r"),
+        ("#boilOn", "r"),
+        ("#layerAddImage", "b"),
+        (".lrow:nth-child(1) .lgrip", "l"),
+        (".lrow:nth-child(1) .leye", "t"),
+        (".lrow:nth-child(2) .lbtn.edit", "t"),
+        (".lrow:nth-child(2) .lbtn.danger", "tr"),
+    ])
+    page.evaluate("() => { layers = layers.filter(L => L.kind !== 'text' && L.kind !== 'shape');"
+                  "        boil.on = false; syncBoilUI(); renderLayerPanel(); drawStage(); }")
+    page.wait_for_timeout(300)
 
     print("export, single clip")
     tab(page, "export")
@@ -370,12 +404,12 @@ with sync_playwright() as pw:
     page.goto(URL)
     page.wait_for_timeout(1200)
     page.evaluate("() => document.documentElement.setAttribute('data-theme','light')")
-    # #fps lives in the Analysis tab, and the sheet is what opens now, so the
+    # #fps lives in the Settings tab, and the sheet is what opens now, so the
     # control has to be on screen before it can be set.
-    tab(page, "analysis")
+    tab(page, "settings")
     page.select_option("#fps", "12")
     load(page, "trim-marks.wav")
-    tab(page, "sheet")
+    to_sheet(page)
     page.click("#trimAuto")
     page.wait_for_timeout(400)
     page.click("#trimCommit")
@@ -392,14 +426,18 @@ with sync_playwright() as pw:
     page.wait_for_timeout(300)
     page.click("#styleToEvery2")
     page.wait_for_timeout(500)
+    tab(page, "inputs")
     shot(page, "14-queue", "#queueWrap", [
         ("#queueCount", "r"),
         (".qrow:nth-child(2) .qlips", "r"),
         (".qrow.on", "l"),
         (".qrow:nth-child(1) .qx", "t"),
+        ("#playAllBtn", "b"),
         ("#queueAdd", "b"),
         ("#queueClear", "b"),
     ])
+    # The queue shot left the page on Inputs; the lips scope lives in Mouth.
+    tab(page, "mouth")
     shot(page, "15-lips-per-clip", "#tab-mouth .panel:first-of-type", [
         ("#styleScopeText", "l"),
         ("#styleToAll", "b"),
@@ -410,6 +448,8 @@ with sync_playwright() as pw:
     page.wait_for_timeout(500)
     shot(page, "16-export-batch", "#batchCard", [
         ("#batchCount", "r"),
+        ("#scopeAll", "b"),
+        ("#scopeOne", "b"),
         ("#batchHint", "l"),
         ("#batchStatus", "r"),
     ])

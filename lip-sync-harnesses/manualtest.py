@@ -135,15 +135,22 @@ LABELS = [
     "Reset", "Engine", "Frame rate", "Silence gate", "Vocal tract size",
     "Minimum hold", "Close the mouth into pauses", "Detect",
     "Clear frames", "Reset all edits",
-    "+ Split point", "Find the pauses", "Drop this bit", "Clear points",
-    "Whole file", "Delete",
+    "Split", "+ Marker", "Find the pauses", "Drop this bit", "Clear markers",
+    "Split at markers", "Whole file", "Delete",
     "Add more", "Clear all",
     "Built-in lips", "Custom lips", "Use my own lips",
     "All clips", "Every other clip",
-    "Blur patch", "Keyframes", "Set key", "Delete key",
+    "Blur patch", "Settings",
+    "Include the other layers", "Add a picture", "Add text", "Add a shape",
     "Align to the audio",
     "Include the voice track", "Loop forever", "Compound Clip",
     "Batch Export", "Current Selection Export", "Stop",
+    "Who says this line?", "Deal in turn", "Play all", "Just this clip",
+    "Add a balloon", "Speech balloon", "Thought balloon", "Caption panel", "Tail at", "Reroll", "Back and forth",
+    "Who is talking", "Put the mouth here", "On from", "Off at",
+    "Jitter", "Warp", "Ripple", "Tremble", "Swell", "Drift",
+    "Add a picture…", "Fit everything in the stack", "Delete", "Try it",
+    "The whole scene", "Scene as animated PNG", "Include the joined voice track",
     "Demo", "Restore demo", "Undo trim", "Smiley", "Squiggly",
     "Chart + exposure sheet", "Final Cut Pro project", "Transparent GIF",
     "Sprite sheet + atlas", "Frame sequence", "Chroma-key MP4",
@@ -158,13 +165,52 @@ def sweep(p):
     cannot find.
     """
     out = ""
-    # The exposure sheet is a tab of its own now, and it carries the trim row,
-    # the frame editing buttons and the script — a sweep that skipped it
-    # reported the manual as wrong about eight controls that are perfectly real.
-    for t in ("sheet", "analysis", "mouth", "export"):
+    # The exposure sheet is under the stage now and always on screen; the tabs
+    # are what has to be visited. A control that only exists while one kind of
+    # layer is being edited — a balloon's tail, the shape list — is reached by
+    # opening that editor, or the manual reads as wrong about controls that are
+    # perfectly real.
+    for t in ("inputs", "mouth", "export", "settings"):
         p.click("#tabBtn-" + t)
         p.wait_for_timeout(280)
         out += p.evaluate("() => document.body.innerText")
+        # innerText of a <select> is only its CHOSEN option, so a list of
+        # shapes — every one of them a thing the manual names — would read as
+        # absent. The options are reachable by clicking the select, so they
+        # count as visible text.
+        out += p.evaluate("""() => [...document.querySelectorAll('select')]
+          .filter(s => s.offsetParent !== null)
+          .map(s => [...s.options].map(o => o.textContent).join('\\n')).join('\\n')""")
+        if t == "inputs":
+            # The blur patch lives inside the Mouth row's settings, so it is
+            # only on the page while that editor is open.
+            p.evaluate("""() => {
+              const m = (typeof layers !== 'undefined') &&
+                        layers.find(L => L.kind === 'mouth');
+              if (m && layerEditorId !== m.id) openLayerEditor(m.id);
+            }""")
+            p.wait_for_timeout(350)
+            out += p.evaluate("() => document.body.innerText")
+            opened = p.evaluate("""() => {
+              if (typeof addBalloonLayer !== 'function') return false;
+              addBalloonLayer('speech');
+              const L = layers[layers.length - 1];
+              // addLayer opens the new layer's settings already; calling
+              // openLayerEditor here would TOGGLE them shut again.
+              if (layerEditorId !== L.id) openLayerEditor(L.id);
+              return true;
+            }""")
+            if opened:
+                p.wait_for_timeout(400)
+                out += p.evaluate("() => document.body.innerText")
+                out += p.evaluate("""() => [...document.querySelectorAll('select')]
+                  .filter(s => s.offsetParent !== null)
+                  .map(s => [...s.options].map(o => o.textContent).join('\\n')).join('\\n')""")
+                p.evaluate("""() => {
+                  const L = layers[layers.length - 1];
+                  if (L && L.kind === 'shape') deleteLayer(L.id);
+                }""")
+                p.wait_for_timeout(200)
         if t == "mouth":
             p.click("#styleBtn-mine")
             p.wait_for_timeout(280)
@@ -182,11 +228,12 @@ with sync_playwright() as pw:
     p.wait_for_timeout(1200)
 
     # Several states, because plenty of controls only exist in one of them: the
-    # drop area goes once a queue is up, "Clear points" only exists while split
-    # points are down, and the keyframe row needs a video. Sweeping one state
-    # would report the manual as wrong about controls that are perfectly real.
+    # drop area goes once a queue is up, "Clear markers" only exists while
+    # markers are down, and the blur row needs the mouth's settings open.
+    # Sweeping one state would report the manual as wrong about controls that
+    # are perfectly real.
     text = sweep(p)                                   # empty
-    p.click("#tabBtn-analysis"); p.wait_for_timeout(250)
+    p.click("#tabBtn-settings"); p.wait_for_timeout(250)
     p.select_option("#fps", "12")
     p.set_input_files("#fileInput", str(HERE / "codec-vp9.mp4"))
     p.wait_for_function("state.frames.length > 0", timeout=120000)
@@ -198,14 +245,42 @@ with sync_playwright() as pw:
     p.set_input_files("#puppetInput", str(HERE / "fixtures" / "puppet-padded.png"))
     p.wait_for_timeout(1800)
     text += sweep(p)
-    # The trim row lives in the Exposure sheet tab, and sweep() leaves the page
-    # on whichever tab it looked at last.
-    p.click("#tabBtn-sheet"); p.wait_for_timeout(250)
+    # The trim row is under the stage with the sheet now — always on screen,
+    # whichever tab sweep() left open.
     p.click("#trimAuto"); p.wait_for_timeout(500)
-    text += sweep(p)                                  # with split points down
-    p.click("#tabBtn-sheet"); p.wait_for_timeout(250)
+    text += sweep(p)                                  # with markers down
     p.click("#trimCommit"); p.wait_for_timeout(6000)
     text += sweep(p)                                  # a queue
+    # Two characters with mouths pinned — the one state in which the turns
+    # panel and the mouth-spot controls exist at all.
+    p.click("#tabBtn-inputs"); p.wait_for_timeout(250)
+    p.evaluate("""async () => {
+      for (const kind of ['woman', 'older']) {
+        const f = await faceFile(kind);
+        await addImageLayerFromFile(f);
+        const L = layers.filter(x => x.kind === 'image').pop();
+        L.name = kind;
+        L.pose = {x: kind === 'woman' ? 0.27 : 0.73, y: 0.5, size: 0.4, rot: 0};
+        L.mouthSpot = {x: 0.5, y: 0.55, size: 0.22, rot: 0};
+      }
+      // A third with NO spot, so the first-time label — the one the manual
+      // tells the reader to press — is on screen as well as the pinned pair's
+      // "Move it here".
+      const extra = await faceFile('child');
+      await addImageLayerFromFile(extra);
+      const X = layers.filter(x => x.kind === 'image').pop();
+      X.name = 'child';
+      X.pose = {x: 0.5, y: 0.5, size: 0.3, rot: 0};
+      liftMouthOverFaces();
+      const c = activeClip();
+      if (c) { c.marks = silenceCuts(0.25); seedTurns(c); }
+      layerEditorId = X.id;
+      selectLayer(layerEditorId);
+      bankLayers(); renderLayerPanel(); drawStage();
+    }""")
+    p.wait_for_timeout(1500)
+    text += sweep(p)                                  # a two-hander on one clip
+
     # The Stop button only exists while a run is going.
     p.click("#tabBtn-export"); p.wait_for_timeout(300)
     p.evaluate("() => { batchRunning = true; "
@@ -244,9 +319,6 @@ with sync_playwright() as pw:
     check("End jumps to the tail", at_end > 0.5, str(at_end))
     check("Home jumps to the head", at_start < 0.1, str(at_start))
     # A letter key retimes the selection
-    # The sheet has to be the open tab before anything can be typed at it: a
-    # canvas on a hidden pane cannot take focus, and the key goes nowhere.
-    p.click("#tabBtn-sheet"); p.wait_for_timeout(250)
     p.evaluate("() => { selectFrame(3, true); document.getElementById('xsScroll').focus(); }")
     p.wait_for_timeout(200)
     p.keyboard.press("g")

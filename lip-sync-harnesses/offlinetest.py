@@ -55,13 +55,13 @@ with sync_playwright() as pw:
     p.wait_for_timeout(2500)
     # Give it a real clip, so anything lazy has run. The frame rate is in the
     # Analysis tab, and the sheet is the tab that opens.
-    p.click("#tabBtn-analysis")
+    p.click("#tabBtn-settings")
     p.wait_for_timeout(250)
     p.select_option("#fps", "12")
     p.set_input_files("#fileInput", str(HERE / "speech.wav"))
     p.wait_for_function("state.frames.length > 0", timeout=120000)
     p.wait_for_timeout(1200)
-    for t in ("sheet", "analysis", "mouth", "export"):
+    for t in ("inputs", "mouth", "export", "settings"):
         p.click("#tabBtn-" + t)
         p.wait_for_timeout(300)
 
@@ -110,11 +110,11 @@ with sync_playwright() as pw:
     check("it needed nothing that was refused", not blocked, str(blocked[:5]))
     check("and it came up without throwing", not errs, "; ".join(errs[:2]))
     check("the interface is really there",
-          p2.is_visible("#tabBtn-analysis") and p2.is_visible("#drop"))
+          p2.is_visible("#tabBtn-settings") and p2.is_visible("#drop"))
     got2 = p2.evaluate("() => document.fonts.check('600 16px Archivo')")
     check("with its own fonts, offline", got2)
     # And it still works, not just renders.
-    p2.click("#tabBtn-analysis")
+    p2.click("#tabBtn-settings")
     p2.wait_for_timeout(250)
     p2.select_option("#fps", "12")
     p2.set_input_files("#fileInput", str(HERE / "speech.wav"))

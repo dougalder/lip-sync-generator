@@ -1,0 +1,71 @@
+Lip art for Lip Sync Generator — the spec the built-in styles follow
+===================================================================
+
+THE FILES
+
+  One PNG per shape, nine shapes:   X A B C D E F G H
+  PNG-24 with a real alpha channel. No background, no matte, no white card.
+  1024 x 1024, square.
+  Name each file with an isolated letter: D.png, mouth-D.png and
+  04_D_wide.png all land on D.
+
+  1024 is the size the app will ever ask for: a mouth is drawn at up to
+  1024px across, so anything bigger is weight with nothing to show for it
+  and anything smaller gets upscaled at the extremes. Draw at 2048 if that
+  suits you and downsample once on the way out.
+
+  SVG works too and is better if your tool exports clean paths — it is a
+  fraction of the weight and sharp at any size.
+
+THE FRAME — the part that matters
+
+  The app scales the WHOLE file into the mouth box and centres it. It never
+  trims. So the framing has to be baked into the files.
+
+  1. ALL NINE SHARE ONE FRAME. Draw them on one canvas, in register, and
+     export each shape on that same canvas. Do not trim each shape to its own
+     bounds: a closed mouth trimmed tight would balloon to the width of a
+     wide-open one, and the mouth would pulse as it plays.
+
+  2. THE SET IS CENTRED, NOT EACH SHAPE. Put the nine together — the union of
+     all the ink — in the middle of the tile. An individual shape sits wherever
+     it sits inside that.
+
+  3. SIZE ON THE TILE. Measured across the twenty-one built-in styles, the
+     nine together span:
+
+         width   0.45 to 0.65 of the tile   (median 0.51)   = about 520px
+         height  0.31 to 0.49 of the tile   (median 0.42)   = about 430px
+         centre  0.500, 0.501               dead centre
+
+     Aim at 520 x 430 centred in the 1024 tile and the set will sit at the
+     same scale as Cartoon and Line art — switch styles mid-clip and the
+     mouth will not jump.
+
+  4. WHAT SETS THOSE NUMBERS. C (open) is the widest shape in most styles and
+     D (wide open) is the tallest in every one of them. Draw those two first:
+     they fix the frame, and the other seven are placed inside it.
+
+THE NINE
+
+  X  rest, closed, neutral          E  rounded — "oh"
+  A  M B P — lips pressed together  F  puckered — "oo", "w"
+  B  consonants, barely open        G  teeth on lip — "f", "v"
+  C  open — "eh"                    H  tongue — "l", "th"
+  D  wide open — "ah"
+
+  The set is never allowed to draw a blank frame: a missing shape falls back
+  to A, then X. The chip shows a badge like 7/9 so a half-finished set is
+  visible at a glance.
+
+WHERE THEY GO
+
+  As your own set:   a folder inside lips/ beside the served HTML, or the
+                     folder picker under Custom lips in the Mouth tab.
+  In the standard set: the built-ins are drawn in code, so pictures would be
+                     embedded in the HTML itself. Send the nine and that is a
+                     half-hour job.
+
+  lip-tile-template.png in this folder is a 1024 tile with the target box
+  marked. Put it under your drawing as a guide layer and delete it before
+  exporting.

@@ -1,0 +1,2188 @@
+
+<style>
+/* ============================================================
+   Lip Sync Generator — tokens
+   Light = the lit animation desk. Dark = the studio at night.
+   Accent is non-photo blue, the pencil that doesn't photograph.
+   ============================================================ */
+:root{
+  color-scheme:light dark;
+  --bg:#EDF1F5; --bg-grain:#E4EAF0;
+  --surface:#FFFFFF; --surface-2:#E7EDF3; --surface-3:#DCE4EC;
+  --line:#C6D1DC; --line-soft:#DBE3EB;
+  --ink:#151A21; --ink-2:#5C6675; --ink-3:#8794A3;
+  --accent:#0F7EA8; --accent-ink:#FFFFFF; --accent-soft:#CDEAF6; --accent-line:#7FC7E2;
+  --signal:#C93F27;
+  --good:#217A57;
+  --shadow:0 1px 2px rgba(20,30,45,.06), 0 8px 24px -12px rgba(20,30,45,.18);
+  --checker-a:#FFFFFF; --checker-b:#E2E9F0;
+  --surround:#C7D0DA; --frame-line:rgba(22,28,36,.34);
+  --raised:#FFFFFF;        /* a control that sits on top of --surface-2 */
+}
+/* Three states, in the order the cascade needs them: the OS preference first,
+   then an explicit choice, which must win in both directions. */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#13161B; --bg-grain:#171B21;
+    --surface:#1B1F26; --surface-2:#22272F; --surface-3:#2B313A;
+    --line:#333A45; --line-soft:#272C34;
+    --ink:#E8ECF2; --ink-2:#98A2B1; --ink-3:#6E7887;
+    --accent:#6FC3DF; --accent-ink:#0B1B22; --accent-soft:#1C3E4C; --accent-line:#3D7B92;
+    --signal:#F2664C;
+    --good:#5CC194;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+    --checker-a:#FFFFFF; --checker-b:#DDE3E9;
+    --surround:#0E1116; --frame-line:rgba(255,255,255,.26);
+    --raised:#39414D;
+  }
+}
+:root[data-theme="light"]{ color-scheme:light }
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#13161B; --bg-grain:#171B21;
+  --surface:#1B1F26; --surface-2:#22272F; --surface-3:#2B313A;
+  --line:#333A45; --line-soft:#272C34;
+  --ink:#E8ECF2; --ink-2:#98A2B1; --ink-3:#6E7887;
+  --accent:#6FC3DF; --accent-ink:#0B1B22; --accent-soft:#1C3E4C; --accent-line:#3D7B92;
+  --signal:#F2664C;
+  --good:#5CC194;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+  --checker-a:#FFFFFF; --checker-b:#DDE3E9;
+  --surround:#0E1116; --frame-line:rgba(255,255,255,.26);
+  --raised:#39414D;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Archivo','Helvetica Neue',Helvetica,Arial,sans-serif;
+  font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{margin:0; text-wrap:balance; font-weight:800; letter-spacing:-.02em}
+p{margin:0}
+button,input,select,label{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:3px}
+
+.mono{font-family:'DM Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace; font-variant-numeric:tabular-nums}
+
+/* ---------- top bar ---------- */
+.topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
+  padding:14px 22px; border-bottom:1px solid var(--line);
+  background:var(--surface); position:sticky; top:0; z-index:20;
+}
+.brand{display:flex; align-items:center; gap:12px}
+.brand h1{font-size:19px; line-height:1.1}
+.brand .tag{font-size:12px; color:var(--ink-2); letter-spacing:.01em}
+.brand .ver{font-size:10.5px; color:var(--ink-3); letter-spacing:.06em; margin-top:2px}
+.mark{width:34px; height:34px; flex:none; border-radius:8px; background:var(--accent-soft); display:grid; place-items:center; border:1px solid var(--accent-line)}
+.mark svg{display:block}
+.topbar-right{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.chip{
+  display:inline-flex; align-items:center; gap:7px;
+  padding:5px 11px; border:1px solid var(--line); border-radius:999px;
+  background:var(--surface-2); font-size:11.5px; color:var(--ink-2);
+  letter-spacing:.06em; text-transform:uppercase;
+}
+.chip .dot{width:6px; height:6px; border-radius:50%; background:var(--good)}
+.chip.warn .dot{background:var(--signal)}
+.chip.busy .dot{background:var(--accent); animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ---------- privacy strip ----------
+   Under the header rather than in it: it is a statement about the whole app,
+   and the first thing anyone handed an audio file of a person's voice wants to
+   know. Worded to what the code actually does — the one request it can make is
+   reading a lips/ folder on the same server, and only if you have one. */
+.privacy{
+  display:flex; align-items:center; gap:9px;
+  padding:9px var(--gut); border-bottom:1px solid var(--line);
+  background:var(--surface-2); color:var(--ink-2);
+  font-size:11.5px; line-height:1.45;
+}
+.privacy svg{flex:none; display:block; color:var(--good)}
+.privacy b{color:var(--ink); font-weight:600}
+
+/* ---------- theme toggle ---------- */
+.theme-toggle{
+  display:grid; place-items:center; flex:none; width:32px; height:30px;
+  padding:0; border:1px solid var(--line); border-radius:999px;
+  background:var(--surface-2); color:var(--ink-3); cursor:pointer;
+  transition:background .12s ease, color .12s ease, border-color .12s ease;
+}
+.theme-toggle:hover{background:var(--raised); color:var(--ink); border-color:var(--ink-3)}
+.theme-toggle svg{display:block; pointer-events:none}
+body.busy .workspace, body.busy .deck{cursor:progress}
+
+/* ---------- layout ----------
+
+   The preview and the exposure sheet stay on screen together: you judge the
+   mouth against the picture while you drag the timing, and a tab that hid
+   either one would break that. Everything else lives in tabs below.
+
+   Nothing stretches past --shell. An exposure sheet ruled across 2500px of
+   monitor is a wall of parallel lines and nothing is easier to read for it. */
+:root{ --shell:1480px; --gut:22px; --rail:364px }
+
+/* Two columns for the whole application, two thirds to one.
+
+   The left column is the work: the stage, and directly under it the exposure
+   sheet for what is on the stage. Those two are the thing you are actually
+   doing — you judge the mouth against the picture while you drag the timing —
+   so they get the room, and neither is ever a tab that can be shut over the
+   other. The right column is everything you SET: what is loaded, the
+   analysis, the mouth, the layers, the exports.
+
+   It used to be a 364px rail on the left and the sheet in a tab on the right,
+   which put the picture and the timing of that picture in different columns
+   and made the picture small in the bargain. */
+.shellgrid{
+  max-width:var(--shell); margin-inline:auto;
+  display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr);
+  gap:18px; padding:16px var(--gut) 26px; align-items:start;
+}
+.maincol{min-width:0}
+/* The rail. The preview first, then the blur and keyframe controls, which
+   belong against the picture rather than in a tab that can be shut. */
+.deck{display:flex; flex-direction:column; gap:16px; min-width:0}
+.deck > .panel{display:flex; flex-direction:column; min-width:0}
+/* Under about 1200px there is no room for a rail and a working area side by
+   side, so the rail goes back to being a band across the top. */
+@media (max-width:1180px){
+  .shellgrid{grid-template-columns:minmax(0,1fr); gap:0; padding-bottom:0}
+  .maincol{padding-top:4px}
+  .deck{gap:14px; margin-bottom:14px}
+  /* Across the top, the preview would otherwise stretch the full window and
+     stand a 340px mouth in the middle of an acre of checkerboard. The motion
+     controls underneath are left to take the width — they want it. */
+  .deck > .stage-panel{max-width:620px; margin-inline:auto; width:100%}
+}
+@media (max-width:820px){:root{--gut:14px}}
+
+/* Blur and keyframes are aimed at the preview — you want the picture in view
+   while you drag a slider or set a key — so they stay in the deck rather than
+   going into a tab that could be shut. */
+/* The sheet, under the stage and as wide as it. The script sits under the
+   sheet because the words are drawn under the sheet and belong to it rather
+   than to the page. */
+.sheetwrap{display:flex; flex-direction:column; gap:16px; min-width:0}
+.sheetwrap > .panel{min-width:0}
+/* Tall enough to show the strip, the legend and the tools without the panel
+   collapsing round them; it grows from there as the sheet or script needs. */
+.sheetwrap > .sheet-panel{min-height:240px}
+/* The right-hand column is now the paperwork, so the intake sits in a panel of
+   its own rather than wrapped round the bottom of the picture. */
+.inputspane{display:flex; flex-direction:column; gap:16px}
+.inputspane > .panel, .inputspane > .motionbar{min-width:0}
+.inputspane .intake{border-bottom:0}
+
+.motionbar{min-width:0}
+.motionbar > .panel{overflow:visible}
+/* Wide enough, and the two rows sit side by side rather than stacking into a
+   tall band that pushes the tabs off the screen. */
+@media (min-width:1000px) and (max-width:1180px){
+  .motionbar .panel-body{display:grid; grid-template-columns:1fr 1fr}
+  .motionbar .ov-row.flat + .ov-row.flat{border-top:0; border-left:1px solid var(--line-soft)}
+  .motionbar .ov-row.flat{align-content:flex-start}
+}
+
+/* The script is read against the sheet — the words are drawn under it — so it
+   belongs beside it, not in a tab. It only appears once there is audio for the
+   words to line up with. */
+.scriptbar .panel-body{gap:10px}
+.scriptbar textarea{min-height:64px}
+@media (min-width:1000px){
+  .scriptbar .panel-body{
+    display:grid; grid-template-columns:minmax(0,1fr) 250px; gap:10px 14px;
+    align-items:start;
+  }
+  .scriptbar textarea{grid-column:1; grid-row:1 / span 2}
+  .scriptbar #scriptAlign{grid-column:2; grid-row:1}
+  .scriptbar #scriptStatus{grid-column:2; grid-row:2}
+}
+
+/* The analysis panel is on its own now, so it reads down two columns instead
+   of one very long one. */
+#tab-analysis .panel-body{
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px 26px; align-items:start;
+}
+@media (max-width:760px){
+  #tab-analysis .panel-body{grid-template-columns:minmax(0,1fr)}
+}
+
+/* ---------- tabs ----------
+   These carry the whole lower half of the page, so they are drawn as real
+   tabs: a rule the strip sits on, an unselected tab that is plainly a button
+   rather than a label, and an accent cap on the one you are in. In daylight a
+   white-on-near-white tab reads as nothing at all, which is what this fixes. */
+.tabs{
+  display:flex; gap:5px; padding:0; flex-wrap:wrap;
+  border-bottom:2px solid var(--line); align-items:flex-end;
+}
+/* Stacked, the strip needs the gutter and some air above it that it does not
+   need when it is the top of its own column. */
+@media (max-width:1180px){.tabs{padding:16px var(--gut) 0}}
+.tab{
+  appearance:none; border:1px solid var(--line); border-bottom:0;
+  background:var(--surface-2); color:var(--ink-2); cursor:pointer;
+  /* Five tabs over a third of the shell. Padding in `ch` rather than pixels so
+     the strip stays one row as the column narrows instead of dropping Export
+     onto a line of its own, which read as a second, lesser strip. */
+  padding:9px clamp(7px, 1.1vw, 20px); border-radius:9px 9px 0 0;
+  font-size:clamp(12px, 0.95vw, 13.5px); font-weight:500;
+  margin-bottom:-2px; letter-spacing:.01em; white-space:nowrap;
+  transition:background .12s ease, color .12s ease, box-shadow .12s ease;
+}
+.tab:hover{color:var(--ink); background:var(--surface-3)}
+/* The gear is pushed to the far end of the strip, away from the three tabs the
+   work runs through. flex:1 on the gap rather than margin-left:auto so the
+   wrapped layout on a narrow column puts it on the same row as the rest. */
+.tabgap{flex:1 1 12px; min-width:12px}
+.tab.gear{display:inline-flex; align-items:center; gap:6px}
+.tab.gear svg{opacity:.8}
+.tab.gear[aria-selected="true"] svg{opacity:1}
+.tab[aria-selected="true"]{
+  background:var(--surface); border-color:var(--line); color:var(--ink);
+  font-weight:600;
+  /* the accent cap on top, and a lid over the rule below */
+  box-shadow:inset 0 3px 0 var(--accent), 0 2px 0 var(--surface);
+}
+.workspace{padding:16px 0 0}
+@media (max-width:1180px){.workspace{padding:16px var(--gut) 26px}}
+.tabcols{
+  display:grid; grid-template-columns:340px minmax(0,1fr);
+  gap:16px; align-items:start;
+}
+.tabcols.one{grid-template-columns:minmax(0,560px)}
+/* The export pane takes the full width, because its cards want it. */
+.tabcols.wide{grid-template-columns:minmax(0,1fr)}
+.tabcols > .panel{min-width:0}
+@media (max-width:900px){.tabcols, .tabcols.one{grid-template-columns:minmax(0,1fr)}}
+
+.panel{
+  background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  box-shadow:var(--shadow); overflow:hidden;
+}
+.panel > header{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:11px 14px; border-bottom:1px solid var(--line-soft); background:var(--surface-2);
+}
+.panel > header h2{
+  font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-2);
+  font-family:'DM Mono',ui-monospace,monospace;
+}
+.panel-body{padding:14px; display:flex; flex-direction:column; gap:13px}
+
+/* ---------- controls ---------- */
+.field{display:flex; flex-direction:column; gap:6px}
+.field > .lbl{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+.lbl span:first-child{font-size:12.5px; color:var(--ink)}
+.lbl .val{font-size:12px; color:var(--accent); font-family:'DM Mono',ui-monospace,monospace}
+.hint{font-size:11.5px; color:var(--ink-3); line-height:1.45}
+
+input[type=range]{
+  -webkit-appearance:none; appearance:none; width:100%; height:20px; background:transparent; margin:0; cursor:pointer;
+}
+input[type=range]::-webkit-slider-runnable-track{height:4px; border-radius:2px; background:var(--surface-3)}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:15px; height:15px; border-radius:50%;
+  background:var(--accent); border:2px solid var(--surface); margin-top:-5.5px;
+  box-shadow:0 0 0 1px var(--accent);
+}
+input[type=range]::-moz-range-track{height:4px; border-radius:2px; background:var(--surface-3)}
+input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--accent);border:2px solid var(--surface);box-shadow:0 0 0 1px var(--accent)}
+
+textarea{
+  width:100%; padding:8px 9px; border:1px solid var(--line); border-radius:7px;
+  background:var(--surface-2); color:var(--ink); font-size:12.5px; resize:vertical;
+  font-family:'Archivo','Helvetica Neue',Arial,sans-serif; line-height:1.5;
+}
+select, input[type=text], input[type=number]{
+  width:100%; padding:7px 9px; border:1px solid var(--line); border-radius:7px;
+  background:var(--surface-2); color:var(--ink); font-size:13px;
+}
+.row{display:flex; gap:9px}
+.row > *{flex:1; min-width:0}
+
+.check{display:flex; align-items:flex-start; gap:9px; cursor:pointer; font-size:12.5px}
+.check input{margin:2px 0 0; accent-color:var(--accent); width:15px; height:15px; flex:none}
+
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:9px 14px; border-radius:8px; border:1px solid var(--line);
+  background:var(--surface-2); color:var(--ink); font-size:13px; font-weight:500;
+  cursor:pointer; transition:background .12s ease, border-color .12s ease, transform .06s ease;
+  width:100%;
+}
+.btn:hover:not(:disabled){background:var(--surface-3); border-color:var(--ink-3)}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn:disabled{opacity:.42; cursor:not-allowed}
+.btn.ghost{background:transparent}
+.btn.icon{width:36px; height:36px; padding:0; flex:none; border-radius:8px}
+.btn.icon svg{display:block}
+
+/* ---------- drop zone ---------- */
+.drop{
+  border:1.5px dashed var(--line); border-radius:10px; background:var(--surface-2);
+  padding:22px 16px; text-align:center; cursor:pointer; transition:.14s ease;
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+}
+.drop:hover, .drop.over{border-color:var(--accent); background:var(--accent-soft)}
+.drop .big{font-size:13.5px; font-weight:600}
+.drop .sm{font-size:11.5px; color:var(--ink-2)}
+.loaded{display:none; gap:10px; align-items:center}
+.loaded.on{display:flex}
+.loaded .name{font-size:13px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.loaded .meta{font-size:11.5px; color:var(--ink-2)}
+#codecNote{padding:8px 10px; border-radius:7px; background:var(--surface-2); border:1px solid var(--line-soft)}
+#codecNote.warn{color:var(--signal); border-color:var(--signal)}
+.diag{border-top:1px solid var(--line-soft); padding-top:10px}
+.diag summary{font-size:11.5px; color:var(--ink-2); cursor:pointer; letter-spacing:.04em}
+.diag pre{
+  margin:8px 0; padding:9px; border-radius:7px; background:var(--surface-2);
+  border:1px solid var(--line-soft); font-size:10.5px; line-height:1.5;
+  color:var(--ink-2); white-space:pre-wrap; word-break:break-word; max-height:260px; overflow:auto;
+}
+
+/* ---------- intake, inside the preview ----------
+   The file you hand it and the picture it gives back are one thing, so they
+   share one panel: the drop zone sits at the top of the preview, right above
+   the frame it will fill. It is still the first thing on the page, and it
+   still has two shapes — a drop zone before a file, a line of file facts
+   after, with the drop zone taken away by hand in setLoadedUI's neighbour. */
+.intake{
+  display:flex; flex-direction:column; gap:9px;
+  padding:12px 14px; border-bottom:1px solid var(--line-soft);
+}
+.intake .drop{
+  flex-direction:row; justify-content:center; align-items:center;
+  padding:12px 14px; gap:12px; text-align:left; min-width:0;
+}
+.intake .drop svg{flex:none}
+.intake .drop .dtext{display:flex; flex-direction:column; gap:1px; min-width:0}
+.intake .drop .big{font-size:12.5px}
+.intake .drop .sm{font-size:11px}
+.intake-side{
+  min-width:0; display:flex; flex-direction:row; flex-wrap:wrap;
+  align-items:center; gap:8px 14px;
+}
+.intake-side .loaded{flex:1 1 auto; min-width:0; max-width:100%; gap:10px}
+.intake-side #codecNote{flex:1 1 100%; margin:0; min-width:0; font-size:11.5px; padding:6px 9px}
+.intake .diag{border-top:0; padding-top:0; margin-left:auto}
+.intake .diag[open]{flex:1 1 100%; margin-left:0}   /* opened, it takes its own line */
+.intake .diag pre{max-height:170px}
+/* ---------- trim strip ----------
+   Drag the ends to trim, drag the middle to scrub, and the shaded parts are
+   what will be thrown away. */
+.trimbar{display:flex; flex-direction:column; gap:6px; margin:-2px 0 2px}
+.trimrow{display:flex; align-items:center; gap:6px; flex-wrap:wrap}
+.trimrow .mono{font-size:11px; color:var(--ink-2)}
+.trimrow .hint{flex:1 1 190px; min-width:0}
+#trimDelete:hover{color:var(--signal); border-color:var(--signal)}
+
+/* ---------- the working badge ----------
+   Decoding a long video blocks the main thread for seconds at a time, and a
+   frozen page with no explanation reads as a crash. This says otherwise.
+
+   The spinner is a `transform` animation on purpose: transforms run on the
+   compositor, so it keeps turning even while script is blocking everything
+   else. Measured — it survives a 2.5 s block. Anything animating `width` or
+   `left`, the progress bar included, stops dead. It is also pointer-events:none
+   so it can never swallow a click on Stop. */
+.working{
+  position:fixed; left:50%; top:76px; transform:translateX(-50%); z-index:60;
+  display:flex; align-items:center; gap:10px;
+  padding:9px 16px 9px 13px; border-radius:999px;
+  background:var(--surface); border:1px solid var(--accent-line);
+  box-shadow:0 4px 20px -6px rgba(20,30,45,.4);
+  font-size:12.5px; color:var(--ink); pointer-events:none;
+  opacity:0; transition:opacity .15s ease;
+}
+.working.on{opacity:1}
+.spinner{
+  width:15px; height:15px; flex:none; border-radius:50%;
+  border:2px solid var(--accent-line); border-top-color:var(--accent);
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){
+  .spinner{animation-duration:2.4s}
+}
+
+/* ---------- the queue ----------
+   With one clip the intake looks exactly as it always did. With several it
+   becomes a list, because at that point the question stops being "what is
+   loaded" and starts being "which one am I on". */
+.queuewrap{display:flex; flex-direction:column; gap:7px; min-width:0}
+.qhead{display:flex; align-items:center; gap:8px}
+.qhead .mono{font-size:11px; color:var(--ink-2); flex:1}
+.btn.mini{width:auto; padding:3px 9px; font-size:11px}
+.queue{
+  display:flex; flex-direction:column; gap:2px;
+  max-height:186px; overflow-y:auto;
+  border:1px solid var(--line); border-radius:8px; background:var(--surface-2); padding:3px;
+}
+.qrow{
+  display:flex; align-items:center; gap:7px; padding:5px 7px; border-radius:6px;
+  cursor:pointer; min-width:0; background:transparent; transition:background .1s ease;
+}
+.qrow:hover{background:var(--surface)}
+.qrow.on{background:var(--accent-soft); box-shadow:inset 0 0 0 1px var(--accent-line)}
+.qname{flex:1; min-width:0; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.qmeta{font-size:10.5px; color:var(--ink-2); flex:none}
+/* Which lips each clip is wearing, drawn rather than named: with a queue of a
+   man and a woman taking turns the picture is the thing you are scanning for,
+   and a row of style names all reading "cartoon" would not show it. */
+.qlips{
+  flex:none; width:26px; height:19px; border-radius:4px; display:block;
+  background:var(--surface-2); border:1px solid var(--line-soft);
+}
+.scopebar{
+  display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+  padding:8px 10px; margin-bottom:2px;
+  border:1px solid var(--accent-line); border-radius:8px; background:var(--accent-soft);
+}
+.qdot{width:7px; height:7px; border-radius:50%; flex:none; background:var(--ink-3)}
+.qdot.live{background:var(--accent)}
+.qdot.done{background:var(--good)}
+.qdot.bad{background:var(--signal)}
+/* Long is not broken: amber, because it costs time and nothing else. */
+.qdot.long{background:#D3902F}
+.qx{
+  appearance:none; border:0; background:transparent; color:var(--ink-3); cursor:pointer;
+  font-size:14px; line-height:1; padding:1px 3px; border-radius:4px; flex:none;
+}
+.qrow:hover .qx:hover{color:var(--signal)}
+/* Casting a conversation. It sits under the queue it acts on, because the
+   queue is the thing being cast and a control for it anywhere else reads as a
+   control for the open clip. */
+.castbar{
+  display:flex; align-items:center; gap:7px; flex-wrap:wrap;
+  padding:8px 10px; border:1px solid var(--line-soft); border-radius:9px;
+  background:var(--surface-2);
+}
+.casthead{font-size:11.5px; color:var(--ink-2); flex:none}
+.castpick{display:inline-flex; gap:5px; align-items:center; flex-wrap:wrap}
+.castpick button{
+  position:relative; width:30px; height:34px; padding:0; border-radius:7px;
+  border:1px solid var(--line); background:var(--surface); overflow:hidden;
+}
+.castpick button:hover{border-color:var(--ink-3)}
+.castpick button[aria-pressed="true"]{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent)}
+.castpick canvas, .castpick img{display:block; width:100%; height:100%; object-fit:contain}
+/* The order a character was ticked in IS the order they speak in, so it has to
+   be visible — two ticked chips with no numbers is a coin toss over who opens
+   the scene. */
+.castpick .ord{
+  position:absolute; left:2px; top:2px; min-width:12px; height:12px;
+  border-radius:3px; background:var(--accent); color:#fff;
+  font-family:'DM Mono',ui-monospace,monospace; font-size:8.5px; line-height:12px;
+  text-align:center; padding:0 2px;
+}
+.castbar .hint{flex:1 1 100%; margin:0; font-size:11px}
+/* Who is speaking this line, on the row itself. */
+.qcast{
+  flex:none; width:17px; height:19px; border-radius:4px; overflow:hidden;
+  border:1px solid var(--line); background:var(--surface);
+}
+.qcast canvas, .qcast img{display:block; width:100%; height:100%; object-fit:contain}
+/* Two buttons on one row: the animated PNG is the recommendation, so it gets
+   the fill and the width and the GIF gets what is left. */
+/* A slider with its label in front and its value behind, which is the shape
+   every placement control in the app now uses. */
+.slide{display:inline-flex; align-items:center; gap:6px; flex:none}
+.slide input[type="range"]{
+  width:96px; height:16px; margin:0; padding:0; background:transparent;
+  -webkit-appearance:none; appearance:none; cursor:pointer;
+}
+.slide input[type="range"]::-webkit-slider-runnable-track{
+  height:4px; border-radius:2px; background:var(--line);
+}
+.slide input[type="range"]::-moz-range-track{
+  height:4px; border-radius:2px; background:var(--line);
+}
+.slide input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none;
+  width:13px; height:13px; margin-top:-4.5px; border-radius:50%;
+  background:var(--accent); border:none; cursor:pointer;
+}
+.slide input[type="range"]::-moz-range-thumb{
+  width:13px; height:13px; border-radius:50%;
+  background:var(--accent); border:none; cursor:pointer;
+}
+.slide input[type="range"]:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+.slide .mono{font-size:11px; color:var(--accent); min-width:34px; text-align:right}
+.slide .hint{font-size:11px}
+/* The typeable half. Narrow on purpose — it holds three or four characters and
+   anything wider makes the row look like a form. */
+/* `.lfield input[type=number]` is (0,2,1) and sets width:100%, so a plain
+   `.lslide .num` at (0,2,0) loses to it whatever the order — which stretched
+   the field across the row and squashed the slider to nothing. */
+.overlay-tools .slide .num, .lfield .lslide .num, .lslide input.num{
+  width:52px; flex:none; font:inherit; font-size:11.5px;
+  font-family:'DM Mono',ui-monospace,monospace;
+  padding:3px 5px; text-align:right;
+  border:1px solid var(--line); border-radius:6px;
+  background:var(--surface); color:var(--accent);
+}
+.overlay-tools .slide .num:focus-visible, .lfield .lslide .num:focus-visible{
+  outline:2px solid var(--accent); outline-offset:1px;
+}
+.overlay-tools .slide input[type="range"]{width:84px}
+/* The boil sliders are a group under their own switch, so they wrap as a block
+   rather than scattering along the row. */
+.boilrow{flex-wrap:wrap}
+.boilset{display:flex; gap:12px; flex-wrap:wrap; flex:1 1 100%; padding-left:2px}
+.boilrow .hint{flex:1 1 140px; min-width:0}
+.boilset.off{opacity:.45}
+.scenebtns{display:flex; gap:7px; align-items:stretch}
+.scenebtns .btn{flex:1 1 auto}
+.scenebtns .btn.ghost{flex:0 0 auto; width:auto; padding-inline:12px}
+
+/* ---------- batch export ---------- */
+.batch{
+  border:1px solid var(--accent-line); border-radius:9px; background:var(--accent-soft);
+  padding:12px 13px; display:flex; flex-direction:column; gap:9px;
+}
+.batch h3{font-size:12.5px; font-weight:600}
+.batch .picks{display:flex; flex-wrap:wrap; gap:6px 16px}
+.batch .picks label{display:inline-flex; align-items:center; gap:6px; font-size:12px}
+.scoperow{display:flex; align-items:center; gap:6px; flex-wrap:wrap}
+/* In a card the toggle sits right above the button it governs, so it reads as
+   one control: what this does, then do it. */
+.scoperow.card{display:flex; gap:0; margin:2px 0 7px; border-radius:8px; overflow:hidden;
+  border:1px solid var(--line)}
+.scoperow.card .scopebtn{flex:1 1 0; border:0; border-radius:0; text-align:center; min-width:0}
+.scoperow.card .scopebtn + .scopebtn{border-left:1px solid var(--line)}
+.scopebtn{
+  font:inherit; font-size:11.5px; cursor:pointer; padding:6px 10px; border-radius:7px;
+  border:1px solid var(--line); background:var(--surface-2); color:var(--ink-2);
+}
+.scopebtn:hover{color:var(--ink); background:var(--surface)}
+.scopebtn.on{
+  background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600;
+}
+.scoperow.card .scopebtn.on:hover{background:var(--accent)}
+/* The same choice at the top of the tab, bigger, because it is the first
+   question and every card below starts from its answer. */
+.scoperow.all{margin:2px 0 8px; gap:8px}
+.scoperow.all .scopebtn{font-size:12.5px; padding:7px 14px}
+.scoperow.all .hint{font-size:11px}
+.batch .row{gap:10px; align-items:center}
+#batchStatus{font-family:'DM Mono',ui-monospace,monospace; font-size:11px; color:var(--ink-2)}
+
+/* Narrow enough and the drop zone stacks, the way it always did. */
+@media (max-width:520px){
+  .intake .drop{flex-direction:column; text-align:center}
+}
+
+/* ---------- stage ---------- */
+/* The panel the frame sits ON. Deliberately not the checkerboard: the
+   checkerboard means "this will export transparent", and painting it across
+   the whole panel said that about the parts of the panel that are not in the
+   frame at all. With a 16:9 canvas in a panel that is nearly square, that left
+   a third of the picture area looking like frame when it was not, and no way
+   at all to see what changing the canvas had done. */
+.stage-wrap{
+  position:relative; flex:1; display:grid; place-items:center; padding:16px;
+  background:var(--surround);
+  min-height:300px;
+}
+/* THE FRAME. Everything that marks it lives here, on the box that is actually
+   the canvas: the checkerboard, a hairline, and a shadow to lift it off the
+   surround. Change the canvas and this changes shape, which is the whole
+   point. */
+.stage-stack{
+  background-color:var(--checker-a);
+  background-image:
+    linear-gradient(45deg,var(--checker-b) 25%,transparent 25%,transparent 75%,var(--checker-b) 75%),
+    linear-gradient(45deg,var(--checker-b) 25%,transparent 25%,transparent 75%,var(--checker-b) 75%);
+  background-size:18px 18px; background-position:0 0, 9px 9px;
+  box-shadow:0 0 0 1px var(--frame-line), 0 6px 18px -4px rgba(0,0,0,.45);
+}
+/* `.video` on the wrap means "the frame has content and is sized to it", not
+   "a video is playing" — so it must NOT suppress the checkerboard, which it
+   did on the first attempt and that is nearly always. Whether the backdrop is
+   see-through is what `plain` above is for, and the Checkerboard tick drives
+   it. */
+/* The video is a real, visible element with the mouth layered over it on a
+   transparent canvas. Drawing the picture into the canvas instead would rely
+   on drawImage from a hidden <video>, which WebKit declines to decode. */
+.stage-stack{position:relative; display:block; line-height:0; max-width:100%}
+/* Without a video the stack has to be told how wide it is. Left to itself it
+   takes the canvas's INTRINSIC width — the 472 in the width attribute — while
+   the canvas paints at its CSS size of 340 and, being a replaced element, sits
+   at the left of the box. In the two-column layout the wrap was narrow enough
+   to clamp both to the same number and it looked fine; opened narrow, the
+   wrap grew, the clamp stopped biting, and the mouth drifted 66px left of the
+   frame. Sizing the stack and filling it with the canvas removes the gap the
+   drift lived in. The video path is left alone — it already fills the stack. */
+.stage-wrap:not(.video) .stage-stack{width:min(480px,100%); margin-inline:auto}
+.stage-wrap:not(.video) #stage{display:block; width:100%}
+#stageVideo{display:none; width:100%; height:auto; max-width:100%; background:#000}
+/* With a puppet in front of it, the clip's own video is not the picture — and
+   once the puppet can be scaled down inside the frame, its black backing is
+   what shows in the margin instead of the checkerboard that says "this will
+   export transparent". */
+.stage-wrap.p-img #stageVideo, .stage-wrap.p-vid #stageVideo{background:transparent; display:none}
+/* The same margin over a clip's own footage. The export puts nothing there, so
+   neither does the preview. */
+.stage-wrap.video #stageVideo{background:transparent}
+#stage{
+  width:min(480px,100%); height:auto; aspect-ratio:1/1; image-rendering:auto;
+  /* Without this, iOS claims the drag as a page pan and pointermove never
+     arrives — the mouth cannot be moved or resized by touch at all. */
+  touch-action:none; -webkit-user-select:none; user-select:none;
+}
+/* Not 100% of the wrap: the frame needs room for its own edge and shadow, or
+   a square canvas in a square panel reaches the sides and the thing that says
+   "this is the frame" is clipped off against them. */
+.stage-wrap.video .stage-stack{width:calc(100% - 4px)}
+.stage-wrap.video #stageVideo{display:block}
+.stage-wrap.video #stage{
+  position:absolute; top:0; right:0; bottom:0; left:0;
+  width:100%; height:100%; aspect-ratio:auto;
+}
+.stage-badge{
+  position:absolute; top:12px; left:12px; z-index:2;
+  font-family:'DM Mono',ui-monospace,monospace; font-size:11px; letter-spacing:.08em;
+  background:var(--surface); border:1px solid var(--line); border-radius:6px;
+  padding:4px 9px; color:var(--ink-2);
+}
+.stage-badge b{color:var(--ink); font-weight:500}
+/* .btn.ghost sets a transparent background and outranks a single class, so
+   this has to carry both or the button floats over the checkerboard with no
+   fill — pale text on a pale check in dark mode, and all but unreadable. */
+.btn.ghost.stage-flip{
+  position:absolute; top:12px; right:12px; z-index:2; width:auto;
+  display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+  background:var(--surface);
+}
+
+.overlay-tools{
+  display:flex; align-items:center; gap:7px 9px; flex-wrap:wrap;
+  padding:8px 14px;
+  border-top:1px solid var(--line-soft); background:var(--surface-2); font-size:11.5px;
+}
+/* The hint takes a whole line of its own in a narrow rail rather than being
+   squeezed into a five-word column between two controls. */
+.overlay-tools .hint{flex:1 1 150px; min-width:0}
+.overlay-tools .mono{font-size:11.5px; color:var(--accent)}
+.overlay-tools .ang{display:inline-flex; align-items:center; gap:1px; color:var(--accent); flex:none}
+.overlay-tools .ang input{
+  width:54px; padding:2px 5px; text-align:right;
+  border:1px solid var(--line); border-radius:6px; background:var(--surface);
+  font-family:'DM Mono',ui-monospace,monospace; font-size:11.5px; color:var(--accent);
+}
+.overlay-tools .ang span{font-family:'DM Mono',ui-monospace,monospace; font-size:11.5px}
+#platePlayer{display:none; width:100%; height:auto; max-width:100%}
+/* The puppet on the stage is a DOM element behind the canvas, not pixels on it,
+   so its mirror is a CSS transform. The canvas above it is not flipped — the
+   mouth has its own switch, and the handles must stay where the pointer is. */
+/* The mirror is part of the puppet transform now — see syncPlateTransform —
+   so there is no class-based transform here to fight with the inline one. */
+.btn.ghost.mini[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.stage-wrap.p-vid #platePlayer{display:block}
+/* A puppet replaces the clip's own footage as the thing you see. */
+.stage-wrap.p-img #stageVideo, .stage-wrap.p-vid #stageVideo{display:none}
+/* The PUPPET line, under the file row it belongs to. */
+/* The drawn-face chips. Each one is a tiny portrait rather than a word,
+   because four names in a row read as a form and four faces read as a choice. */
+.facepick{display:inline-flex; gap:5px; align-items:center}
+.facepick button{
+  width:30px; height:34px; padding:0; border:1px solid var(--line); border-radius:7px;
+  background:var(--surface); cursor:pointer; overflow:hidden; display:grid; place-items:center;
+}
+.facepick button:hover{border-color:var(--ink-3)}
+.facepick button[aria-pressed="true"]{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent)}
+.facepick canvas, .facepick img{display:block; width:100%; height:100%; object-fit:contain}
+/* A chip and its × are siblings in a wrapper, not nested — a button inside a
+   button is invalid and the inner one stops receiving clicks in some
+   browsers. The wrapper is what the × is positioned against. */
+.chipwrap{position:relative; display:inline-flex; flex:none}
+.facepick .chipx{
+  position:absolute; top:-5px; right:-5px; z-index:2;
+  width:15px; height:15px; min-width:0; padding:0; border-radius:50%;
+  border:1px solid var(--line); background:var(--surface-2); color:var(--ink-2);
+  font-size:11px; line-height:1; display:grid; place-items:center;
+  /* Shown on hover and on keyboard focus. Six chips each wearing a permanent
+     × reads as a row of errors rather than a row of characters. */
+  opacity:0; transition:opacity .12s ease;
+}
+.chipwrap:hover .chipx, .facepick .chipx:focus-visible{opacity:1}
+.facepick .chipx:hover{border-color:var(--signal); color:var(--signal)}
+/* The pin is not a character, so it does not look like one: no picture, no
+   tile, and a gap in front of it so the row reads as "four heads, then a
+   setting" rather than as five heads one of which is broken. */
+.facepick .lippin{
+  width:26px; height:26px; margin-left:3px; padding:0; border-radius:7px;
+  display:inline-flex; align-items:center; justify-content:center;
+  color:var(--ink-3); background:transparent;
+}
+.facepick .lippin[aria-pressed="true"]{
+  color:var(--accent); border-color:var(--accent); background:var(--surface-2);
+  box-shadow:none;
+}
+/* Mouth or puppet. Built like the export scope toggle rather than as two loose
+   buttons, so it reads as one control with two positions. */
+.layerpick{
+  display:inline-flex; flex:none; border:1px solid var(--line); border-radius:8px;
+  overflow:hidden; background:var(--surface-2);
+}
+.layerpick button{
+  appearance:none; border:0; background:transparent; cursor:pointer;
+  font:inherit; font-size:11.5px; padding:4px 10px; color:var(--ink-2);
+}
+.layerpick button + button{border-left:1px solid var(--line)}
+.layerpick button:hover{color:var(--ink)}
+.layerpick button[aria-pressed="true"]{
+  background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:600;
+}
+/* ---------- the layer list ----------
+   One row per layer, in the order they stack. Built to be read down the left
+   edge — grip, eye, number — and acted on down the right: settings, select,
+   delete. The thumbnail is between the two so the row is identifiable without
+   reading the name, which matters once there are six of them called Layer. */
+.canvasrow{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px}
+.canvasrow .lbl{
+  margin:0; flex:none; min-width:74px;
+  font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3);
+}
+.canvasrow select{width:auto; min-width:180px}
+.canvascustom{display:inline-flex; align-items:center; gap:5px}
+.canvasrow .ang{display:inline-flex; align-items:center; gap:4px}
+.canvasrow .ang .hint{font-size:11px}
+.canvascustom input{
+  width:84px; font:inherit; font-size:12.5px; padding:5px 7px;
+  border:1px solid var(--line); border-radius:7px; background:var(--surface); color:var(--ink);
+}
+#canvasNote{font-size:11.5px; color:var(--ink-3)}
+#canvasNote.warn{color:var(--signal)}
+.layerlist{display:flex; flex-direction:column; gap:8px}
+.lrow{
+  display:flex; align-items:center; gap:10px;
+  padding:8px 10px; border:1px solid var(--line); border-radius:11px;
+  background:var(--surface); cursor:pointer;
+  transition:border-color .12s ease, background .12s ease, transform .08s ease;
+}
+.lrow:hover{border-color:var(--ink-3)}
+.lrow.sel{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent)}
+.lrow.off .lthumb, .lrow.off .ltext{opacity:.42}
+.lrow.dragging{position:relative; z-index:5; box-shadow:0 8px 22px rgba(20,30,45,.22)}
+.lgrip{
+  flex:none; width:22px; height:28px; padding:0; border:0; background:transparent;
+  color:var(--ink-3); cursor:grab; display:grid; place-items:center; touch-action:none;
+}
+.lgrip:disabled{opacity:.3; cursor:not-allowed}
+.lgrip:active{cursor:grabbing}
+.leye{
+  flex:none; width:28px; height:28px; padding:0; border:0; background:transparent;
+  color:var(--ink-2); cursor:pointer; display:grid; place-items:center; border-radius:7px;
+}
+.leye:hover{background:var(--surface-2); color:var(--ink)}
+.leye[aria-pressed="false"]{color:var(--ink-3)}
+.lnum{flex:none; width:16px; text-align:center; font-size:12px; color:var(--ink-3)}
+.lthumb{
+  flex:none; width:72px; height:46px; border-radius:7px; overflow:hidden;
+  border:1px solid var(--line); background:var(--surface-2); display:block;
+}
+.lthumb canvas{display:block; width:100%; height:100%}
+.ltext{flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:1px}
+.ltext b{font-size:14px; letter-spacing:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.ltext span{font-size:11.5px; color:var(--ink-2)}
+.lbtn{
+  flex:none; width:30px; height:30px; padding:0; border:0; background:transparent;
+  color:var(--ink-2); cursor:pointer; display:grid; place-items:center; border-radius:7px;
+}
+.lbtn:hover:not(:disabled){background:var(--surface-2); color:var(--ink)}
+.lbtn.danger{color:var(--signal)}
+.lbtn.danger:hover:not(:disabled){background:var(--signal-soft, rgba(190,60,60,.12))}
+.lbtn:disabled{opacity:.28; cursor:not-allowed}
+
+/* The settings for one layer, opened from the pencil and shut with Done. */
+.layeredit{
+  margin-top:10px; border:1px solid var(--accent-line); border-radius:11px;
+  background:var(--surface-2); overflow:hidden;
+}
+.lehead{
+  display:flex; align-items:center; gap:8px; padding:8px 11px;
+  border-bottom:1px solid var(--line); background:var(--surface);
+}
+.lehead b{font-size:12.5px}
+.lebody{
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(168px,1fr));
+  gap:8px 14px; padding:11px;
+}
+/* The blur patch and the keyframe rows are adopted in here from the panel they
+   used to live in. They are rows, not fields, so they take the full width of
+   the grid and keep their own internal layout. */
+.lebody > .ov-row{
+  grid-column:1 / -1; display:flex; align-items:center; gap:7px 9px; flex-wrap:wrap;
+  padding:8px 0 0; margin:0; border-top:1px solid var(--line-soft);
+}
+.lebody > .ov-row:first-child{border-top:none; padding-top:0}
+.lebody > .ov-row .hint{flex:1 1 100%; margin:0; font-size:11px}
+/* Adopted into a narrow panel, these would otherwise stretch one slider across
+   the whole width with its label stranded at the far end. */
+.lebody > .ov-row .sl{flex:0 1 150px; min-width:120px}
+.lebody > .ov-row .sl input[type=range]{min-width:48px}
+/* The boil readout belongs to the slider in front of it, not to the label
+   behind it, so it keeps its distance on the right and gives way on the left. */
+.boilset .slide{flex:0 0 auto}
+.boilset .slide .mono{min-width:92px}
+/* The six kinds of boil, as a row of chips — it is a choice between named
+   things, not a value on a scale. */
+.fxpick{display:flex; gap:5px; flex-wrap:wrap; flex:1 1 100%}
+.fxpick button{
+  padding:4px 9px; border-radius:7px; border:1px solid var(--line);
+  background:var(--surface); color:var(--ink-2); font-size:11.5px; cursor:pointer;
+}
+.fxpick button:hover{border-color:var(--ink-3); color:var(--ink)}
+.fxpick button[aria-pressed="true"]{
+  border-color:var(--accent); color:var(--accent); background:var(--surface-2);
+}
+#boilFxHint{flex:1 1 100%; margin:0; font-size:11px; min-height:14px}
+.lfield{display:flex; flex-direction:column; gap:3px; font-size:11.5px; color:var(--ink-2)}
+.lfield > span{letter-spacing:.02em}
+.lfield input[type=text], .lfield input[type=number], .lfield select, .lfield textarea{
+  width:100%; font:inherit; font-size:12.5px; padding:5px 7px;
+  border:1px solid var(--line); border-radius:7px;
+  background:var(--surface); color:var(--ink);
+}
+.lfield input[type=color]{width:100%; height:28px; padding:2px; border:1px solid var(--line); border-radius:7px; background:var(--surface)}
+.lfield input[type=checkbox]{width:16px; height:16px}
+.lfield textarea{resize:vertical; min-height:40px}
+/* A slider fills the field the number field used to, with its value on the
+   right where the eye already goes for a readout. */
+.layerlist > .layeredit{margin:-2px 0 4px}
+.turnswrap{
+  display:flex; flex-direction:column; gap:6px; margin-bottom:10px;
+  padding:9px 11px; border:1px solid var(--line-soft); border-radius:9px;
+  background:var(--surface-2);
+}
+.turnshead{display:flex; align-items:center; gap:8px; font-size:11px; letter-spacing:.09em; color:var(--ink-3)}
+.turnshead .hint{font-size:11px; letter-spacing:0}
+.turns{display:flex; flex-direction:column; gap:4px}
+.trow{
+  display:flex; align-items:center; gap:9px; padding:4px 6px;
+  border-radius:7px; background:var(--surface);
+}
+.trow.now{box-shadow:inset 0 0 0 1px var(--accent-line)}
+.trow .tnum{
+  font-family:'DM Mono',ui-monospace,monospace; font-size:10.5px;
+  color:var(--ink-3); min-width:18px;
+}
+.trow .ttime{
+  font-family:'DM Mono',ui-monospace,monospace; font-size:11px;
+  color:var(--ink-2); min-width:112px;
+}
+.trow select{
+  flex:1 1 auto; min-width:0; font:inherit; font-size:12px; padding:3px 6px;
+  border:1px solid var(--line); border-radius:6px;
+  background:var(--surface-2); color:var(--ink);
+}
+.trow .tface{flex:none; width:20px; height:23px; border-radius:4px; overflow:hidden; border:1px solid var(--line)}
+.trow .tface canvas, .trow .tface img{display:block; width:100%; height:100%; object-fit:contain}
+.lslide{display:flex; align-items:center; gap:7px}
+.lslide input[type=range]{
+  flex:1 1 auto; min-width:0; height:16px; margin:0; padding:0;
+  background:transparent; -webkit-appearance:none; appearance:none; cursor:pointer;
+}
+.lslide input[type=range]::-webkit-slider-runnable-track{height:4px; border-radius:2px; background:var(--line)}
+.lslide input[type=range]::-moz-range-track{height:4px; border-radius:2px; background:var(--line)}
+.lslide input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none; width:13px; height:13px; margin-top:-4.5px;
+  border-radius:50%; background:var(--accent); border:none; cursor:pointer;
+}
+.lslide input[type=range]::-moz-range-thumb{
+  width:13px; height:13px; border-radius:50%; background:var(--accent); border:none; cursor:pointer;
+}
+.lslide input[type=range]:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+.lslide .mono{font-size:11px; color:var(--accent); min-width:36px; text-align:right; flex:none}
+#layerSelect{
+  flex:none; max-width:180px; font-size:11.5px; padding:4px 7px;
+  border:1px solid var(--line); border-radius:8px;
+  background:var(--surface-2); color:var(--ink);
+}
+.plate-row{
+  display:flex; align-items:center; gap:9px; flex-wrap:wrap;
+  padding:8px 0 0; margin-top:8px; border-top:1px solid var(--line-soft);
+  font-size:12px; color:var(--ink-2);
+}
+.plate-row b{color:var(--ink); font-weight:600}
+/* The invite is the same row before there is anything in it, and "Add a
+   puppet…" sits under both — offered whether or not one is already on, because
+   adding a SECOND character is what a row of Replace/Remove cannot say. */
+.plate-row.invite{color:var(--ink-3)}
+.puppetadd{display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:2px 0}
+.puppetadd .hint{flex:1 1 180px; min-width:0; margin:0}
+.plate-row .mono{font-size:11px; color:var(--ink-3)}
+.plate-tag{
+  font-size:9.5px; letter-spacing:.06em; color:var(--ink-3);
+  border:1px solid var(--line); border-radius:4px; padding:1px 5px;
+}
+/* These three used to paint the WRAP and zero its padding. They now paint the
+   FRAME, which is the box they were always describing — the wrap is just the
+   surface it sits on, and it keeps its gutter so the frame's edge and shadow
+   are never clipped against the side of the panel.
+
+   Order matters: the opaque ground for a picture that fills the frame, then
+   the checkerboard back for a cut-out, and the Checkerboard tick last of all
+   because it is the one the person set by hand. */
+.stage-wrap.video .stage-stack{background-image:none; background-color:#101317}
+/* A cut-out puppet has to be seen to be cut out, so the checkerboard stays
+   where a dark ground would hide the very thing being kept. */
+.stage-wrap.video.alpha .stage-stack{
+  background-color:var(--checker-a);
+  background-image:
+    linear-gradient(45deg,var(--checker-b) 25%,transparent 25%,transparent 75%,var(--checker-b) 75%),
+    linear-gradient(45deg,var(--checker-b) 25%,transparent 25%,transparent 75%,var(--checker-b) 75%);
+  background-size:18px 18px; background-position:0 0, 9px 9px;
+}
+.stage-wrap.plain .stage-stack{background-image:none; background-color:#31363E}
+.stage-wrap.video #stage{border-radius:0}
+/* Directly under the picture, and bigger than the rest of the buttons on the
+   page. These are the controls you reach for most and the ones you hit while
+   watching something else — the stage — so they are sized to be found without
+   looking. 36px was a toolbar button; 46 is a transport. */
+.transport{
+  display:flex; align-items:center; gap:10px 8px; flex-wrap:wrap; padding:12px 14px;
+  border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft);
+  background:var(--surface);
+}
+.transport .btn.icon{width:46px; height:46px; border-radius:10px}
+.transport .btn.icon svg{width:19px; height:19px}
+.transport .tcount{font-size:12.5px}
+.transport .tcount:first-of-type{margin-left:8px}
+.transport .btn[aria-pressed="true"]{
+  background:var(--accent-soft); border-color:var(--accent-line); color:var(--ink);
+}
+.tcount{font-family:'DM Mono',ui-monospace,monospace; font-size:12px; color:var(--ink-2); white-space:nowrap}
+.tcount b{color:var(--ink); font-weight:500}
+.tspacer{flex:1}
+
+/* ---------- style chips ---------- */
+/* Two shelves of art: the ones that ship, and the ones the user brought. */
+.subtabs{display:flex; gap:3px; padding:2px; background:var(--surface-2); border:1px solid var(--line); border-radius:9px}
+.subtab{
+  appearance:none; border:1px solid transparent; background:transparent; cursor:pointer;
+  color:var(--ink-2); font-size:12px; font-weight:500; padding:5px 12px; border-radius:7px;
+  transition:background .12s ease, color .12s ease;
+}
+.subtab:hover{color:var(--ink)}
+.subtab[aria-selected="true"]{
+  background:var(--raised); border-color:var(--line); color:var(--ink); font-weight:600;
+  box-shadow:0 1px 2px rgba(20,30,45,.10);
+}
+/* The head-angle row sits inside the built-in pane, so it is quieter than the
+   pair above it — a second level, not a competing one. */
+.subtabs.sub2{background:transparent; border:0; padding:0 0 9px; gap:4px}
+.subtabs.sub2 .subtab{font-size:11.5px; padding:4px 10px; border:1px solid var(--line-soft)}
+.subtabs.sub2 .subtab[aria-selected="true"]{
+  background:var(--accent-soft); border-color:var(--accent-line); color:var(--ink);
+}
+.style-opt{position:relative}
+/* A set the viewer brought is theirs to take away again, and is marked as
+   temporary so it is never mistaken for one that ships with the page. */
+.chip-x{
+  position:absolute; top:3px; right:3px; width:17px; height:17px; line-height:15px;
+  text-align:center; border-radius:50%; font-size:13px; color:var(--ink-2);
+  background:var(--surface); border:1px solid var(--line); opacity:0;
+  transition:opacity .12s ease;
+}
+.style-opt:hover .chip-x, .style-opt:focus-within .chip-x{opacity:1}
+.chip-x:hover{color:var(--signal); border-color:var(--signal)}
+.style-opt.mine{border-style:dashed}
+.style-opt.mine .nm::after{content:' · yours'; color:var(--ink-3)}
+/* A folder that is short of shapes says so on its own chip. */
+.chip-note{
+  position:absolute; top:3px; left:3px; padding:0 5px; border-radius:5px;
+  background:var(--signal); color:#fff; font-size:9.5px; letter-spacing:.04em;
+  font-family:'DM Mono',ui-monospace,monospace;
+}
+/* As many chips as fit, never fewer than 64px each. A fixed column count in a
+   340px panel gave cells narrower than the preview inside them, so the picture
+   spilled over the chip's own rounded edge. */
+.styles{display:grid; grid-template-columns:repeat(auto-fill,minmax(64px,1fr)); gap:8px}
+.style-opt{
+  border:1px solid var(--line); border-radius:9px; background:var(--surface-2); cursor:pointer;
+  padding:6px 5px 5px; display:flex; flex-direction:column; align-items:center; gap:4px;
+  min-width:0; overflow:hidden; transition:.12s ease;
+}
+.style-opt:hover{border-color:var(--ink-3)}
+.style-opt.sel{border-color:var(--accent); background:var(--accent-soft); box-shadow:inset 0 0 0 1px var(--accent)}
+/* Fluid, and shaped by the canvas's own 120×94 — it can never be wider than
+   the chip holding it, whatever the column works out to. */
+.style-opt canvas{
+  width:100%; max-width:62px; height:auto; display:block;
+  background:#F3F5F8; border-radius:5px;
+}
+.style-opt .nm{
+  font-size:10px; letter-spacing:.03em; text-transform:uppercase; line-height:1.3;
+  font-family:'DM Mono',ui-monospace,monospace; color:var(--ink-2);
+  max-width:100%; text-align:center; overflow-wrap:anywhere;
+}
+.style-opt.sel .nm{color:var(--ink)}
+
+/* ---------- chart thumbs ---------- */
+.chart{display:grid; grid-template-columns:repeat(9,minmax(0,1fr)); gap:8px}
+@media (max-width:1180px){.chart{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media (max-width:560px){.chart{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.cell{
+  border:1px solid var(--line); border-radius:7px; overflow:hidden; background:var(--surface-2);
+  display:flex; flex-direction:column; align-items:center; padding-bottom:3px; position:relative;
+}
+.cell canvas{width:100%; height:auto; display:block; background:#F3F5F8}
+.cell .k{font-family:'DM Mono',ui-monospace,monospace; font-size:10px; color:var(--ink-2); letter-spacing:.06em}
+.cell .bar{position:absolute; inset:auto 0 0 0; height:2px}
+
+/* ---------- exposure sheet ---------- */
+.sheet-panel .panel-body{gap:10px; padding:12px 14px 14px}
+/* Tall enough to grab a trim handle on and to read a split point in — this is
+   the one waveform in the app you actually work on. */
+#overview{
+  width:100%; height:84px; display:block; border-radius:7px; cursor:pointer;
+  background:var(--surface-2); touch-action:none; -webkit-user-select:none; user-select:none;
+}
+/* Half what it was. Under the stage rather than beside it, the strip's height
+   is height the picture does not get — and one row of cells with its letter in
+   it is as readable at 92px as at 184. */
+.xs-scroll{flex:0 0 auto; height:92px; overflow-x:auto; overflow-y:hidden; border:1px solid var(--line-soft); border-radius:7px; background:var(--surface-2)}
+.xs-scroll::-webkit-scrollbar{height:10px}
+.xs-scroll::-webkit-scrollbar-thumb{background:var(--surface-3); border-radius:5px}
+#xsSpacer{height:100%; position:relative; min-width:100%}
+#xsheet{
+  display:block; height:100%; position:sticky; left:0; top:0;
+  /* pan-x, not none: a finger still scrolls the sheet sideways, and a tap
+     selects a frame. Marquee dragging stays a mouse and pen gesture. */
+  touch-action:pan-x; -webkit-user-select:none; user-select:none;
+}
+.sheet-foot{display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap}
+.sheet-tools{display:flex; align-items:center; gap:7px; flex-wrap:wrap}
+.selinfo{font-size:11.5px; color:var(--ink-2); padding-right:4px; white-space:nowrap}
+.btn.icon.sm{width:30px; height:30px}
+.btn.mini{width:auto; padding:3px 9px; font-size:11px}
+
+/* ---------- overlay control rows ---------- */
+.ov-row{
+  display:flex; align-items:center; gap:8px 12px; flex-wrap:wrap;
+  padding:8px 14px; border-top:1px solid var(--line-soft);
+  background:var(--surface-2); font-size:11.5px;
+}
+.ov-row.flat{background:transparent; padding:12px 14px}
+.ov-row.flat + .ov-row.flat{border-top:1px solid var(--line-soft)}
+#motionPanel .ov-row:first-of-type{border-top:0}
+.ov-row .sl{display:flex; align-items:center; gap:7px; flex:1 1 132px; min-width:118px}
+.ov-row .sl > span{color:var(--ink-2); flex:none}
+.ov-row .sl input[type=range]{flex:1; min-width:56px}
+.ov-row .hint{margin:0}
+.ov-row .btn[aria-pressed="true"]{
+  background:var(--accent-soft); border-color:var(--accent-line); color:var(--ink); font-weight:600;
+}
+.legend{display:flex; gap:9px; flex-wrap:wrap}
+.lg{display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--ink-2); font-family:'DM Mono',ui-monospace,monospace}
+.lg i{width:9px; height:9px; border-radius:2px; display:block}
+
+/* ---------- export ----------
+   Six cards. Given the room they lay out three across and two down, so the
+   whole set of options is in view at once instead of a long scroll.
+
+   The prose that used to sit on every card — what the format is, and the
+   paragraph of caveats under the button — now lives behind the small i, so a
+   card is its title, its own options and its button. What stayed on the card
+   is everything that changes: the size estimate, the batch-scope note, and the
+   warnings. A warning you have to open a panel to find is a warning nobody
+   reads, and the point of it is to stop you exporting the wrong thing. */
+/* As many cards across as the COLUMN can hold, not as many as the window
+   could. The export tab lives in the right-hand third now, where a width
+   measured against the viewport put three cards in 460px and broke every
+   heading over two lines; auto-fill asks the container instead, so it is one
+   card wide in the column and three across when the layout stacks. */
+.expgrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(232px, 1fr)); gap:10px}
+/* Push the estimate and its button to the bottom of every card so the row of
+   buttons lines up across cards with different amounts of text. */
+.expgrid .exp .est{margin-top:auto}
+.exp{position:relative; display:flex; flex-direction:column; gap:5px; padding:11px; border:1px solid var(--line); border-radius:9px; background:var(--surface-2)}
+.exp h3{font-size:12.5px; font-weight:600; letter-spacing:0}
+/* A glyph on each card. Eight cards of the same size and the same type read
+   as a wall of words; a picture apiece is what makes one findable at a
+   glance. Drawn here rather than borrowed: an application's own logo is
+   somebody else's mark, and a hand-drawn approximation of one reads as a
+   counterfeit instead of a label. */
+.exphead{display:flex; align-items:center; gap:8px}
+.expicon{flex:none; width:28px; height:28px; display:block}
+/* The glyphs carry their own colours — the key green, the sheet's own viseme
+   palette on the chart — so they read as the thing they make rather than as
+   eight grey outlines. A hairline round them keeps a pale glyph off a pale
+   card in light mode. */
+.expicon rect:first-child{paint-order:stroke}
+.exphead h3{flex:1 1 auto; min-width:0}
+.infobtn{
+  flex:none; width:18px; height:18px; padding:0; border-radius:50%;
+  border:1px solid var(--line); background:var(--raised); color:var(--ink-3);
+  font:600 11px/1 ui-serif,Georgia,serif; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center;
+}
+.infobtn:hover{border-color:var(--ink-3); color:var(--ink)}
+.infobtn[aria-expanded="true"]{background:var(--accent-soft); border-color:var(--accent-line); color:var(--ink)}
+/* Over the card, not beside it: three cards across means a panel hanging off
+   the side would fall outside the tab on the right-hand column. Anchored to
+   the top so the title it belongs to stays readable above it. */
+.expinfo{
+  position:absolute; z-index:30; left:7px; right:7px; top:30px;
+  display:flex; flex-direction:column; gap:7px;
+  padding:10px 11px; border:1px solid var(--line);
+  border-radius:9px; background:var(--raised);
+  box-shadow:0 10px 26px rgba(20,30,45,.20);
+  max-height:260px; overflow-y:auto;
+}
+.expinfo p{margin:0}
+.expinfo .mono{font-family:'DM Mono',ui-monospace,monospace}
+.exp p{font-size:11.5px; color:var(--ink-2); line-height:1.45}
+.exp .warn{color:var(--signal)}
+.exp .est{font-family:'DM Mono',ui-monospace,monospace; font-size:11px; color:var(--ink-3)}
+.exp .btn{
+  margin-top:4px; background:var(--raised); border-color:var(--line);
+  box-shadow:0 1px 2px rgba(20,30,45,.10);
+}
+.exp .btn:hover:not(:disabled){
+  background:var(--raised); border-color:var(--ink-3);
+  box-shadow:0 2px 6px rgba(20,30,45,.17);
+}
+.exp .btn:active:not(:disabled){box-shadow:0 1px 1px rgba(20,30,45,.12)}
+.exp .btn:disabled{box-shadow:none}
+.pathfield{
+  width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:7px;
+  background:var(--surface); color:var(--ink);
+  font-family:'DM Mono',ui-monospace,monospace; font-size:11px;
+}
+.pathfield::placeholder{color:var(--ink-3)}
+.keyrow{display:flex; align-items:center; gap:8px}
+.swatches{display:flex; gap:5px; flex:1}
+.swatch{
+  width:26px; height:26px; border-radius:6px; border:1px solid var(--line);
+  cursor:pointer; padding:0; box-shadow:inset 0 0 0 0 var(--surface);
+}
+.swatch.on{box-shadow:inset 0 0 0 2px var(--surface), 0 0 0 2px var(--accent)}
+input[type=color]{
+  width:38px; height:26px; padding:2px; border:1px solid var(--line);
+  border-radius:6px; background:var(--surface-2); cursor:pointer;
+}
+.progress{height:4px; border-radius:2px; background:var(--surface-3); overflow:hidden; display:none}
+.progress.on{display:block}
+.progress i{display:block; height:100%; width:0%; background:var(--accent); transition:width .18s ease}
+
+.toast{
+  position:fixed; left:50%; bottom:22px; transform:translateX(-50%) translateY(12px);
+  background:var(--ink); color:var(--bg); padding:10px 16px; border-radius:8px; font-size:13px;
+  box-shadow:0 10px 30px -8px rgba(0,0,0,.5); opacity:0; pointer-events:none; transition:.2s ease; z-index:60;
+  max-width:min(92vw,460px); text-align:center;
+}
+.toast.on{opacity:1; transform:translateX(-50%) translateY(0)}
+
+.empty{display:grid; place-items:center; min-height:120px; color:var(--ink-3); font-size:12.5px; text-align:center; padding:16px}
+
+/* Which picture is which shape. A dialog rather than another panel, because it
+   is a thing you do once per folder and then never think about again. */
+.dlg{
+  border:1px solid var(--line); border-radius:12px; padding:0; color:var(--ink);
+  background:var(--surface); width:min(580px, calc(100vw - 28px)); max-width:none;
+  box-shadow:0 18px 54px -14px rgba(0,0,0,.5);
+}
+.dlg::backdrop{background:rgba(8,11,15,.46)}
+.dlg-in{display:flex; flex-direction:column; max-height:min(80vh, 780px)}
+.dlg-head{padding:14px 16px 11px; border-bottom:1px solid var(--line-soft)}
+.dlg-head h2{margin:0 0 3px; font-size:15px; letter-spacing:-.01em}
+.dlg-head .hint{margin:0}
+.dlg-foot{
+  padding:11px 16px; border-top:1px solid var(--line-soft);
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+}
+.remap{overflow:auto; padding:4px 16px 10px}
+.remap-row{
+  display:grid; grid-template-columns:1fr 58px 1fr; align-items:center; gap:11px;
+  padding:7px 0; border-bottom:1px solid var(--line-soft); min-width:0;
+}
+.remap-row:last-child{border-bottom:0}
+.remap-key{display:flex; align-items:center; gap:8px; min-width:0}
+.remap-key b{
+  flex:none; width:22px; height:22px; display:grid; place-items:center; border-radius:5px;
+  font-family:'DM Mono',ui-monospace,monospace; font-size:12px; color:#fff; background:var(--k);
+}
+.remap-key span{font-size:11.5px; color:var(--ink-2); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.remap-thumb{
+  width:58px; height:45px; display:block; border-radius:5px;
+  background:#F3F5F8; border:1px solid var(--line-soft);
+}
+.remap-pick{
+  width:100%; min-width:0; font-size:12px; padding:5px 7px; border-radius:6px;
+  border:1px solid var(--line); background:var(--raised); color:var(--ink);
+}
+/* A shape no picture was actually named for. Marked, because a guess that
+   looks like a decision is the whole problem this dialog exists to fix. */
+.remap-row.guess .remap-pick{border-color:var(--signal)}
+.remap-row.guess .remap-key b{box-shadow:0 0 0 2px var(--signal)}
+@media (max-width:520px){
+  .remap-row{grid-template-columns:58px 1fr; grid-template-areas:"thumb key" "thumb pick"; gap:5px 10px}
+  .remap-key{grid-area:key} .remap-thumb{grid-area:thumb} .remap-pick{grid-area:pick}
+}
+
+@media (prefers-reduced-motion: reduce){*{transition:none !important; animation:none !important}}
+</style>
+
+<script>
+/* Stamp a saved theme choice before the first paint, so someone who has
+   chosen dark never gets a white flash on the way in. */
+try {
+  var t = localStorage.getItem('mouthchart.theme');
+  if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+} catch (e) {}
+</script>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="mark" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <path d="M2 11c3-5 15-5 18 0-3 5-15 5-18 0Z" stroke="currentColor" stroke-width="1.6" fill="none" opacity=".9"/>
+        <path d="M6.5 9.4h9c-.6 1.2-1.9 1.9-4.5 1.9S7.1 10.6 6.5 9.4Z" fill="currentColor" opacity=".85"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Lip Sync Generator</h1>
+      <p class="tag">Spoken audio in, viseme timing and transparent frames out</p>
+      <!-- Filled in from APP_VERSION at boot rather than typed here, so the
+           number in the window and the number in the code cannot disagree. A
+           screenshot of the title bar then answers "which build?" on its own. -->
+      <p class="ver mono" id="appVersion">v—</p>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="chip" id="engineChip"><span class="dot"></span> <span id="engineTxt">Engine · Built-in DSP</span></span>
+    <span class="chip" id="modeChip"><span class="dot"></span> <span id="modeTxt">Local file</span></span>
+    <!-- One button, not three. The old strip had light / auto / dark, and auto
+         is a state nobody needs to see: the app still starts on the system
+         setting, and the first click is what turns it into a choice worth
+         remembering. The icon shows where you are; the tooltip says where the
+         click takes you. -->
+    <button type="button" class="theme-toggle" id="themeToggle" title="Switch to dark appearance" aria-label="Switch to dark appearance">
+      <svg class="t-sun" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+        <circle cx="8" cy="8" r="3.1"/>
+        <path d="M8 1.2v1.6M8 13.2v1.6M1.2 8h1.6M13.2 8h1.6M3.2 3.2l1.15 1.15M11.65 11.65l1.15 1.15M12.8 3.2l-1.15 1.15M4.35 11.65L3.2 12.8"/>
+      </svg>
+      <svg class="t-moon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" style="display:none">
+        <path d="M13.2 9.8A5.7 5.7 0 0 1 6.2 2.8a5.7 5.7 0 1 0 7 7Z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<p class="privacy">
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+    <rect x="3" y="7" width="10" height="7" rx="1.6"/>
+    <path d="M5.6 7V5.2a2.4 2.4 0 0 1 4.8 0V7"/>
+  </svg>
+  <span><b>Private by design.</b> One local file, and all the work happens in this browser. Your audio, video and pictures are never uploaded — no account, no server, nothing kept. The only thing the page ever fetches is a <span class="mono">lips/</span> folder beside it, if you keep one.</span>
+</p>
+
+<!-- ============ DECK: playback + scrubbing, right below ============ -->
+<!-- ===== the application proper: rail on the left, tabs on the right ===== -->
+<div class="shellgrid">
+<section class="deck" id="deck">
+  <section class="panel stage-panel">
+    <header>
+      <h2>Stage</h2>
+      <span class="tspacer"></span>
+      <!-- Always here, not only on an empty page: the point of it is as much to
+           get BACK to something that works after an experiment went sideways as
+           it is to show a first-time visitor what the thing does. -->
+      <button class="btn ghost mini" id="demoBtn" style="width:auto"
+              title="A short recorded line and a drawn face, so there is something to look at">Demo</button>
+      <label class="check" style="font-size:11.5px"><input type="checkbox" id="checkerToggle" checked><span>Checkerboard</span></label>
+    </header>
+    <!-- Picture first. The file rows used to sit above it, which meant the
+         thing you are looking at was pushed a third of the way down the rail
+         and the transport that drives it was off the bottom on a laptop. The
+         order now is: the picture, the buttons that move it, the strip that
+         places the mouth on it, and only then the paperwork. -->
+    <div class="stage-wrap" id="stageWrap">
+      <span class="stage-badge">Frame <b id="badgeFrame" class="mono">—</b> · Shape <b id="badgeViseme" class="mono">—</b></span>
+      <!-- On the stage rather than in the Mouth tab. It belongs next to the
+           thing it changes: down among the style pickers it was missed. -->
+      <button class="btn ghost mini stage-flip" id="flipLips" aria-pressed="false"
+              title="Mirror the mouth left to right — for a character facing the other way">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"/><path d="M9 7 4 12l5 5z"/><path d="M15 7l5 5-5 5z"/></svg>
+        <span id="flipLipsState">Flip lips</span>
+      </button>
+      <div class="stage-stack" id="stageStack">
+        <video id="stageVideo" playsinline preload="auto"></video>
+        <!-- Only the moving pictures are elements. A still puppet is drawn
+             into the stage canvas with every other layer, which is what lets
+             it be reordered; a video has to stay here, because a browser will
+             not reliably hand a playing one to drawImage. -->
+        <video id="platePlayer" playsinline preload="auto" muted></video>
+        <canvas id="stage" width="472" height="472"></canvas>
+      </div>
+    </div>
+    <div class="transport">
+      <button class="btn icon" id="headBtn" disabled title="Jump to the start (Home)" aria-label="Jump to the start">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2.2v14H6zM19 5v14l-9.5-7z"/></svg>
+      </button>
+      <button class="btn icon" id="playBtn" disabled title="Play / pause (space)" aria-label="Play or pause">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" id="playIcon"><path d="M8 5.5v13l11-6.5z"/></svg>
+      </button>
+      <button class="btn icon" id="stopBtn" disabled title="Stop and rewind" aria-label="Stop and rewind">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg>
+      </button>
+      <button class="btn icon" id="tailBtn" disabled title="Jump to the end (End)" aria-label="Jump to the end">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.8 5H18v14h-2.2zM5 5v14l9.5-7z"/></svg>
+      </button>
+      <button class="btn icon" id="loopBtn" disabled aria-pressed="false" title="Loop the clip" aria-label="Loop the clip">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 2.5 21 6.5l-4 4"/><path d="M3 12.5v-2a4 4 0 0 1 4-4h14"/>
+          <path d="M7 21.5 3 17.5l4-4"/><path d="M21 11.5v2a4 4 0 0 1-4 4H3"/>
+        </svg>
+      </button>
+      <span class="tcount"><b id="tNow">0:00.00</b> / <span id="tTotal">0:00.00</span></span>
+      <span class="tspacer"></span>
+      <span class="tcount" id="frameCount">— frames</span>
+    </div>
+    <div class="overlay-tools" id="overlayTools" hidden>
+      <!-- Which layer the handles on the stage are driving. Two layers, one set
+           of handles: a second set drawn at the same time would be four corners
+           and two knobs on top of a face, and you would grab the wrong one. -->
+      <!-- Which layer the handles on the stage are driving. A chooser rather
+           than a second set of handles: four corners and two knobs over one
+           face is a guess every time you reach for one. -->
+      <select id="layerSelect" aria-label="Which layer the handles move" hidden></select>
+      <span class="hint" id="placeHint">Drag to place · corner sizes it · knob turns it</span>
+      <span class="tspacer"></span>
+      <!-- Undo on the stage. The sheet has had it from the start; the stage is
+           where a mouth gets nudged off a face by a pixel and there was no way
+           back but by hand. ⌘Z works here too — it takes back whichever of the
+           two you touched last. -->
+      <button class="btn ghost icon sm" id="stageUndo" title="Undo the last change on the stage (⌘Z)" aria-label="Undo on the stage" disabled>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3.5 13a9 9 0 1 0 2.1-9.4L3 7"/></svg>
+      </button>
+      <button class="btn ghost icon sm" id="stageRedo" title="Redo (⇧⌘Z)" aria-label="Redo on the stage" disabled>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M20.5 13a9 9 0 1 1-2.1-9.4L21 7"/></svg>
+      </button>
+      <button class="btn ghost mini" id="overlayReset">Reset</button>
+      <!-- Sliders, not number fields. A picture that arrives four times too
+           big is the common case, and "type a smaller percentage, look, type
+           another" is not how anyone wants to find the right one. The number
+           stays beside each slider so an exact value can still be read off and
+           copied between shots. -->
+      <button class="btn ghost mini" id="overlayDelete" style="width:auto"
+              title="Remove the layer the handles are on">Delete</button>
+      <!-- Slider AND number field on every one. The slider is for finding a
+           value, the field for saying one: 2–400% across ninety-odd pixels is
+           four percent a pixel, which is no way to set 113%. -->
+      <label class="slide" title="How big the selected layer is, as a share of the frame">
+        <span class="hint">size</span>
+        <input type="range" id="overlaySizeRange" min="2" max="400" step="1" value="30" aria-label="Size as a percentage of the frame">
+        <input type="number" class="num" id="overlaySizeNum" min="2" max="400" step="1" value="30" aria-label="Size, exactly">
+        <span class="hint">%</span>
+      </label>
+      <label class="slide" title="Angle in degrees — hold shift while turning the knob to snap to 15°">
+        <span class="hint">turn</span>
+        <input type="range" id="overlayAngle" min="-180" max="180" step="1" value="0" aria-label="Overlay angle in degrees">
+        <input type="number" class="num" id="overlayAngleNum" min="-180" max="180" step="1" value="0" aria-label="Angle, exactly">
+        <span class="hint">°</span>
+      </label>
+      <span class="mono" id="overlaySize" hidden>30%</span>
+    </div>
+
+
+</section>
+
+  <!-- The sheet, directly under the stage it belongs to. It used to be a
+       tab in the right-hand column, which meant the picture and the timing
+       of that picture were in two different places; now one is above the
+       other and you scrub the sheet while watching the mouth. -->
+  <div class="sheetwrap">
+  <section class="panel sheet-panel">
+    <header>
+      <h2>Exposure sheet</h2>
+      <span class="hint" id="sheetHint">Drag to select a run · <b class="mono">X A B C D E F G H</b> retimes it · <b class="mono">Delete</b> clears it · <b class="mono">&#8984;Z</b> undoes</span>
+    </header>
+    <div class="panel-body">
+      <canvas id="overview" width="1600" height="168"></canvas>
+      <!-- Trim, split and delete, on the overview above rather than on a strip
+           of its own. The overview is a picture of the WHOLE source with the
+           kept range marked out inside it; that one time base — source seconds
+           — is what lets a trim reach the audio it has already cut off, which
+           clip-relative time cannot name. The conversion happens once, in
+           drawOverview. -->
+      <div class="trimbar" id="trimBar" hidden>
+        <div class="trimrow">
+          <span class="mono" id="trimRead">—</span>
+          <span class="tspacer"></span>
+          <!-- Undo first, because what it takes back is the rest of this row. -->
+          <button class="btn ghost icon sm" id="timeUndo" title="Undo the last timeline edit (&#8984;Z)" aria-label="Undo on the timeline" disabled>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3.5 13a9 9 0 1 0 2.1-9.4L3 7"/></svg>
+          </button>
+          <button class="btn ghost icon sm" id="timeRedo" title="Redo (&#8679;&#8984;Z)" aria-label="Redo on the timeline" disabled>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M20.5 13a9 9 0 1 1-2.1-9.4L21 7"/></svg>
+          </button>
+          <!-- The blade, at full strength and live from the start. It used to
+               be a second press on a button that only appeared once a split
+               point had been put down — two steps and a concept for the one
+               thing an editor does constantly. -->
+          <button class="btn mini" id="trimSplit" style="width:auto" title="Cut the clip in two at the playhead (B)">Split</button>
+          <button class="btn ghost mini" id="trimMark" title="Drop a marker where the playhead is (M). A marker is a bookmark — it cuts nothing">+ Marker</button>
+          <button class="btn ghost mini" id="trimAuto" title="Drop a marker in every pause the analyser found">Find the pauses</button>
+          <button class="btn mini" id="trimCommit" style="width:auto" hidden>Split at markers</button>
+          <button class="btn ghost mini" id="trimClear" title="Take all the markers off" hidden>Clear markers</button>
+          <button class="btn ghost mini" id="trimDrop" title="Throw away the bit the playhead is in, between the markers either side" disabled>Drop this bit</button>
+          <button class="btn ghost mini" id="trimReset" title="Put the pieces of this file back into one clip">Whole file</button>
+          <button class="btn ghost mini" id="trimDelete" title="Take this clip out">Delete</button>
+        </div>
+        <div class="trimrow">
+          <span class="hint" id="trimHint">Drag the ends to trim. <b class="mono">B</b> cuts at the playhead, <b class="mono">M</b> drops a marker to cut at later. Every piece stays on this timeline with a division between them — press one to open it, drag a division to move the cut. <b>Drop this bit</b> throws away the stretch the playhead is standing in; press a struck-through stretch to bring it back.</span>
+        </div>
+      </div>
+      <div class="xs-scroll" id="xsScroll" tabindex="0" role="application" aria-label="Exposure sheet"><div id="xsSpacer"><canvas id="xsheet" width="800" height="96"></canvas></div></div>
+      <div class="sheet-foot">
+        <div class="legend" id="legend"></div>
+        <div class="sheet-tools">
+          <span class="selinfo mono" id="selInfo">—</span>
+          <button class="btn ghost icon sm" id="undoBtn" title="Undo (⌘Z)" aria-label="Undo" disabled>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3.5 13a9 9 0 1 0 2.1-9.4L3 7"/></svg>
+          </button>
+          <button class="btn ghost icon sm" id="redoBtn" title="Redo (⇧⌘Z)" aria-label="Redo" disabled>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M20.5 13a9 9 0 1 1-2.1-9.4L21 7"/></svg>
+          </button>
+          <button class="btn" id="eraseBtn" style="width:auto; padding:5px 12px; font-size:12px" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 20H21"/><path d="m14.5 4.5 5 5a2 2 0 0 1 0 2.8L11.8 20H7l-2.5-2.5a2 2 0 0 1 0-2.8l7.2-7.2a2 2 0 0 1 2.8 0Z"/></svg>
+            Clear frames
+          </button>
+          <button class="btn ghost" id="clearEdits" style="width:auto; padding:5px 10px; font-size:11.5px" disabled>Reset all edits</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  </div>
+
+</section>
+
+<div class="maincol">
+<nav class="tabs" role="tablist" aria-label="Controls">
+  <button class="tab" id="tabBtn-inputs" role="tab" aria-controls="tab-inputs" aria-selected="true">Input</button>
+  <button class="tab" id="tabBtn-mouth" role="tab" aria-controls="tab-mouth" aria-selected="false">Mouth</button>
+  <button class="tab" id="tabBtn-export" role="tab" aria-controls="tab-export" aria-selected="false">Export</button>
+  <!-- The gear sits at the far right, away from the three tabs the work runs
+       through. What is in it is set once and left alone. -->
+  <span class="tabgap"></span>
+  <button class="tab gear" id="tabBtn-settings" role="tab" aria-controls="tab-settings" aria-selected="false" title="Analysis settings and the script">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 8.9 19.3a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.7 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9.1A1.7 1.7 0 0 0 10.13 3V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9.1a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1.03Z"/></svg>
+    Settings
+  </button>
+</nav>
+
+<main class="workspace">
+    <!-- Inputs: the file, the clips in the queue, who is in them and which
+       picture each one wears. Everything that answers "what are we working
+       on", in one place, instead of wrapped round the stage. -->
+  <div class="tabpane inputspane" id="tab-inputs" role="tabpanel" aria-labelledby="tabBtn-inputs">
+  <section class="panel">
+    <header><h2>Input</h2></header>
+<div class="intake" id="intake">
+        <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose or drop an audio file">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ink-3)">
+            <path d="M12 16V4m0 0L8 8m4-4 4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+          </svg>
+          <span class="dtext">
+            <span class="big">Drop a voice track or a video</span>
+            <span class="sm">Audio or video — WAV, MP3, M4A, MP4, MOV. Drop several for batch mode. Nothing leaves this page.</span>
+          </span>
+        </div>
+        <div class="queuewrap" id="queueWrap" hidden>
+          <div class="qhead">
+            <span class="mono" id="queueCount">0 clips</span>
+            <!-- Watch the conversation before committing to a render: it plays
+                 the lines in order through the preview you are already looking
+                 at. Only offered once there is more than one line, because
+                 with one line it is the play button. -->
+            <button class="btn ghost mini" id="playAllBtn" type="button" aria-pressed="false"
+                    title="Play every line in order, from the top" hidden>Play all</button>
+            <button class="btn ghost mini" id="queueAdd" type="button">Add more</button>
+            <button class="btn ghost mini" id="queueClear" type="button">Clear all</button>
+          </div>
+          <div class="queue" id="queue"></div>
+          <!-- Casting. Only worth showing once there are several clips, which
+               is the only time "who says this line" is a question. The chips
+               are the same cast as the puppet row and they do the same thing:
+               a click puts that character on the clip that is open. Cast a
+               couple of lines and "Deal in turn" fills the rest. -->
+          <div class="castbar" id="castBar" hidden>
+            <span class="casthead">Who says this line?</span>
+            <span class="castpick" id="castPick"></span>
+            <button class="btn ghost mini" id="castDeal" type="button" style="width:auto" disabled>Deal in turn</button>
+            <p class="hint" id="castHint">Click a face to put that character on the clip you have open. Cast the first two lines and “Deal in turn” fills the rest.</p>
+          </div>
+        </div>
+        <div class="intake-side">
+          <div class="loaded" id="loaded">
+            <div style="flex:1; min-width:0">
+              <div class="name" id="fileName">—</div>
+              <div class="meta mono" id="fileMeta">—</div>
+            </div>
+            <button class="btn icon ghost" id="clearBtn" title="Remove audio" aria-label="Remove audio">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <input type="file" id="fileInput" accept="audio/*,video/*,.wav,.mp3,.m4a,.ogg,.flac,.aac,.mp4,.mov,.webm,.m4v" multiple hidden>
+          <!-- The puppet, in with everything else that is loaded. Two rows
+               and a button: the invite while there is nothing behind the
+               mouth, the facts once there is, and "Add a puppet…" in both
+               states — adding a SECOND character is the thing a row that
+               only offers "Replace…" and "Remove" cannot say. -->
+          <div class="plate-row invite" id="puppetInvite" hidden>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="14" rx="2"/><circle cx="8.5" cy="9" r="1.6"/>
+              <path d="M21 15l-5-5-5.5 5.5L8 13l-5 5"/>
+            </svg>
+            <span class="hint">Nothing behind the mouth yet — add a photo or a video to put it on</span>
+            <span class="tspacer"></span>
+            <!-- Four drawn faces, filled in from FACES so the markup cannot fall
+                 out of step with the drawings. A face places the mouth and picks
+                 its own lip style as well as supplying the picture. -->
+            <span class="facepick"></span>
+          </div>
+          <div class="plate-row" id="plateRow" hidden>
+            <span class="plate-tag mono">PUPPET</span>
+            <b id="plateName">—</b>
+            <span class="mono" id="plateMeta">—</span>
+            <span class="tspacer"></span>
+            <button class="btn ghost mini" id="plateFlip" aria-pressed="false" style="width:auto" title="Mirror the puppet left to right">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"/><path d="M9 7 4 12l5 5z"/><path d="M15 7l5 5-5 5z"/></svg>
+              Flip
+            </button>
+            <!-- The same four chips again. The invite row they also live in is
+                 gone the moment there IS a puppet, and swapping one drawn face
+                 for another is exactly the thing you want to do then. -->
+            <span class="facepick"></span>
+            <button class="btn ghost mini" id="plateCrop" style="width:auto" hidden>Trim edges</button>
+            <button class="btn ghost mini" id="plateSwap" style="width:auto">Replace…</button>
+            <button class="btn ghost mini" id="plateDrop" style="width:auto">Remove</button>
+          </div>
+          <div class="puppetadd" id="puppetAddRow" hidden>
+            <button class="btn ghost mini" id="puppetPick" style="width:auto">Add a puppet…</button>
+            <input type="file" id="puppetInput" accept="image/*,video/*" hidden>
+            <span class="hint">A photo, a drawing or a video to put the mouth on. Add more than
+                  one and they become a cast you can deal round the clips.</span>
+          </div>
+          <p class="hint" id="puppetShortNote" hidden></p>
+          <p class="hint" id="codecNote" hidden></p>
+          <details class="diag" id="diagBox">
+            <summary>Diagnostics</summary>
+            <pre class="mono" id="diagText">—</pre>
+            <button class="btn ghost" id="diagCopy" style="font-size:11px; padding:4px 10px">Copy</button>
+          </details>
+        </div>
+    </div>
+  </section>
+  <!-- The stack, in the same tab as what is being worked on. Layers used to
+       be a tab of its own, one click away from the puppet it sits on top of,
+       which made "put this picture behind the character" a trip between two
+       screens. -->
+    <section class="panel">
+      <header>
+        <h2>Layers</h2>
+        <span class="hint">Top of the pile first — drag the grip to reorder</span>
+      </header>
+      <div class="panel-body">
+        <!-- The frame everything is composed into. Above the list because it is
+             the thing the list sits inside, and because changing it moves every
+             row underneath. -->
+        <div class="canvasrow">
+          <div class="lbl"><span>Canvas</span></div>
+          <select id="canvasPreset" aria-label="Canvas size"></select>
+          <span class="canvascustom" id="canvasCustom" hidden>
+            <input type="number" id="canvasW" min="16" max="8192" step="2" aria-label="Canvas width">
+            <span class="mono">×</span>
+            <input type="number" id="canvasH" min="16" max="8192" step="2" aria-label="Canvas height">
+          </span>
+          <span class="tspacer"></span>
+          <span class="mono" id="canvasNote">—</span>
+        </div>
+        <!-- Line boil: the wobble a drawing has when a human redraws it for
+             every frame. One setting for the whole stack so the layers breathe
+             together, with a per-layer opt-out in each layer's settings. -->
+        <div class="row">
+          <button class="btn ghost mini" id="layerAddImage" style="width:auto">Add a picture…</button>
+          <button class="btn ghost mini" id="layerAddText" style="width:auto">Add text</button>
+          <button class="btn ghost mini" id="layerAddShape" style="width:auto">Add a shape</button>
+          <!-- A balloon is the thing people come to a lip-sync tool wanting to
+               add, so it is one press rather than "add a shape, then find the
+               right entry in a list". The list has the rest. -->
+          <button class="btn ghost mini" id="layerAddBalloon" style="width:auto">Add a balloon</button>
+          <input type="file" id="layerImageInput" accept="image/*" hidden>
+        </div>
+        <!-- #layerEdit is moved INTO the list, directly beneath whichever row
+             is being edited, and parked back here when nothing is. This is its
+             home, not where it is usually seen. -->
+        <!-- Who is talking, stretch by stretch. Only worth showing once two
+             characters have mouths pinned — before that there is nobody to
+             choose between and the answer is obvious. -->
+        <div class="turnswrap" id="turnsWrap" hidden>
+          <div class="turnshead">
+            <span>WHO IS TALKING</span>
+            <span class="tspacer"></span>
+            <span class="hint" id="turnsNote">—</span>
+          </div>
+          <div class="turns" id="turnsList"></div>
+        </div>
+        <div id="layerPane">
+          <div class="layerlist" id="layerList"></div>
+          <div class="layeredit" id="layerEdit" hidden></div>
+        </div>
+        <div class="canvasrow boilrow">
+          <div class="lbl"><span>Line boil</span></div>
+          <label class="check"><input type="checkbox" id="boilOn"><span>On for every layer</span></label>
+          <!-- Boil is a different offset per FRAME, so a paused preview shows
+               one still position and the switch looks like it did nothing.
+               Saying "press play" in a hint was not enough; this plays the
+               couple of seconds for you and puts the playhead back. -->
+          <button class="btn ghost mini" id="boilTry" style="width:auto" disabled
+                  title="Run the preview through a couple of seconds so you can see the wobble">Try it</button>
+          <span class="hint" id="boilHint">The wobble of a line redrawn every few frames. Press play to see it — paused, it is one still position.</span>
+          <!-- The three sliders sit inside the same block as the switch, and
+               stay visible when it is off. Hidden until ticked, they read as
+               nothing happening: the switch moved and the panel looked the
+               same, which is exactly how this was reported. -->
+          <div class="boilset" id="boilControls">
+            <span class="fxpick" id="boilFx"></span>
+            <p class="hint" id="boilFxHint"></p>
+            <label class="slide" title="How far the drawing moves">
+              <span class="hint">intensity</span>
+              <input type="range" id="boilIntensity" min="1" max="12" step="1">
+              <input type="number" class="num" id="boilIntensityNum" min="1" max="12" step="1" aria-label="intensity, exactly">
+              <span class="mono" id="boilIntensityOut">—</span>
+            </label>
+            <label class="slide" title="How big each wobble is — low is a slow bend, high is a fine tremble">
+              <span class="hint">wobble scale</span>
+              <input type="range" id="boilGrain" min="1" max="10" step="1">
+              <input type="number" class="num" id="boilGrainNum" min="1" max="10" step="1" aria-label="wobble scale, exactly">
+              <span class="mono" id="boilGrainOut">—</span>
+            </label>
+            <label class="slide" title="How many distinct drawings cycle round. Each one is warped once and kept">
+              <span class="hint">drawings</span>
+              <input type="range" id="boilCount" min="2" max="12" step="1">
+              <input type="number" class="num" id="boilCountNum" min="2" max="12" step="1" aria-label="drawings, exactly">
+              <span class="mono" id="boilCountOut">—</span>
+            </label>
+            <label class="slide" title="How fast the drawings cycle, in their own frames a second">
+              <span class="hint">frame rate</span>
+              <input type="range" id="boilFps" min="2" max="30" step="1">
+              <input type="number" class="num" id="boilFpsNum" min="2" max="30" step="1" aria-label="frame rate, exactly">
+              <span class="mono" id="boilFpsOut">—</span>
+            </label>
+            <label class="slide" title="How much the wobble sticks to the lines. 0 warps everything evenly; high leaves flat fills still">
+              <span class="hint">lines only</span>
+              <input type="range" id="boilEdges" min="0" max="100" step="1">
+              <input type="number" class="num" id="boilEdgesNum" min="0" max="100" step="1" aria-label="lines only, exactly">
+              <span class="mono" id="boilEdgesOut">—</span>
+            </label>
+            <label class="slide" title="A different set of drawings from the same settings">
+              <span class="hint">seed</span>
+              <input type="range" id="boilSeed" min="1" max="999" step="1">
+              <input type="number" class="num" id="boilSeedNum" min="1" max="999" step="1" aria-label="seed, exactly">
+              <span class="mono" id="boilSeedOut">—</span>
+            </label>
+            <label class="check"><input type="checkbox" id="boilPingpong"><span>Back and forth</span></label>
+            <label class="check"><input type="checkbox" id="boilSmooth"><span>Smooth</span></label>
+            <button class="btn ghost mini" id="boilReroll" style="width:auto" title="A new seed">Reroll</button>
+          </div>
+        </div>
+        <p class="hint">Everything here is drawn into every export, in this order. The eye hides a layer from the stage <b>and</b> from what comes out. A video layer is held at the back — a browser will not let a page draw a playing video into a canvas reliably, so it has to stay underneath.</p>
+      </div>
+    </section>
+  </div>
+
+  <div class="tabpane" id="tab-mouth" role="tabpanel" aria-labelledby="tabBtn-mouth" hidden>
+    <!-- Stacked, not side by side: the style picker is a grid of thumbnails
+         and wants the width, and the chart underneath is read left to right a
+         row at a time. Beside each other, both were squeezed. -->
+    <div class="tabcols wide">
+    <section class="panel">
+      <header>
+        <h2>Mouth style</h2>
+        <span class="hint" id="styleScope" hidden></span>
+      </header>
+      <div class="panel-body">
+        <!-- With a queue up, the picker is per clip: whatever is chosen here
+             belongs to the clip that is open. That is what makes two speakers
+             with different mouths possible, so it has to be said out loud. -->
+        <div class="scopebar" id="styleScopeBar" hidden>
+          <span class="hint" id="styleScopeText"></span>
+          <span class="tspacer"></span>
+          <button class="btn ghost mini" id="styleToAll" title="Give every clip in the queue these lips">All clips</button>
+          <button class="btn ghost mini" id="styleToEvery2" title="Give these lips to this clip and every second one after it — two speakers taking turns">Every other clip</button>
+        </div>
+        <div class="subtabs" id="styleTabs" role="tablist" aria-label="Where the mouth art comes from">
+          <button class="subtab" id="styleBtn-builtin" role="tab" aria-controls="stylepane-builtin" aria-selected="true">Built-in lips</button>
+          <button class="subtab" id="styleBtn-mine" role="tab" aria-controls="stylepane-mine" aria-selected="false">Custom lips</button>
+        </div>
+
+        <div id="stylepane-builtin" role="tabpanel" aria-labelledby="styleBtn-builtin">
+          <!-- A mouth chart belongs to a head angle: the same nine shapes drawn
+               for a character facing the camera are wrong on one that has
+               turned. Same fifteen styles in each, so a character can keep its
+               look through a turn. -->
+          <div class="subtabs sub2" id="viewTabs" role="tablist" aria-label="Head angle">
+            <button class="subtab" id="viewBtn-front" role="tab" aria-controls="viewpane-front" aria-selected="true">Front</button>
+            <button class="subtab" id="viewBtn-three" role="tab" aria-controls="viewpane-three" aria-selected="false">Three-quarter</button>
+            <button class="subtab" id="viewBtn-profile" role="tab" aria-controls="viewpane-profile" aria-selected="false">Profile</button>
+          </div>
+          <div id="viewpane-front" role="tabpanel" aria-labelledby="viewBtn-front">
+            <div class="styles" id="styles"></div>
+          </div>
+          <div id="viewpane-three" role="tabpanel" aria-labelledby="viewBtn-three" hidden>
+            <div class="styles" id="styles-three"></div>
+            <p class="hint">Turned about 35°, facing right. The far corner is foreshortened and tucks behind the cheek; the near half keeps almost its width.</p>
+          </div>
+          <div id="viewpane-profile" role="tabpanel" aria-labelledby="viewBtn-profile" hidden>
+            <div class="styles" id="styles-profile"></div>
+            <p class="hint">Side on, facing right. Width becomes protrusion and the jaw does the opening, so <b class="mono">B C D</b> read less distinctly than they do front-on — that is true of profile lip sync generally, not just here.</p>
+          </div>
+        </div>
+
+        <div id="stylepane-mine" role="tabpanel" aria-labelledby="styleBtn-mine" hidden
+             style="display:flex; flex-direction:column; gap:11px">
+          <div class="styles" id="lipsets"></div>
+          <p class="hint" id="lipsStatus"></p>
+          <div class="row">
+            <button class="btn ghost" id="lipsPick" style="width:auto">Use my own lips…</button>
+            <input type="file" id="lipsInput" webkitdirectory directory multiple hidden>
+            <button class="btn ghost" id="lipsRemap" style="width:auto" disabled
+                    title="Say which picture belongs to which of the nine shapes">Match pictures to shapes…</button>
+          </div>
+          <p class="hint">Pick a folder of nine pictures named for the shapes — <b class="mono">X A B C D E F G H</b>. If they are named some other way the shapes are matched as best they can be, and <b>Match pictures to shapes…</b> lets you put any of the nine right by hand. The folder stays on this page for this visit only: nothing is uploaded, nothing is kept, and reloading clears it.</p>
+        </div>
+
+      </div>
+    </section>
+    <section class="panel">
+      <header><h2>Chart</h2></header>
+      <div class="panel-body" style="padding:11px">
+        <div class="chart" id="chart"></div>
+        <p class="hint" style="margin-top:2px">Preston Blair shapes, the same set Rhubarb writes. Click any cell to preview it on the stage.</p>
+      </div>
+    </section>
+    </div>
+  </div>
+
+  <div class="tabpane" id="tab-export" role="tabpanel" aria-labelledby="tabBtn-export" hidden>
+    <div class="tabcols wide">
+    <section class="panel">
+      <header><h2>Export</h2></header>
+      <div class="panel-body">
+        <div class="field">
+          <div class="lbl"><span>Output size</span></div>
+          <select id="outSize">
+            <option value="256">256 × 256</option>
+            <option value="512" selected>512 × 512</option>
+            <option value="1024">1024 × 1024</option>
+            <option value="2048">2048 × 2048</option>
+          </select>
+        </div>
+        <!-- One question, asked once: which clips? The cards below are the
+             formats, and each card's own options are what a run uses. A second
+             list of format tick-boxes up here was the thing that made this tab
+             confusing — it named every format twice and left the options that
+             actually governed a batch sitting in the cards, unexplained. -->
+        <section class="batch" id="batchCard" hidden>
+          <h3>Exporting <span id="batchCount">0 clips</span></h3>
+          <!-- The one question, asked once and at the top: all of them, or the
+               one in front of you. It sets every card below; a card can still
+               be set differently afterwards, which is how you pull a single
+               Final Cut project out of a batch of GIFs. -->
+          <div class="scoperow all" id="scopeAllRow" role="radiogroup" aria-label="What the exports act on">
+            <button type="button" class="scopebtn" id="scopeAll" role="radio" data-scope="queue">All clips</button>
+            <button type="button" class="scopebtn" id="scopeOne" role="radio" data-scope="one">Just this clip</button>
+            <span class="hint" id="scopeMixed" hidden>set per format below</span>
+          </div>
+          <p class="hint" id="batchHint"></p>
+          <div class="scoperow">
+            <button class="btn ghost mini" id="batchStop" hidden>Stop</button>
+            <span id="batchStatus">Ready.</span>
+          </div>
+        </section>
+
+
+        <div class="expgrid">
+        <div class="exp">
+          <div class="exphead">
+            <svg class="expicon" viewBox="0 0 28 28" aria-hidden="true">
+              <rect x="2" y="5" width="24" height="18" rx="3" fill="#00B140"/>
+              <path d="M11.5 10.5v7l6-3.5z" fill="#fff"/>
+            </svg>
+            <h3>Chroma-key MP4</h3>
+            <button type="button" class="infobtn" aria-expanded="false" aria-controls="infoMp4" aria-label="About the chroma-key MP4 export">i</button>
+          </div>
+          <div class="keyrow">
+            <span id="swatches" class="swatches"></span>
+            <input type="color" id="keyColor" value="#00B140" aria-label="Key colour">
+          </div>
+          <label class="check" style="font-size:11.5px"><input type="checkbox" id="keyAudio" checked><span>Include the voice track</span></label>
+          <label class="check" hidden style="font-size:11.5px"><input type="checkbox" id="mp4Plate"><span>Include the other layers</span></label>
+          <label class="check" hidden style="font-size:11.5px"><input type="checkbox" id="mp4Fx" checked><span>Include the effects — line boil, drop shadows</span></label>
+          <span class="est mono" id="estMp4">—</span>
+          <p class="hint warn" id="mp4Warn" hidden></p>
+          <button class="btn" id="expMp4" disabled>Export chroma-key MP4</button>
+          <div class="expinfo" id="infoMp4" hidden>
+            <p>The mouth over a solid key colour at your frame rate, with the voice track muxed in. Drop it on a timeline and key the background out.</p>
+            <p>Video chroma is half-resolution, so the key edge is softer than the PNG alpha. For a clean matte, use the frame sequence. With the puppet behind it the frame becomes the whole picture at the puppet's own proportions, and a cut-out puppet's transparency fills with the key colour — so keying it out cuts it out again on the far side.</p>
+          </div>
+        </div>
+
+        <div class="exp">
+          <div class="exphead">
+            <svg class="expicon" viewBox="0 0 28 28" aria-hidden="true">
+              <rect x="2" y="12" width="24" height="5" rx="1.5" fill="#4A90C4"/>
+              <rect x="6" y="5.5" width="10" height="4.5" rx="1.5" fill="#8A6FC9"/>
+              <rect x="13" y="19" width="10" height="4.5" rx="1.5" fill="#3D9E86"/>
+            </svg>
+            <h3>Final Cut Pro project</h3>
+            <button type="button" class="infobtn" aria-expanded="false" aria-controls="infoFcp" aria-label="About the Final Cut Pro export">i</button>
+          </div>
+          <div class="row">
+            <select id="fcpSize" aria-label="Timeline size">
+              <option value="video" id="fcpSizeVideo" hidden>Match the video</option>
+              <option value="1920x1080" selected>1920 × 1080</option>
+              <option value="3840x2160">3840 × 2160</option>
+              <option value="1080x1920">1080 × 1920 (vertical)</option>
+            </select>
+          </div>
+          <input type="text" id="fcpFolder" class="pathfield" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="/Users/you/Movies/Lip sync — optional" aria-label="Folder the media will live in">
+          <label class="check"><input type="checkbox" id="fcpCompound" checked><span id="fcpCompoundLabel">Wrap the mouths in a Compound Clip</span></label>
+          <label class="check" hidden><input type="checkbox" id="fcpPlate"><span>Include the other layers</span></label>
+          <label class="check"><input type="checkbox" class="withaud" id="audFcp"><span>Include the voice track</span></label>
+          <span class="est mono" id="estFcp">—</span>
+          <p class="hint warn" id="fcpPoseNote" hidden>The puppet has been moved on the stage, and it is a video. Final Cut gets the clip as it is — place it there to match.</p>
+          <p class="hint" id="fcpBatchNote" hidden><b>Batch Export</b> gives you one project holding every clip on one timeline in load order, each as its own compound clip — not a project apiece. For one clip's own project, switch to <b>Current Selection Export</b>.</p>
+          <button class="btn" id="expFcp" disabled>Export Final Cut project</button>
+          <div class="expinfo" id="infoFcp" hidden>
+          <p>An <b>.fcpxml</b> project plus full-frame transparent PNGs, one clip per run of frames. File &gt; Import &gt; XML in Final Cut, then paste the clips over your footage — no transform needed, the placement is already baked in. Keyframes and the blur patch stay out of it; those belong to the overlay video.</p>
+          <p class="hint">Wrapped, the run of mouth clips arrives as one item you can slide, trim and stack in one go; open it to get at the individual shapes. Untick to drop the bare clips straight onto the spine. Leave the folder empty and the project points at the PNGs beside it, so the unzipped folder just works. Fill it in with where the folder will end up and the paths become absolute. Either way, if Final Cut shows the clips as missing, <b>File &gt; Relink Files</b> reconnects them all at once. <b>Include the other layers</b> ships the puppet itself in the zip and puts it on the storyline with the mouths connected above — a layer you can still move, not pixels baked together. <b>Include the voice track</b> puts the audio in the project too, connected below the mouths at 00:00, so there is nothing left to drag in.</p>
+          </div>
+        </div>
+
+        <div class="exp" id="expOverlayCard" hidden>
+          <div class="exphead">
+            <svg class="expicon" viewBox="0 0 28 28" aria-hidden="true">
+              <rect x="2" y="3" width="24" height="22" rx="3.5" fill="#2F3A47"/>
+              <circle cx="14" cy="13" r="8" fill="#F0C9A8"/>
+              <circle cx="11.2" cy="11.4" r="1.15" fill="#2F3A47"/>
+              <circle cx="16.8" cy="11.4" r="1.15" fill="#2F3A47"/>
+              <path d="M10.6 16.2c2.2 2.2 4.6 2.2 6.8 0z" fill="#B8556F"/>
+            </svg>
+            <h3>Video with mouth overlay</h3>
+            <button type="button" class="infobtn" aria-expanded="false" aria-controls="infoOverlay" aria-label="About the overlay video export">i</button>
+          </div>
+          <div class="row">
+            <select id="ovFps" aria-label="Output frame rate">
+              <option value="24">24 fps</option>
+              <option value="25" selected>25 fps</option>
+              <option value="30">30 fps</option>
+            </select>
+            <select id="ovSize" aria-label="Output size">
+              <option value="720">720p-ish</option>
+              <option value="1080" selected>Source size</option>
+              <option value="1920">Up to 1920</option>
+            </select>
+          </div>
+          <!-- What goes into it. The overlay video is the one export whose
+               base is your own footage, so "the mouth on my footage and
+               nothing else" is a real thing to want — and so is everything
+               that is on the stage, which is what it does by default. -->
+          <label class="check" style="font-size:11.5px"><input type="checkbox" id="ovLayers" checked><span>Include the other layers</span></label>
+          <label class="check" style="font-size:11.5px"><input type="checkbox" id="ovFx" checked><span>Include the effects — line boil, drop shadows</span></label>
+          <span class="est mono" id="estOverlay">—</span>
+          <span class="est mono" id="audioPlan">—</span>
+          <p class="hint warn" id="videoWarn" hidden>This browser cannot decode the picture in this file, so there is nothing to burn the mouth onto. Re-wrap the clip as H.264 and it will work.</p>
+          <p class="hint" id="ovBatchNote" hidden>This renders about as long as the clip runs, so it is the export that wants watching rather than queueing.</p>
+          <button class="btn" id="expOverlay" disabled>Export overlay video</button>
+          <div class="expinfo" id="infoOverlay" hidden>
+            <p>Burns the mouth into your source video where you placed it. Stepped frame by frame, so it never drifts — expect it to take longer than the clip runs.</p>
+            <p>Best on a locked-off shot — the mouth stays where you put it, it does not track the face. A video cannot hold transparency, so a cut-out puppet comes out on black here; for a cut-out, use the animated PNG or the frame sequence with <b>Include the other layers</b>.</p>
+          </div>
+        </div>
+
+        <!-- The scene. Only there when there is a queue, because one clip is
+             not a conversation. Deliberately above the per-clip cards: once a
+             take has been cut into lines and cast, this is the one most people
+             actually want, and leaving it at the bottom hides it behind eight
+             exports of a single line. -->
+        <div class="exp" id="expScene" hidden>
+          <div class="exphead">
+            <svg class="expicon" viewBox="0 0 28 28" aria-hidden="true">
+              <circle cx="9.5" cy="10" r="4.2" fill="#4A90C4"/>
+              <path d="M2.5 24c.8-3.8 3.3-5.8 7-5.8s6.2 2 7 5.8z" fill="#4A90C4"/>
+              <circle cx="19" cy="10" r="4.2" fill="#C9603F"/>
+              <path d="M12 24c.8-3.8 3.3-5.8 7-5.8s6.2 2 7 5.8z" fill="#C9603F"/>
+            </svg>
+            <h3>The whole scene</h3>
+            <button type="button" class="infobtn" aria-expanded="false" aria-controls="infoScene" aria-label="About the scene export">i</button>
+          </div>
+          <p class="hint" id="sceneLine">—</p>
+          <label class="check"><input type="checkbox" id="convLoop" checked><span>Loop forever</span></label>
+          <label class="check"><input type="checkbox" id="convAudio" checked><span>Include the joined voice track</span></label>
+          <span class="est mono" id="estScene">—</span>
+          <div class="scenebtns">
+            <button class="btn" id="expSceneApng" disabled>Scene as animated PNG</button>
+            <button class="btn ghost" id="expSceneGif" disabled>as GIF</button>
+          </div>
+          <div class="expinfo" id="infoScene" hidden>
+            <p>Every clip in the queue, end to end, in one file — each line wearing whoever was cast on it. The zip holds the picture, the joined voice track and a note listing the lines with their timings.</p>
+            <p>The clips are butted together rather than placed at their original offsets. A split cuts on the middle of a pause, so half of each pause ends one line and half begins the next; end to end reproduces the original timing, and anything dropped stays dropped.</p>
+            <p>The frame is taken from the first line. Placements are fractions of the frame and a puppet keeps its own shape, so a line with a differently proportioned character sits in the middle of the frame rather than being stretched — set a canvas if you want a particular size for the whole scene.</p>
+            <p>The animated PNG is the one to use: a real alpha channel, every colour, one walk through the queue. The GIF has to count a palette across the whole scene before it can index any of it, so it walks the queue twice and takes about double the time.</p>
+          </div>
+        </div>
+
+        <div class="exp">
+          <div class="exphead">
+            <svg class="expicon" viewBox="0 0 28 28" aria-hidden="true">
+              <rect x="2.5" y="5" width="23" height="18" rx="3" fill="#E7EAEF"/>
+              <rect x="2.5" y="5" width="5.75" height="4.5" fill="#B9C0CB"/>
+              <rect x="14" y="5" width="5.75" height="4.5" fill="#B9C0CB"/>
+              <rect x="8.25" y="9.5" width="5.75" height="4.5" fill="#B9C0CB"/>
+              <rect x="19.75" y="9.5" width="5.75" height="4.5" fill="#B9C0CB"/>
+              <rect x="2.5" y="14" width="5.75" height="4.5" fill="#B9C0CB"/>
+              <rect x="14" y="14" width="5.75" height="4.5" fill="#B9C0CB"/>
+              <rect x="8.25" y="18.5" width="5.75" height="4.5" fill="#B9C0CB"/>
+              <rect x="19.75" y="18.5" width="5.75" height="4.5" fill="#B9C0CB"/>
+              <rect x="2.5" y="5" width="23" height="18" rx="3" fill="none" stroke="#8A6FC9" stroke-width="2"/>
+            </svg>
+            <h3>Transparent GIF</h3>
+            <button type="button" class="infobtn" aria-expanded="false" aria-controls="infoGif" aria-label="About the transparent GIF export">i</button>
+          </div>
+          <label class="check"><input type="checkbox" id="gifLoop"><span>Loop forever</span></label>
+          <label class="check" hidden><input type="checkbox" id="gifPlate"><span>Include the other layers</span></label>
+          <label class="check" hidden><input type="checkbox" id="gifFx" checked><span>Include the effects — line boil, drop shadows</span></label>
+          <label class="check"><input type="checkbox" class="withaud" id="audGif"><span>Include the voice track</span></label>
+          <span class="est mono" id="estGif">—</span>
+          <button class="btn" id="expGif" disabled>Export transparent GIF</button>
+          <div class="expinfo" id="infoGif" hidden>
+            <p>The mouth on its own, animated, with a see-through background. Drops onto a slide, a web page or a chat window without a matte.</p>
+            <p>GIF transparency is one colour, not an alpha channel, so the soft edge of the mouth becomes a hard one and the picture is cut to 255 colours. For a clean edge over video, use the animated PNG, the frame sequence or the Final Cut project. With <b>Include the other layers</b> ticked every frame is the whole picture, so the long edge is held to 800px however big an output size is chosen — a GIF stores each frame whole and a full-size one is unusable.</p>
+          </div>
+        </div>
+
+        <div class="exp">
+          <div class="exphead">
+            <svg class="expicon" viewBox="0 0 28 28" aria-hidden="true">
+              <rect x="3" y="3.5" width="18" height="14" rx="2.5" fill="#B9C0CB"/>
+              <rect x="7" y="8" width="18" height="16" rx="2.5" fill="#3D9E86"/>
+              <circle cx="12" cy="13" r="1.9" fill="#fff"/>
+              <path d="M9 21.5l4.2-5 3 3.4 2.4-2.6 4.4 4.2z" fill="#fff" opacity=".9"/>
+            </svg>
+            <h3>Animated PNG</h3>
+            <button type="button" class="infobtn" aria-expanded="false" aria-controls="infoApng" aria-label="About the animated PNG export">i</button>
+          </div>
+          <label class="check"><input type="checkbox" id="apngLoop"><span>Loop forever</span></label>
+          <label class="check" hidden><input type="checkbox" id="apngPlate"><span>Include the other layers</span></label>
+          <label class="check" hidden><input type="checkbox" id="apngFx" checked><span>Include the effects — line boil, drop shadows</span></label>
+          <label class="check"><input type="checkbox" class="withaud" id="audApng"><span>Include the voice track</span></label>
+          <span class="est mono" id="estApng">—</span>
+          <button class="btn" id="expApng" disabled>Export animated PNG</button>
+          <div class="expinfo" id="infoApng" hidden>
+            <p>The same animation as the GIF in a single file, but with a real alpha channel and every colour. One <span class="mono">.png</span> that plays.</p>
+            <p>Soft edges survive, so it sits over video without a matte and without the GIF's staircase. Bigger than a GIF — every frame carries its own pixels. Anything that does not animate APNG shows the first frame instead of failing.</p>
+          </div>
+        </div>
+
+        <div class="exp">
+          <div class="exphead">
+            <svg class="expicon" viewBox="0 0 28 28" aria-hidden="true">
+              <rect x="2.5" y="3.5" width="7" height="6" rx="1.5" fill="#B8556F"/>
+              <rect x="10.5" y="3.5" width="7" height="6" rx="1.5" fill="#4A90C4"/>
+              <rect x="18.5" y="3.5" width="7" height="6" rx="1.5" fill="#3D9E86"/>
+              <rect x="2.5" y="11" width="7" height="6" rx="1.5" fill="#D3902F"/>
+              <rect x="10.5" y="11" width="7" height="6" rx="1.5" fill="#8A6FC9"/>
+              <rect x="18.5" y="11" width="7" height="6" rx="1.5" fill="#C9603F"/>
+              <rect x="2.5" y="19" width="23" height="2.2" rx="1.1" fill="#6E7885"/>
+              <rect x="2.5" y="23" width="15" height="2.2" rx="1.1" fill="#6E7885"/>
+            </svg>
+            <h3>Chart + exposure sheet</h3>
+            <button type="button" class="infobtn" aria-expanded="false" aria-controls="infoChart" aria-label="About the chart and exposure sheet export">i</button>
+          </div>
+          <label class="check"><input type="checkbox" class="withaud" id="audChart"><span>Include the voice track</span></label>
+          <span class="est mono" id="estChart">—</span>
+          <button class="btn" id="expChart" disabled>Export chart + timing</button>
+          <div class="expinfo" id="infoChart" hidden>
+            <p>One PNG per shape, plus frame-by-frame timing as JSON and CSV. The small, sane option for After Effects, Blender or Spine.</p>
+          </div>
+        </div>
+
+        <div class="exp">
+          <div class="exphead">
+            <svg class="expicon" viewBox="0 0 28 28" aria-hidden="true">
+              <rect x="2.5" y="2.5" width="23" height="23" rx="3" fill="#D3902F"/>
+              <path d="M10.2 2.5v23M17.8 2.5v23M2.5 10.2h23M2.5 17.8h23"
+                    stroke="#fff" stroke-width="1.6" opacity=".85"/>
+            </svg>
+            <h3>Sprite sheet + atlas</h3>
+            <button type="button" class="infobtn" aria-expanded="false" aria-controls="infoSprite" aria-label="About the sprite sheet export">i</button>
+          </div>
+          <label class="check" hidden><input type="checkbox" id="spritePlate"><span>Include the other layers</span></label>
+          <label class="check" hidden><input type="checkbox" id="spriteFx" checked><span>Include the effects — line boil, drop shadows</span></label>
+          <label class="check"><input type="checkbox" class="withaud" id="audSprite"><span>Include the voice track</span></label>
+          <span class="est mono" id="estSprite">—</span>
+          <button class="btn" id="expSprite" disabled>Export sprite sheet</button>
+          <div class="expinfo" id="infoSprite" hidden>
+            <p>Every shape packed into one PNG with a coordinate map, for game engines and web animation.</p>
+            <p>With the puppet behind it the cells become whole pictures: nine of them for a still puppet that is not being moved, and one per frame for a video or a keyframed move, with an added <span class="mono">sequence</span> list in the atlas saying which cell each frame wants. The sheet is held to 4096px either way.</p>
+          </div>
+        </div>
+
+        <div class="exp">
+          <div class="exphead">
+            <svg class="expicon" viewBox="0 0 28 28" aria-hidden="true">
+              <rect x="2" y="6" width="24" height="16" rx="2.5" fill="#2F3A47"/>
+              <rect x="7.5" y="9" width="13" height="10" rx="1.5" fill="#00C878"/>
+              <path d="M4 8.2h2.2M4 11.5h2.2M4 14.8h2.2M4 18.1h2.2M21.8 8.2H24M21.8 11.5H24M21.8 14.8H24M21.8 18.1H24"
+                    stroke="#E7EAEF" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <h3>PNG frame sequence</h3>
+            <button type="button" class="infobtn" aria-expanded="false" aria-controls="infoSeq" aria-label="About the frame sequence export">i</button>
+          </div>
+          <label class="check"><input type="checkbox" class="withaud" id="audSeq"><span>Include the voice track</span></label>
+          <label class="check" hidden><input type="checkbox" id="seqPlate"><span>Include the other layers</span></label>
+          <label class="check" hidden><input type="checkbox" id="seqFx" checked><span>Include the effects — line boil, drop shadows</span></label>
+          <span class="est mono" id="estSeq">—</span>
+          <button class="btn" id="expSeq" disabled>Export PNG frame sequence</button>
+          <div class="expinfo" id="infoSeq" hidden>
+            <p>One transparent PNG for every frame, numbered. Drops straight onto a timeline — and gets big fast.</p>
+            <p>With <b>Include the other layers</b> ticked every frame is the whole picture at the puppet's own size, transparency and all; untick it for the mouth on its own.</p>
+          </div>
+        </div>
+        </div>
+
+        <div class="progress" id="progress"><i id="progressBar"></i></div>
+      </div>
+    </section>
+    </div>
+  </div>
+  <div class="tabpane" id="tab-settings" role="tabpanel" aria-labelledby="tabBtn-settings" hidden>
+    <div class="tabcols wide">
+    <section class="panel">
+      <header>
+        <h2>Analysis</h2>
+        <button class="btn ghost" id="resetBtn" style="width:auto; padding:3px 9px; font-size:11px">Reset</button>
+      </header>
+      <div class="panel-body">
+        <div class="field">
+          <div class="lbl"><span>Engine</span></div>
+          <select id="engineSel">
+            <option value="dsp">Built-in DSP — instant</option>
+            <option value="rhubarb">Rhubarb — PocketSphinx</option>
+          </select>
+          <p class="hint" id="engineNote"></p>
+        </div>
+
+        <div class="field">
+          <div class="lbl"><span>Frame rate</span></div>
+          <select id="fps">
+            <option value="8">8 fps — limited animation</option>
+            <option value="12" selected>12 fps — animate on twos</option>
+            <option value="24">24 fps — film</option>
+            <option value="25">25 fps — PAL</option>
+            <option value="30">30 fps — video</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <div class="lbl"><span>Silence gate</span><span class="val" id="gateVal">12 dB</span></div>
+          <input type="range" id="gate" min="2" max="30" step="1" value="12">
+          <p class="hint">Above the noise floor. Raise it if a hissy room keeps the mouth chattering through pauses.</p>
+        </div>
+
+        <div class="field">
+          <div class="lbl"><span>Vocal tract size</span><span class="val" id="vsVal">1.00</span></div>
+          <input type="range" id="vs" min="0.75" max="1.35" step="0.01" value="1">
+          <p class="hint">Shifts the vowel map. Lower for deeper voices, higher for lighter or younger ones — nudge it until "ee" and "oo" land on the right shapes. Built-in engine only.</p>
+        </div>
+
+        <div class="field">
+          <div class="lbl"><span>Minimum hold</span><span class="val" id="holdVal">2 frames</span></div>
+          <input type="range" id="hold" min="1" max="5" step="1" value="2">
+          <p class="hint">Shapes shorter than this get absorbed. This is what kills one-frame flicker.</p>
+        </div>
+
+        <label class="check"><input type="checkbox" id="closures" checked>
+          <span>Close the mouth into pauses<br><span class="hint">Drops an <b class="mono">A</b> on the last frame before silence, the way a hand-timed chart would.</span></span>
+        </label>
+        <label class="check"><input type="checkbox" id="detectL">
+          <span>Detect <b class="mono">L</b> (experimental)<br><span class="hint">Tongue shapes are hard to hear. Off by default — those frames become <b class="mono">C</b>/<b class="mono">E</b> instead.</span></span>
+        </label>
+      </div>
+    </section>
+  <!-- The words under the sheet, and the two controls that are aimed at the
+       mouth. Both belong with what is loaded rather than with the timing. -->
+  <section class="panel scriptbar" id="scriptBar" hidden>
+    <header>
+      <h2>Script</h2>
+      <button class="btn ghost" id="scriptClear" style="width:auto; padding:3px 9px; font-size:11px">Clear</button>
+    </header>
+    <div class="panel-body">
+      <textarea id="scriptText" rows="4" placeholder="Paste what is being said…"></textarea>
+      <button class="btn" id="scriptAlign">Align to the audio</button>
+      <p class="hint" id="scriptStatus">The words are spread across the phrases the analyser found, by syllable count, and drawn under the sheet. It lines you up with the timeline — it is not a transcription.</p>
+    </div>
+  </section>
+    </div>
+  </div>
+
+
+  <!-- Where the blur row waits while the mouth's own settings are closed. It
+       is the SAME element, moved, rather than a second copy: two controls
+       claiming to be #patchOn is how one of them silently stops working. -->
+  <div id="rowPark" hidden>
+    <div class="ov-row flat" id="patchRow" hidden>
+      <label class="check"><input type="checkbox" id="patchOn"><span>Blur patch</span></label>
+      <label class="sl"><span>Blur</span><input type="range" id="patchBlur" min="0" max="100" value="35" aria-label="Blur strength"></label>
+      <label class="sl"><span>Cover</span><input type="range" id="patchCover" min="40" max="280" value="125" aria-label="Blur coverage"></label>
+      <p class="hint" style="flex:1 1 100%">Blurs the picture under the mouth, to cover the one printed on a doll or a minifigure. Video export only — it cannot go into the Final Cut project, because a transparent PNG has nothing under it to blur.</p>
+    </div>
+  </div>
+
+</main>
+</div>
+</div>
+
+
+<!-- The one thing that keeps moving when the main thread does not. -->
+<div class="working" id="working" role="status" aria-live="polite" hidden>
+  <span class="spinner" aria-hidden="true"></span>
+  <span id="workingMsg">Working…</span>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- The automatic match goes by filename and is wrong in ways nobody can fix
+     from outside: a folder of 1.png … 9.png carries no clue at all, and one
+     calling its wide-open shape "aah" lands it on A. Renaming and re-importing
+     works but is a poor answer once the set is already on the page. -->
+<dialog class="dlg" id="remapDlg" aria-labelledby="remapTitle">
+  <form method="dialog" class="dlg-in">
+    <header class="dlg-head">
+      <h2 id="remapTitle">Match pictures to shapes</h2>
+      <p class="hint" id="remapSub"></p>
+    </header>
+    <div class="remap" id="remapRows"></div>
+    <footer class="dlg-foot">
+      <button class="btn ghost" type="button" id="remapAuto" style="width:auto">Match by name again</button>
+      <span class="tspacer"></span>
+      <button class="btn" id="remapDone" style="width:auto">Done</button>
+    </footer>
+  </form>
+</dialog>
+
