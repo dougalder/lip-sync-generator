@@ -1,5 +1,5 @@
 # Lip Sync Generator
-
+[🚀 Launch Lip Sinc Generator ](https://dougalder.github.io/lip-sync-generator/lip-sync-generator.html)
 **Spoken audio in, viseme timing and transparent frames out.**
 
 One HTML file. Open it in a browser and it works — no install, no account, no
